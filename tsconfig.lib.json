@@ -1,0 +1,13 @@
+{
+  "include": ["lib/**/*", "types/ember.d.ts", "types/global.d.ts"],
+  "compilerOptions": {
+    "rootDir": "lib",
+    "allowJs": true,
+    "target": "ES2020",
+    "module": "CommonJS",
+    "noEmitOnError": false,
+    "esModuleInterop": true,
+    "declaration": true,
+    "outDir": "dist/lib"
+  }
+}

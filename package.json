@@ -1,0 +1,144 @@
+{
+  "name": "ember-vite-hmr",
+  "version": "0.1.0",
+  "keywords": [
+    "ember-addon"
+  ],
+  "private": false,
+  "description": "Builds EmberJS apps with Webpack Dev Server and Hot Reload",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/patricklx/ember-webpack-hot-reload"
+  },
+  "license": "MIT",
+  "author": "Patrick Pircher",
+  "main": "dist/lib/ember-webpack.js",
+  "files": [
+    "addon-main.cjs",
+    "dist"
+  ],
+  "scripts": {
+    "build": "concurrently 'pnpm:build:*'",
+    "build:js": "rollup --config",
+    "build:lib": "tsc --p tsconfig.lib.json",
+    "build:types": "glint --declaration",
+    "lint": "concurrently 'npm:lint:*(!fix)' --names 'lint:'",
+    "lint:fix": "concurrently 'npm:lint:*:fix' --names 'fix:'",
+    "lint:hbs": "ember-template-lint . --no-error-on-unmatched-pattern",
+    "lint:js": "eslint . --cache",
+    "lint:prettier": "prettier --check .",
+    "lint:hbs:fix": "ember-template-lint . --fix --no-error-on-unmatched-pattern",
+    "lint:js:fix": "eslint . --fix",
+    "lint:prettier:fix": "prettier --w .",
+    "lint:types": "glint",
+    "start": "concurrently 'npm:start:*'",
+    "start:js": "rollup --config --watch --no-watch.clearScreen",
+    "start:types": "glint --declaration --watch",
+    "test": "vitest",
+    "prepack": "pnpm build || echo 'its okay'"
+  },
+  "dependencies": {
+    "@glimmer/syntax": "^0.88.1",
+    "@babel/core": "^7.23.2",
+    "@babel/plugin-transform-typescript": "^7.22.15",
+    "@embroider/addon-shim": "^1.0.0",
+    "@embroider/babel-loader-9": "^3.1.0",
+    "@embroider/hbs-loader": "^3.0.2",
+    "@embroider/shared-internals": "^2.5.0",
+    "@types/supports-color": "^8.1.0",
+    "assert-never": "^1.2.1",
+    "babel-loader": "^8.2.2",
+    "babel-preset-env": "^1.7.0",
+    "css-loader": "^5.2.6",
+    "csso": "^4.2.0",
+    "debug": "^4.3.4",
+    "escape-string-regexp": "^4.0.0",
+    "fs-extra": "^9.1.0",
+    "html-webpack-plugin": "^5.5.3",
+    "vite": "^5.0.12",
+    "vitest": "^1.2.2",
+    "jsdom": "^16.6.0",
+    "lodash": "^4.17.21",
+    "mini-css-extract-plugin": "^2.5.3",
+    "semver": "^7.3.5",
+    "source-map-url": "^0.4.1",
+    "style-loader": "^2.0.0",
+    "supports-color": "^8.1.0",
+    "terser": "^5.7.0",
+    "thread-loader": "^3.0.4",
+    "webpack-dev-server": "^4.15.1"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.19.1",
+    "@babel/plugin-proposal-class-properties": "^7.16.7",
+    "@babel/plugin-proposal-decorators": "^7.20.13",
+    "@babel/plugin-transform-class-static-block": "^7.20.0",
+    "@babel/runtime": "^7.17.0",
+    "@embroider/addon-dev": "^4.1.0",
+    "@embroider/core": "^3.3.0",
+    "@glint/core": "^1.2.0",
+    "@glint/environment-ember-loose": "^1.2.0",
+    "@glint/environment-ember-template-imports": "^1.2.0",
+    "@glint/template": "^1.2.0",
+    "@rollup/plugin-babel": "^6.0.3",
+    "@tsconfig/ember": "^2.0.0",
+    "@types/babel__core": "^7.20.3",
+    "@types/babel__traverse": "^7.20.3",
+    "@types/csso": "^3.5.1",
+    "@types/debug": "^4.1.5",
+    "@types/fs-extra": "^9.0.12",
+    "@types/lodash": "^4.14.170",
+    "@types/mini-css-extract-plugin": "^1.4.3",
+    "@types/node": "^15.12.2",
+    "@types/semver": "^7.3.6",
+    "babel-plugin-ember-template-compilation": "^2.2.0",
+    "concurrently": "^8.0.1",
+    "ember-resolver": "^11.0.1",
+    "ember-source": "^5.3.0",
+    "ember-template-lint": "^5.11.2",
+    "eslint": "^8.33.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-ember": "^11.11.1",
+    "eslint-plugin-n": "^16.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.3",
+    "prettier-plugin-ember-template-tag": "^1.1.0",
+    "rollup": "^3.21.8",
+    "typescript": "^5.1.6"
+  },
+  "peerDependencies": {
+    "@embroider/compat": "^3.3.0"
+  },
+  "engines": {
+    "node": "12.* || 14.* || >= 16"
+  },
+  "ember": {
+    "edition": "octane"
+  },
+  "ember-addon": {
+    "version": 2,
+    "type": "addon",
+    "main": "addon-main.cjs",
+    "app-js": {
+      "./initializers/webpack-hot-reload.js": "./dist/_app_/initializers/webpack-hot-reload.js",
+      "./services/webpack-hot-reload.js": "./dist/_app_/services/webpack-hot-reload.js"
+    }
+  },
+  "exports": {
+    ".": {
+      "default": "./dist/lib/ember-webpack.js"
+    },
+    "./*": {
+      "types": "./declarations/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./addon-main.js": "./addon-main.cjs"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "declarations/*"
+      ]
+    }
+  }
+}
