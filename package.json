@@ -1,6 +1,6 @@
 {
   "name": "ember-vite-hmr",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "keywords": [
     "ember-addon"
   ],
@@ -126,7 +126,7 @@
   },
   "exports": {
     ".": {
-      "default": "./dist/lib/ember-webpack.js"
+      "default": "./dist/lib/hmr.js"
     },
     "./*": {
       "types": "./declarations/*.d.ts",

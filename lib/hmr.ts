@@ -1,5 +1,5 @@
-function transform({ resolver, resourcePath, plugin }) {
-  const resourcePath = resourcePath.replace(/\\/g, '/').split('?')[0];
+async function transform({ resolver, resourcePath, plugin }) {
+  resourcePath = resourcePath.replace(/\\/g, '/').split('?')[0];
   const supportedPaths = ['routers', 'controllers', 'routes'];
   const supportedFileNames = [
     'router.js',
@@ -60,7 +60,7 @@ function transform({ resolver, resourcePath, plugin }) {
   `;
 }
 
-export default function (resolver) {
+export function hmr(resolver) {
   return {
     name: 'hmr-plugin',
     enforce: 'post',
