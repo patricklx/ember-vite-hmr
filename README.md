@@ -25,7 +25,7 @@ update your `vite.config.mjs` with
 import { hmr } from 'ember-vite-hmr';
 ...hmr
 plugins: [
-  ...hmr(resolver())
+  ...hmr()
 ]
 ```
 
