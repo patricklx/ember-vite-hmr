@@ -1,6 +1,6 @@
 {
   "name": "ember-vite-hmr",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "keywords": [
     "ember-addon"
   ],
@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "author": "Patrick Pircher",
-  "main": "dist/lib/ember-webpack.js",
+  "main": "dist/lib/hmr.js",
   "files": [
     "addon-main.cjs",
     "dist"
