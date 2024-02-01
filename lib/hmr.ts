@@ -4,7 +4,7 @@ export function hmr() {
   return {
     name: 'hmr-plugin',
     enforce: 'post',
-    transform(source, id) {
+    async transform(source, id) {
       const resourcePath = id.replace(/\\/g, '/').split('?')[0];
       const supportedPaths = ['routers', 'controllers', 'routes'];
       const supportedFileNames = [
