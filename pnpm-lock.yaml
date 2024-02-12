@@ -18,7 +18,7 @@ dependencies:
     specifier: ^3.1.0
     version: 3.1.0(@embroider/core@3.3.0)(supports-color@8.1.0)(webpack@5.39.1)
   '@embroider/compat':
-    specifier: ^3.3.0
+    specifier: '*'
     version: 3.3.0(@embroider/core@3.3.0)(@glint/template@1.2.0)(supports-color@8.1.0)
   '@embroider/hbs-loader':
     specifier: ^3.0.2
