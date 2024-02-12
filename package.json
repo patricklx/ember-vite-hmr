@@ -8,7 +8,7 @@
   "description": "Builds EmberJS apps with Webpack Dev Server and Hot Reload",
   "repository": {
     "type": "git",
-    "url": "https://github.com/patricklx/ember-webpack-hot-reload"
+    "url": "https://github.com/patricklx/ember-vite-hmr"
   },
   "license": "MIT",
   "author": "Patrick Pircher",
