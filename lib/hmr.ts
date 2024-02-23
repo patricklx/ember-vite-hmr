@@ -4,6 +4,20 @@ export function hmr() {
   return {
     name: 'hmr-plugin',
     enforce: 'post',
+    resolveId(id) {
+      if (id === '/ember-vite-hmr/services/webpack-hot-reload') {
+        return this.resolve(
+          'ember-vite-hmr/services/webpack-hot-reload',
+          process.cwd(),
+        );
+      }
+    },
+    transformIndexHtml(html) {
+      return (
+        `<script type="module" src="/ember-vite-hmr/services/webpack-hot-reload" />` +
+        html
+      );
+    },
     async transform(source, id) {
       const resourcePath = id.replace(/\\/g, '/').split('?')[0];
       const supportedPaths = ['routers', 'controllers', 'routes'];
@@ -16,38 +30,39 @@ export function hmr() {
         'controller.ts',
       ];
       if (
-          resourcePath.endsWith('.hbs') ||
-          resourcePath.endsWith('.gjs') ||
-          resourcePath.endsWith('.gts')
+        resourcePath.endsWith('.hbs') ||
+        resourcePath.endsWith('.gjs') ||
+        resourcePath.endsWith('.gts')
       ) {
-        const result = [...source.matchAll(/import.meta.hot.accept\(\'([^']+)\'/g)];
+        const result = [
+          ...source.matchAll(/import.meta.hot.accept\(\'([^']+)\'/g),
+        ];
         for (const resultElement of result) {
           const dep = resultElement[1];
-          const resolved = await this.resolve(
-              dep,
-              resourcePath,
-              {},
-          );
+          const resolved = await this.resolve(dep, resourcePath, {});
           let id = resolved.id;
           if (id.includes('rewritten-app')) {
             id = id.split('rewritten-app')[1];
           }
-          if (path.resolve(id).replace(/\\/g, '/') === id && path.isAbsolute(id)) {
+          if (
+            path.resolve(id).replace(/\\/g, '/') === id &&
+            path.isAbsolute(id)
+          ) {
             if (!id.startsWith('/')) {
               id = '/' + id;
             }
             id = '/@fs' + id;
           }
           source = source.replace(
-              `import.meta.hot.accept('${dep}'`,
-              `import.meta.hot.accept('${id}'`,
+            `import.meta.hot.accept('${dep}'`,
+            `import.meta.hot.accept('${id}'`,
           );
         }
         return source;
       }
       if (
-          !supportedPaths.some((s) => resourcePath.includes(`/${s}/`)) &&
-          !supportedFileNames.some((s) => resourcePath.endsWith(s))
+        !supportedPaths.some((s) => resourcePath.includes(`/${s}/`)) &&
+        !supportedFileNames.some((s) => resourcePath.endsWith(s))
       ) {
         return source;
       }

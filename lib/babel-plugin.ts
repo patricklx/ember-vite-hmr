@@ -1,13 +1,14 @@
 import { parse, PluginObj } from '@babel/core';
 import { NodePath } from '@babel/traverse';
 import type * as BabelTypesNamespace from '@babel/types';
-import {
-  Identifier,
-  Program,
-  V8IntrinsicIdentifier,
-} from '@babel/types';
+import { Identifier, Program, V8IntrinsicIdentifier } from '@babel/types';
 import * as glimmer from '@glimmer/syntax';
-import { ASTv1, NodeVisitor, WalkerPath, ASTPluginEnvironment } from '@glimmer/syntax';
+import {
+  ASTv1,
+  NodeVisitor,
+  WalkerPath,
+  ASTPluginEnvironment,
+} from '@glimmer/syntax';
 
 export type BabelTypes = typeof BabelTypesNamespace;
 
@@ -138,14 +139,6 @@ class HotAstProcessor {
         if (node.original === 'block') return;
         if (node.original.startsWith('this.')) return;
         if (findBlockParams(node.original.split('.')[0], p)) return;
-        if (importVar) {
-          if (imports.includes(node.original)) {
-            usedImports.add(node.original);
-            node.original = `${importVar}.${node.original}`;
-            node.parts = node.original.split('.');
-          }
-          return;
-        }
         const params = [];
         const blockParams = [];
         const letBlock = glimmer.builders.path('let');
@@ -160,112 +153,27 @@ class HotAstProcessor {
           )
             return;
           if (p.parentNode.params[0].original?.includes('.')) return;
-          const sub = glimmer.builders.sexpr(
-            node.original,
-            [p.parentNode.params[0]],
-            glimmer.builders.hash([]),
-          );
-          const param = glimmer.builders.sexpr(
-            'webpack-hot-reload',
-            [sub],
-            glimmer.builders.hash([
-              glimmer.builders.pair(
-                'type',
-                glimmer.builders.string(node.original),
-              ),
-            ]),
-          );
+          if (!p.parentNode.params[0].original) return;
+          const original = p.parentNode.params[0].original;
+          const param = glimmer.builders.path(`${importVar}.${original}`);
           p.parentNode.params.splice(0, 1);
-          params.push(param);
-          const name = node.original + '_' + this.counter;
-          blockParams.push(name);
-          node.type = 'PathExpression';
-          node.original = name;
-          const block = glimmer.builders.blockItself([], blockParams);
-          const b = glimmer.builders.block(letBlock, params, null, block);
-          changes.push(b);
-          this.counter++;
+          p.parentNode.params.push(param);
+          usedImports.add(original);
           return;
         }
-        if (builtInHelpers.includes(node.original)) {
+        if (importVar) {
+          if (imports.includes(node.original)) {
+            usedImports.add(node.original);
+            node.original = `${importVar}.${node.original}`;
+            node.parts = node.original.split('.');
+          }
           return;
         }
-        if (!builtInHelpers.includes(node.original)) {
-          if (p.parentNode?.type === 'ElementModifierStatement') return;
-        }
-        const firstLetter = node.original.split('.').slice(-1)[0]![0]!;
-        let type = 'helper';
-        if (
-          (this.options.itsStatic &&
-            p.parentNode?.type === 'MustacheStatement') ||
-          firstLetter === firstLetter.toUpperCase()
-        ) {
-          type = 'component';
-        }
-        const sub = glimmer.builders.sexpr(type, [
-          glimmer.builders.string(node.original),
-          ...(p.parentNode.type === 'SubExpression' ? p.parentNode.params : []),
-        ]);
-        const param = glimmer.builders.sexpr(
-          'webpack-hot-reload',
-          [sub],
-          glimmer.builders.hash([
-            glimmer.builders.pair('type', glimmer.builders.string(type)),
-          ]),
-        );
-        params.push(param);
-        const name = type + '_' + this.counter;
-        blockParams.push(name);
-        node.type = 'PathExpression';
-        node.original = name;
-        if (!params.length) return;
-        const block = glimmer.builders.blockItself([], blockParams);
-        const b = glimmer.builders.block(letBlock, params, null, block);
-        changes.push(b);
-        this.counter++;
       },
       ElementNode: (
         element: ASTv1.ElementNode,
         p: WalkerPath<ASTv1.ElementNode>,
       ) => {
-        const params = [];
-        const blockParams = [];
-        const letBlock = glimmer.builders.path('let');
-        element.modifiers.forEach((modifier) => {
-          if (importVar) {
-            return;
-          }
-          if (!modifier.path.original) return;
-          if (modifier.path.original && modifier.path.original.includes('.'))
-            return;
-          if (builtInHelpers.includes(modifier.path.original)) {
-            return;
-          }
-          const sub = glimmer.builders.sexpr('modifier', [
-            {
-              ...((modifier.path.original &&
-                glimmer.builders.string(modifier.path.original)) ||
-                modifier.path),
-            },
-          ]);
-          const param = glimmer.builders.sexpr(
-            'webpack-hot-reload',
-            [sub],
-            glimmer.builders.hash([
-              glimmer.builders.pair(
-                'type',
-                glimmer.builders.string('modifier'),
-              ),
-            ]),
-          );
-          params.push(param);
-          const name = 'modifier_' + this.counter;
-          blockParams.push(name);
-          modifier.path.type = 'PathExpression';
-          modifier.path.original = 'modifier_' + this.counter;
-          this.counter++;
-        });
-
         if (findBlockParams(element.tag.split('.')[0], p)) return;
         if (importVar) {
           if (imports.includes(element.tag)) {
@@ -274,33 +182,6 @@ class HotAstProcessor {
           }
           return;
         }
-        if (builtInComponents.includes(element.tag)) {
-          return;
-        }
-        if (element.tag[0] === element.tag[0].toUpperCase()) {
-          const sub = glimmer.builders.sexpr('component', [
-            glimmer.builders.string(dasherize(element.tag)),
-          ]);
-          const param = glimmer.builders.sexpr(
-            'webpack-hot-reload',
-            [sub],
-            glimmer.builders.hash([
-              glimmer.builders.pair(
-                'type',
-                glimmer.builders.string('component'),
-              ),
-            ]),
-          );
-          params.push(param);
-          const name = 'Component_' + this.counter;
-          blockParams.push(name);
-          element.tag = name;
-        }
-        const block = glimmer.builders.blockItself([], blockParams);
-        if (!params.length) return;
-        const b = glimmer.builders.block(letBlock, params, null, block);
-        changes.push(b);
-        this.counter++;
       },
       Program: {
         exit(program) {},

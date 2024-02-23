@@ -113,10 +113,15 @@ export default class WebpackHotReloadService extends Service {
       set(v) {
         const getRoute = v.getRoute;
         v.getRoute = function (name) {
-          return getRoute.call(
+          const route = getRoute.call(
             this,
             `${name}--hot-version--${window.emberHotReloadPlugin.version}`,
           );
+          route.fullRouteName = route.fullRouteName.replace(
+            /--hot-version--.*$/,
+            '',
+          );
+          return route;
         };
         this.___routerMicrolib = v;
       },

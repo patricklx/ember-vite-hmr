@@ -16,23 +16,29 @@ Object.assign(module.exports, {
     return addonOptions.babel;
   },
   included(...args) {
-    this._getBabelOptions().plugins.push([require.resolve('./dist/lib/babel-plugin.js'), { v: 4, appName: this.app.name }]);
+    this._getBabelOptions().plugins.push([
+      require.resolve('./dist/lib/babel-plugin.js'),
+      { v: 4, appName: this.app.name },
+    ]);
     this._super.included; // need to access this somehow? otherwise it fails later on...
 
     let astPlugin = this._buildPlugin();
     astPlugin.parallelBabel = {
       requireFile: __filename,
       buildUsing: '_buildPlugin',
-      params: {}
+      params: {},
     };
-    const compatAppBuilder = require.resolve('@embroider/compat/src/compat-app-builder', { paths: [process.cwd()] });
+    const compatAppBuilder = require.resolve(
+      '@embroider/compat/src/compat-app-builder',
+      { paths: [process.cwd()] },
+    );
     const CompatAppBuilder = require(compatAppBuilder).CompatAppBuilder;
     const etcOptions = CompatAppBuilder.prototype.etcOptions;
     CompatAppBuilder.prototype.etcOptions = function (...args) {
       const opts = etcOptions.call(this, ...args);
       opts.transforms.push(astPlugin);
       return opts;
-    }
+    };
     included.call(this, ...args);
   },
 
@@ -40,5 +46,4 @@ Object.assign(module.exports, {
     const hotAstProcessor = require('./dist/lib/babel-plugin').hotAstProcessor;
     return hotAstProcessor.transform.bind(hotAstProcessor);
   },
-})
-
+});
