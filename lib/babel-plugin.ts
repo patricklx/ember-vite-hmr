@@ -9,6 +9,7 @@ import {
   WalkerPath,
   ASTPluginEnvironment,
 } from '@glimmer/syntax';
+import { ImportUtil } from 'babel-import-util';
 
 export type BabelTypes = typeof BabelTypesNamespace;
 
@@ -258,7 +259,8 @@ export default function hotReplaceAst(
     name: 'hot-reload-imports',
     visitor: {
       Program: {
-        enter(path: NodePath<Program>) {
+        enter(path: NodePath<Program>, state) {
+          state.importUtil = new ImportUtil(t, path);
           templateImportSpecifier = '';
           importVar = null;
           tracked = null;
@@ -300,7 +302,6 @@ export default function hotReplaceAst(
             ),
           );
           let usedImports = new Set();
-          const addedIds = new Set();
           path.traverse({
             ImportDeclaration: function (path) {
               path.node.specifiers.forEach(function (s) {
@@ -310,13 +311,6 @@ export default function hotReplaceAst(
                   specifiers: path.node.specifiers,
                 };
               });
-            },
-            Identifier(path) {
-              if (addedIds.has(path.node)) {
-                path.scope
-                  .getBinding(path.node.name)
-                  ?.referencePaths.push(path);
-              }
             },
             CallExpression(path) {
               const call = path.node;
@@ -368,8 +362,12 @@ export default function hotReplaceAst(
             null,
             t.classBody(
               [...usedImports].map((i) => {
-                const x = t.identifier(i);
-                addedIds.add(x);
+                const { source, specifiers } = importMap[i];
+                const specifier = specifiers.find((s) => s.local.name === i);
+                const specifierName = specifier.imported?.name ||
+                    specifier.imported?.value ||
+                    'default';
+                const x = state.importUtil.import(path, source, specifierName);
                 return t.classProperty(t.identifier(i), x, null, [
                   t.decorator(tracked),
                 ]);
@@ -386,6 +384,11 @@ export default function hotReplaceAst(
           const hotAccepts = [];
           for (const imp of [...usedImports]) {
             const { source, specifiers } = importMap[imp];
+            const i = t.importDeclaration(
+                [...specifiers],
+                t.stringLiteral(source),
+            )
+            node.body.splice(0, 0, i);
             const specifier = specifiers.find((s) => s.local.name === imp);
             const specifierName =
               specifier.imported?.name ||

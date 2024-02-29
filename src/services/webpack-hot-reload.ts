@@ -39,6 +39,7 @@ if (import.meta.hot) {
       const entry = Object.values(requirejs.entries).find(
         (module) => module.module.exports.default === oldModule.exports.default,
       );
+      if (!entry) return;
       entry.module = {
         exports: newModule.exports,
       };
