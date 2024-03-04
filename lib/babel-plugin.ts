@@ -407,7 +407,7 @@ export default function hotReplaceAst(
             ),
             t.blockStatement([assignment, ...hotAccepts]),
           );
-          node.body.splice(idx, 0, importsVar);
+          node.body.splice(0, 0, importsVar);
           node.body.push(ifHot);
         },
         exit(path, state) {
@@ -435,7 +435,7 @@ export default function hotReplaceAst(
           });
           const node = path.node;
           const usedImports = hotAstProcessor.meta.usedImports;
-          if (usedImports) {
+          if (usedImports || exports.hotAstProcessor.usedImports) {
             const lastImport = [...node.body]
               .reverse()
               .find((x) => x.type === 'ImportDeclaration');
@@ -444,7 +444,7 @@ export default function hotReplaceAst(
             node.body.splice(-1, 1);
             node.body.splice(idx, 0, assignment);
             const hotAccepts = [];
-            for (const imp of [...usedImports]) {
+            for (const imp of [...usedImports, ...exports.hotAstProcessor.meta.usedImports]) {
               const { source, specifiers } = importMap[imp];
               const specifier = specifiers.find((s) => s.local.name === imp);
               const specifierName =

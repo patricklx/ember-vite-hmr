@@ -29,6 +29,20 @@ export function hmr() {
         'controller.js',
         'controller.ts',
       ];
+      if (resourcePath.includes('/-components/')) {
+        return source;
+      }
+      const name =  require(`${process.cwd()}/package.json`).name;
+      if (resourcePath.includes(`/assets/${name}.js`)) {
+        const result = [
+          ...source.matchAll(/d\("([^"]+)"/g),
+        ];
+        for (const resultElement of result) {
+          const dep = resultElement[1];
+          if (!dep.includes('-components')) continue;
+          source += `\nimport.meta.hot.accept("${dep}", () => void);`
+        }
+      }
       if (
         resourcePath.endsWith('.hbs') ||
         resourcePath.endsWith('.gjs') ||
