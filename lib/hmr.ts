@@ -52,6 +52,10 @@ export function hmr() {
       if (resourcePath.includes('/-components/')) {
         return source;
       }
+      const name =  require(`${process.cwd()}/package.json`).name;
+      if (resourcePath.includes(`/assets/${name}.js`)) {
+        source += `\nimport.meta.hot.accept();`;
+      }
       if (
         resourcePath.endsWith('.hbs') ||
         resourcePath.endsWith('.gjs') ||
