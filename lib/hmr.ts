@@ -5,6 +5,9 @@ export function hmr() {
     name: 'hmr-plugin',
     enforce: 'post',
     resolveId(id) {
+      if (id.startsWith('/@id/embroider_virtual:')) {
+        return this.resolve(id.replace('/@id/', ''), process.cwd());
+      }
       if (id === '/ember-vite-hmr/services/webpack-hot-reload') {
         return this.resolve(
           'ember-vite-hmr/services/webpack-hot-reload',
@@ -17,6 +20,23 @@ export function hmr() {
         `<script type="module" src="/ember-vite-hmr/services/webpack-hot-reload" />` +
         html
       );
+    },
+    handleHotUpdate(ctx) {
+      if (!ctx.file.split('?')[0].endsWith('.hbs')) {
+        return ctx.modules;
+      }
+      const otherModules = [];
+      const pairedModule = ctx.modules.find(m => [...m.importers].find(i => i.id.startsWith('embroider_virtual') && i.id.endsWith('-embroider-pair-component')));
+      if (pairedModule) {
+        const pairComponent = [...pairedModule.importers].find(i => i.id.startsWith('embroider_virtual') && i.id.endsWith('-embroider-pair-component'));
+        if (pairComponent) {
+          const componentModule = [...pairComponent.clientImportedModules].find(cim => cim.id.split('?')[0].match(/\/component\.(js|ts|gjs|gts)/));
+          if (componentModule) {
+            otherModules.push(componentModule);
+          }
+        }
+      }
+      return [...ctx.modules, ...otherModules];
     },
     async transform(source, id) {
       const resourcePath = id.replace(/\\/g, '/').split('?')[0];
@@ -32,17 +52,6 @@ export function hmr() {
       if (resourcePath.includes('/-components/')) {
         return source;
       }
-      const name =  require(`${process.cwd()}/package.json`).name;
-      if (resourcePath.includes(`/assets/${name}.js`)) {
-        const result = [
-          ...source.matchAll(/d\("([^"]+)"/g),
-        ];
-        for (const resultElement of result) {
-          const dep = resultElement[1];
-          if (!dep.includes('-components')) continue;
-          source += `\nimport.meta.hot.accept("${dep}", () => void);`
-        }
-      }
       if (
         resourcePath.endsWith('.hbs') ||
         resourcePath.endsWith('.gjs') ||
@@ -55,8 +64,11 @@ export function hmr() {
           const dep = resultElement[1];
           const resolved = await this.resolve(dep, resourcePath, {});
           let id = resolved.id;
-          if (id.includes('rewritten-app')) {
+          if (id.includes('rewritten-app') && !id.startsWith('embroider_virtual:')) {
             id = id.split('rewritten-app')[1];
+          }
+          if (id.startsWith('embroider_virtual:')) {
+            id = '/@id/' + id;
           }
           if (
             path.resolve(id).replace(/\\/g, '/') === id &&
