@@ -34,8 +34,8 @@ Object.assign(module.exports, {
     );
     const CompatAppBuilder = require(compatAppBuilder).CompatAppBuilder;
     const etcOptions = CompatAppBuilder.prototype.etcOptions;
-    CompatAppBuilder.prototype.etcOptions = function (...args) {
-      const opts = etcOptions.call(this, ...args);
+    CompatAppBuilder.prototype.etcOptions = async function (...args) {
+      const opts = await etcOptions.call(this, ...args);
       opts.transforms.push(astPlugin);
       return opts;
     };
