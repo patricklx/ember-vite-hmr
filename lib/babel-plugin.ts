@@ -1,17 +1,29 @@
 import { parse, PluginObj } from '@babel/core';
 import { NodePath } from '@babel/traverse';
 import type * as BabelTypesNamespace from '@babel/types';
-import { Identifier, Program, V8IntrinsicIdentifier } from '@babel/types';
+import {
+  Identifier,
+  ImportDefaultSpecifier,
+  ImportNamespaceSpecifier,
+  ImportSpecifier,
+  Program,
+  V8IntrinsicIdentifier
+} from '@babel/types';
 import * as glimmer from '@glimmer/syntax';
 import {
   ASTv1,
   NodeVisitor,
-  WalkerPath,
-  ASTPluginEnvironment,
+  WalkerPath
 } from '@glimmer/syntax';
 import { ImportUtil } from 'babel-import-util';
+import * as assert from "assert";
 
 export type BabelTypes = typeof BabelTypesNamespace;
+
+
+interface ASTPluginEnvironment {
+  locals: string[];
+}
 
 const builtInComponents = ['LinkTo'];
 const builtInHelpers = [
@@ -73,8 +85,12 @@ class HotAstProcessor {
   meta = {
     usedImports: new Set(),
     importVar: null,
-  };
-  private usedImports: Set<any>;
+  } as { usedImports: Set<string>, importVar: any };
+  usedImports: Set<any>;
+
+  constructor() {
+    this.transform = this.transform.bind(this);
+  }
 
   transform(env: ASTPluginEnvironment) {
     if (!this.meta.importVar)
@@ -141,15 +157,13 @@ class HotAstProcessor {
         if (original === 'block') return;
         if (original.startsWith('this.')) return;
         if (findBlockParams(original, p)) return;
-        const params = [];
-        const blockParams = [];
-        const letBlock = glimmer.builders.path('let');
         if (
           node.original === 'helper' ||
           node.original === 'component' ||
           node.original === 'modifier'
         ) {
-          const original = p.parentNode.params[0].original.split('.')[0];
+          const parent = p.parentNode as ASTv1.MustacheStatement;
+          const original = (parent.params[0] as ASTv1.StringLiteral).original.split('.')[0];
           if (
               original &&
             findBlockParams(original, p)
@@ -158,8 +172,8 @@ class HotAstProcessor {
           if (original?.includes('.')) return;
           if (!original) return;
           const param = glimmer.builders.path(`${importVar}.${original}`);
-          p.parentNode.params.splice(0, 1);
-          p.parentNode.params.push(param);
+          parent.params.splice(0, 1);
+          parent.params.push(param);
           usedImports.add(original);
           return;
         }
@@ -237,13 +251,31 @@ export const hotAstProcessor = new HotAstProcessor();
 export default function hotReplaceAst(
   { types: t }: { types: BabelTypes }) {
   let imports: string[] = [];
-  let importMap: Record<string, string> = {};
+  let importMap: Record<string, {
+    source: string;
+    specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
+  }> = {};
   let tracked: Identifier;
   let importVar: Identifier;
   let importsKlass: any;
   let templateImportSpecifier = '';
+  importMap = {};
+  imports = [];
   return {
     name: 'hot-reload-imports',
+    pre(file) {
+      for (let statement of file.ast.program.body) {
+        if (statement.type === 'ImportDeclaration') {
+          for (let specifier of statement.specifiers) {
+            imports.push(specifier.local.name);
+            importMap[specifier.local.name] = {
+              source: statement.source.value,
+              specifiers: statement.specifiers,
+            };
+          }
+        }
+      }
+    },
     visitor: {
       Program: {
         enter(path: NodePath<Program>, state) {
@@ -251,11 +283,9 @@ export default function hotReplaceAst(
           templateImportSpecifier = '';
           importVar = null;
           tracked = null;
-          importMap = {};
-          imports = [];
           exports.hotAstProcessor.meta.usedImports = [];
           exports.hotAstProcessor.meta.importVar = null;
-          const filename = path.hub.file.opts.filename.split('?')[0];
+          const filename = (path.hub as any).file.opts.filename.split('?')[0];
           if (
             !filename.endsWith('.hbs') &&
             !filename.endsWith('.gts') &&
@@ -272,13 +302,13 @@ export default function hotReplaceAst(
               i.type === 'ImportDeclaration' &&
               i.source.value === '@ember/template-compiler',
           );
-          if (templateImport) {
+          if (templateImport && templateImport.type === 'ImportDeclaration') {
             const def = templateImport.specifiers[0];
             templateImportSpecifier = def.local.name;
           }
 
           tracked = path.scope.generateUidIdentifier('tracked');
-          importVar = path.scope.generateUidIdentifier('__imports__');
+          importVar = t.identifier('imports_templates__');
           hotAstProcessor.meta.importVar = importVar;
           node.body.splice(
             0,
@@ -288,17 +318,8 @@ export default function hotReplaceAst(
               t.stringLiteral('@glimmer/tracking'),
             ),
           );
-          let usedImports = new Set();
+          let usedImports: Set<string> = new Set();
           path.traverse({
-            ImportDeclaration: function (path) {
-              path.node.specifiers.forEach(function (s) {
-                imports.push(s.local.name);
-                importMap[s.local.name] = {
-                  source: path.node.source.value,
-                  specifiers: path.node.specifiers,
-                };
-              });
-            },
             CallExpression(path) {
               const call = path.node;
               if (
@@ -350,11 +371,11 @@ export default function hotReplaceAst(
             t.classBody(
               [...usedImports].map((i) => {
                 const { source, specifiers } = importMap[i];
-                const specifier = specifiers.find((s) => s.local.name === i);
+                const specifier: any = specifiers.find((s) => s.local.name === i);
                 const specifierName = specifier.imported?.name ||
                     specifier.imported?.value ||
                     'default';
-                const x = state.importUtil.import(path, source, specifierName);
+                const x = (state.importUtil as any).import(path, source, specifierName);
                 return t.classProperty(t.identifier(i), x, null, [
                   t.decorator(tracked),
                 ]);
@@ -371,7 +392,7 @@ export default function hotReplaceAst(
           const hotAccepts = [];
           for (const imp of [...usedImports]) {
             const { source, specifiers } = importMap[imp];
-            const specifier = specifiers.find((s) => s.local.name === imp);
+            const specifier: any = specifiers.find((s) => s.local.name === imp);
             const specifierName =
               specifier.imported?.name ||
               specifier.imported?.value ||
@@ -393,14 +414,12 @@ export default function hotReplaceAst(
           node.body.push(ifHot);
         },
         exit(path, state) {
-          const filename = path.hub.file.opts.filename.split('?')[0];
+          const filename = (path.hub as any).file.opts.filename.split('?')[0];
           if (!filename.includes('rewritten-app')) {
             return;
           }
           if (
-            !filename.endsWith('.hbs') &&
-            !filename.endsWith('.gts') &&
-            !filename.endsWith('.gjs')
+            !filename.endsWith('.hbs')
           ) {
             return;
           }
@@ -422,18 +441,23 @@ export default function hotReplaceAst(
               .reverse()
               .find((x) => x.type === 'ImportDeclaration');
             const idx = node.body.indexOf(lastImport);
-            const assignment = node.body.at(-1);
+            const assignment = node.body.slice(-1)[0];
             node.body.splice(-1, 1);
             node.body.splice(idx, 0, assignment);
             const hotAccepts = [];
+            const handled = new Set();
             for (const imp of [...usedImports, ...exports.hotAstProcessor.meta.usedImports]) {
               const { source, specifiers } = importMap[imp];
-              const specifier = specifiers.find((s) => s.local.name === imp);
+              const specifier: any = specifiers.find((s) => s.local.name === imp);
               const specifierName =
                 specifier.imported?.name ||
                 specifier.imported?.value ||
                 'default';
-              state.importUtil.import(path, source, specifierName);
+              if (handled.has(imp)) {
+                continue;
+              }
+              handled.add(imp);
+              (state.importUtil as ImportUtil).import(path, source, specifierName);
               const ast = parse(
                 `import.meta.hot.accept('${source}', (module) => (${importVar.name}.${imp}=module['${specifierName}']))`,
               );
@@ -454,9 +478,9 @@ export default function hotReplaceAst(
       },
       CallExpression: {
         exit(path, state) {
-          const filename = path.hub.file.opts.filename.split('?')[0];
+          const filename = (path.hub as any).file.opts.filename.split('?')[0];
           if (filename.endsWith('.hbs')) {
-            const usedImports = hotAstProcessor.meta.usedImports;
+            const usedImports: Set<string> = hotAstProcessor.meta.usedImports;
             [...usedImports].map((i) => {
               if (importsKlass.body.body.find((b) => b.key.name === i)) {
                 return;

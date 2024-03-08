@@ -43,7 +43,6 @@ Object.assign(module.exports, {
   },
 
   _buildPlugin() {
-    const hotAstProcessor = require('./dist/lib/babel-plugin').hotAstProcessor;
-    return hotAstProcessor.transform.bind(hotAstProcessor);
+    return require('./dist/lib/babel-plugin').hotAstProcessor;
   },
 });
