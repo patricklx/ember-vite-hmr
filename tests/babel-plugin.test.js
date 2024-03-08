@@ -35,7 +35,7 @@ describe('convert template with hot reload helpers', () => {
     }
 
     const result = babel.transform(imports + preTransformed, {
-      filename: 'rewritten-app/a.hbs',
+      filename: '/rewritten-app/a.hbs',
       plugins: [
         [emberBabel, {
           transforms: [transform, hotAstProcessor.transform],
@@ -102,7 +102,7 @@ describe('convert template with hot reload helpers', () => {
     `);
 
     const resultWired = babel.transform(imports + preTransformed, {
-      filename: 'rewritten-app/a.hbs',
+      filename: '/rewritten-app/a.hbs',
       plugins: [
         [emberBabel, {
           transforms: [transform, hotAstProcessor.transform],
@@ -117,7 +117,10 @@ describe('convert template with hot reload helpers', () => {
         plugin,
       ]
     });
-    expect(resultWired.code).toMatchInlineSnapshot(`
+
+    const resultCode = resultWired.code.replace(/"id": ".*",\n.*"block":/, '"id": "--id--",\n  "block":');
+
+    expect(resultCode).toMatchInlineSnapshot(`
       "function _initializerDefineProperty(target, property, descriptor, context) { if (!descriptor) return; Object.defineProperty(target, property, { enumerable: descriptor.enumerable, configurable: descriptor.configurable, writable: descriptor.writable, value: descriptor.initializer ? descriptor.initializer.call(context) : void 0 }); }
       function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
       function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }
@@ -165,7 +168,7 @@ describe('convert template with hot reload helpers', () => {
           
       */
       {
-        "id": "axqsUEzG",
+        "id": "--id--",
         "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[]]",
         "moduleName": "a.hbs",
         "scope": () => [imports_templates__],
@@ -197,7 +200,7 @@ describe('convert template with hot reload helpers', () => {
     `;
     const preTransformed = p.process(code);
     const result = babel.transform(preTransformed, {
-      filename: 'rewritten-app/a.gts',
+      filename: '/rewritten-app/a.gts',
       plugins: [
         ["@babel/plugin-proposal-decorators", { version: "2022-03" }],
         plugin,
@@ -262,7 +265,10 @@ describe('convert template with hot reload helpers', () => {
         }],
       ]
     });
-    expect(resultWired.code).toMatchInlineSnapshot(`
+
+    const resultCode = resultWired.code.replace(/"id": ".*",\n.*"block":/g, '"id": "--id--",\n  "block":');
+
+    expect(resultCode).toMatchInlineSnapshot(`
       "function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
       function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }
       function _toPrimitive(input, hint) { if (typeof input !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (typeof res !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
@@ -282,7 +288,7 @@ describe('convert template with hot reload helpers', () => {
               
       */
       {
-        "id": "v6P88NLw",
+        "id": "--id--",
         "block": "[[[1,\\"\\\\n            \\"],[8,[32,0,[\\"Other\\"]],null,null,null],[1,\\"\\\\n        \\"]],[],false,[]]",
         "moduleName": "/Users/patrickpircher/IdeaProjects/ember-vite-hmr/rewritten-app/a.gts",
         "scope": () => [imports_templates__],
@@ -297,7 +303,7 @@ describe('convert template with hot reload helpers', () => {
           
       */
       {
-        "id": "RyYZL8zh",
+        "id": "--id--",
         "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[]]",
         "moduleName": "/Users/patrickpircher/IdeaProjects/ember-vite-hmr/rewritten-app/a.gts",
         "scope": () => [imports_templates__],
