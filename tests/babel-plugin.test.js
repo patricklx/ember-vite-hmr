@@ -255,7 +255,7 @@ describe('convert template with hot reload helpers', () => {
     `);
 
     const resultWired = babel.transform(preTransformed, {
-      filename: 'rewritten-app/a.gts',
+      filename: '/rewritten-app/a.gts',
       plugins: [
         ["@babel/plugin-proposal-decorators", { version: "2022-03" }],
         plugin,
@@ -290,7 +290,7 @@ describe('convert template with hot reload helpers', () => {
       {
         "id": "--id--",
         "block": "[[[1,\\"\\\\n            \\"],[8,[32,0,[\\"Other\\"]],null,null,null],[1,\\"\\\\n        \\"]],[],false,[]]",
-        "moduleName": "/Users/patrickpircher/IdeaProjects/ember-vite-hmr/rewritten-app/a.gts",
+        "moduleName": "/rewritten-app/a.gts",
         "scope": () => [imports_templates__],
         "isStrictMode": true
       }), templateOnly());
@@ -305,7 +305,7 @@ describe('convert template with hot reload helpers', () => {
       {
         "id": "--id--",
         "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[]]",
-        "moduleName": "/Users/patrickpircher/IdeaProjects/ember-vite-hmr/rewritten-app/a.gts",
+        "moduleName": "/rewritten-app/a.gts",
         "scope": () => [imports_templates__],
         "isStrictMode": true
       }), templateOnly());
