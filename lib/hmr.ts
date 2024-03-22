@@ -6,12 +6,12 @@ export function hmr() {
     enforce: 'post',
     resolveId(id) {
       if (id.startsWith('/@id/embroider_virtual:')) {
-        return this.resolve(id.replace('/@id/', ''), process.cwd());
+        return this.resolve(id.replace('/@id/', ''), path.join(process.cwd(), 'package.json'));
       }
       if (id === '/ember-vite-hmr/services/webpack-hot-reload') {
         return this.resolve(
           'ember-vite-hmr/services/webpack-hot-reload',
-          process.cwd(),
+          path.join(process.cwd(), 'package.json'),
         );
       }
     },
