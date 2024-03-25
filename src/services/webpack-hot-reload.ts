@@ -109,6 +109,13 @@ export default class WebpackHotReloadService extends Service {
     if (!window.emberHotReloadPlugin) return;
     modulePrefix = getOwner(this)!.application.modulePrefix;
     podModulePrefix = getOwner(this)!.application.podModulePrefix;
+    if (import.meta.hot) {
+      import.meta.hot.on('vite:beforeUpdate', (options) => {
+        options.updates = options.updates.filter(
+            (u) => !u.path.startsWith(`/assets/${modulePrefix}.js`),
+        );
+      });
+    }
     this.router._router;
     Object.defineProperty(this.router._router, '_routerMicrolib', {
       set(v) {
