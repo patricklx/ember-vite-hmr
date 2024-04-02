@@ -5,7 +5,7 @@
     "ember-addon"
   ],
   "private": false,
-  "description": "Builds EmberJS apps with Webpack Dev Server and Hot Reload",
+  "description": "provides hmr support for ember apps",
   "repository": {
     "type": "git",
     "url": "https://github.com/patricklx/ember-vite-hmr"
