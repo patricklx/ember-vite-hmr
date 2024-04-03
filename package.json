@@ -48,7 +48,7 @@
     "babel-import-util": "^2.0.1",
     "babel-loader": "^8.2.2",
     "babel-preset-env": "^1.7.0",
-    "semver": "^7.3.5"
+    "semver": "^7.5.2"
   },
   "devDependencies": {
     "assert-never": "^1.2.1",
@@ -58,7 +58,7 @@
     "supports-color": "^8.1.0",
     "terser": "^5.7.0",
     "thread-loader": "^3.0.4",
-    "vite": "^5.0.12",
+    "vite": "^5.0.13",
     "vitest": "^1.2.2",
     "ember-cli-htmlbars": "^6.3.0",
     "@babel/eslint-parser": "^7.19.1",
