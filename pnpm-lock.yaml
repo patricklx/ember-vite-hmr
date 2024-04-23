@@ -113,8 +113,8 @@ devDependencies:
     specifier: ^1.2.1
     version: 1.2.1
   babel-plugin-ember-template-compilation:
-    specifier: ^2.2.1
-    version: 2.2.1
+    specifier: ^2.2.2
+    version: 2.2.2
   concurrently:
     specifier: ^8.0.1
     version: 8.0.1
@@ -2664,7 +2664,7 @@ packages:
       '@types/yargs': 17.0.29
       assert-never: 1.2.1
       babel-import-util: 2.0.1
-      babel-plugin-ember-template-compilation: 2.2.1
+      babel-plugin-ember-template-compilation: 2.2.2
       babel-plugin-syntax-dynamic-import: 6.18.0
       babylon: 6.18.0
       bind-decorator: 1.0.11
@@ -2711,7 +2711,7 @@ packages:
       '@embroider/macros': 1.15.0(@glint/template@1.2.0)(supports-color@8.1.0)
       '@embroider/shared-internals': 2.5.2(supports-color@8.1.0)
       assert-never: 1.2.1
-      babel-plugin-ember-template-compilation: 2.2.1
+      babel-plugin-ember-template-compilation: 2.2.2
       broccoli-node-api: 1.7.0
       broccoli-persistent-filter: 3.1.3(supports-color@8.1.0)
       broccoli-plugin: 4.0.7(supports-color@8.1.0)
@@ -4609,8 +4609,8 @@ packages:
       ember-rfc176-data: 0.3.18
     dev: true
 
-  /babel-plugin-ember-template-compilation@2.2.1:
-    resolution: {integrity: sha512-alinprIQcLficqkuIyeKKfD4HQOpMOiHK6pt6Skj/yjoPoQYBuwAJ2BoPAlRe9k/URPeVkpMefbN3m6jEp7RsA==}
+  /babel-plugin-ember-template-compilation@2.2.2:
+    resolution: {integrity: sha512-wdT2F9/n6uC1rLvAjXCx5+fXbwkl8MIcwt0rg5csWedPbERdzQqhRlDqj0kIwNfUJ9gaXAcKrgSOUXbJcByGOQ==}
     engines: {node: '>= 12.*'}
     dependencies:
       '@glimmer/syntax': 0.84.3
@@ -6136,7 +6136,7 @@ packages:
       '@embroider/shared-internals': 2.5.0(supports-color@8.1.0)
       babel-loader: 8.2.2(@babel/core@7.23.2)(webpack@5.39.1)
       babel-plugin-ember-modules-api-polyfill: 3.5.0
-      babel-plugin-ember-template-compilation: 2.2.1
+      babel-plugin-ember-template-compilation: 2.2.2
       babel-plugin-htmlbars-inline-precompile: 5.3.1
       babel-plugin-syntax-dynamic-import: 6.18.0
       broccoli-debug: 0.6.5(supports-color@8.1.0)
@@ -6255,7 +6255,7 @@ packages:
     engines: {node: 12.* || 14.* || >= 16}
     dependencies:
       '@ember/edition-utils': 1.2.0
-      babel-plugin-ember-template-compilation: 2.2.1
+      babel-plugin-ember-template-compilation: 2.2.2
       babel-plugin-htmlbars-inline-precompile: 5.3.1
       broccoli-debug: 0.6.5(supports-color@8.1.0)
       broccoli-persistent-filter: 3.1.3(supports-color@8.1.0)

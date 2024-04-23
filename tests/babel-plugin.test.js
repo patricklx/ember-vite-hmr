@@ -21,22 +21,25 @@ describe('convert template with hot reload helpers', () => {
 
     // this will be done by @embroider/compat when all static
     const imports = `
-      import NamedComponent from 'embroider_compat/components/named-component';
-      import SomeComponent from 'embroider_compat/components/some-component';
-      import myhelper from 'embroider_compat/helpers/my-helper';
-      console.log(NamedComponent, SomeComponent, myhelper);
     `;
 
     function transform(env) {
-      env.locals.push('NamedComponent', 'SomeComponent', 'myhelper');
       return {
-        visitor: {}
+        visitor: {
+          Template(node, path) {
+            env.meta.jsutils.bindImport('embroider_compat/components/named-component', 'default', null, { nameHint: 'NamedComponent' });
+            env.meta.jsutils.bindImport('embroider_compat/components/some-component', 'default', null, { nameHint: 'SomeComponent' });
+            env.meta.jsutils.bindImport('embroider_compat/helpers/my-helper', 'default', null, { nameHint: 'myhelper' });
+          }
+        }
       };
     }
 
     const result = babel.transform(imports + preTransformed, {
       filename: '/rewritten-app/a.hbs',
       plugins: [
+        plugin,
+        ["@babel/plugin-proposal-decorators", { version: "2022-03" }],
         [emberBabel, {
           transforms: [transform, hotAstProcessor.transform],
           targetFormat: 'hbs',
@@ -47,7 +50,6 @@ describe('convert template with hot reload helpers', () => {
             'htmlbars-inline-precompile',
           ],
         }],
-        plugin,
       ]
     });
 
@@ -104,6 +106,8 @@ describe('convert template with hot reload helpers', () => {
     const resultWired = babel.transform(imports + preTransformed, {
       filename: '/rewritten-app/a.hbs',
       plugins: [
+        plugin,
+        ["@babel/plugin-proposal-decorators", { version: "2022-03" }],
         [emberBabel, {
           transforms: [transform, hotAstProcessor.transform],
           //targetFormat: 'hbs',
@@ -114,7 +118,6 @@ describe('convert template with hot reload helpers', () => {
             'htmlbars-inline-precompile',
           ],
         }],
-        plugin,
       ]
     });
 
