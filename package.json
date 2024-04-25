@@ -59,7 +59,7 @@
     "terser": "^5.7.0",
     "thread-loader": "^3.0.4",
     "vite": "^5.0.12",
-    "vitest": "^1.2.2",
+    "vitest": "^1.5.1",
     "ember-cli-htmlbars": "^6.3.0",
     "@babel/eslint-parser": "^7.19.1",
     "@babel/plugin-proposal-class-properties": "^7.16.7",
