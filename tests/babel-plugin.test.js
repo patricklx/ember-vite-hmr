@@ -76,7 +76,12 @@ describe('convert template with hot reload helpers', () => {
         scope: () => ({
           template__imports__
         })
-      });"
+      });
+      if (import.meta.hot) {
+        import.meta.hot.accept('embroider_compat/components/named-component', module => template__imports__.NamedComponent = module['default']);
+        import.meta.hot.accept('embroider_compat/components/some-component', module => template__imports__.SomeComponent = module['default']);
+        import.meta.hot.accept('embroider_compat/helpers/my-helper', module => template__imports__.myhelper = module['default']);
+      }"
     `);
 
     const resultWired = babel.transform(imports + preTransformed, {
@@ -131,7 +136,12 @@ describe('convert template with hot reload helpers', () => {
         "moduleName": "a.hbs",
         "scope": () => [template__imports__],
         "isStrictMode": false
-      });"
+      });
+      if (import.meta.hot) {
+        import.meta.hot.accept('embroider_compat/components/named-component', module => template__imports__.NamedComponent = module['default']);
+        import.meta.hot.accept('embroider_compat/components/some-component', module => template__imports__.SomeComponent = module['default']);
+        import.meta.hot.accept('embroider_compat/helpers/my-helper', module => template__imports__.myhelper = module['default']);
+      }"
     `);
   })
 
@@ -194,7 +204,13 @@ describe('convert template with hot reload helpers', () => {
           template__imports__
         }),
         strictMode: true
-      }), templateOnly());"
+      }), templateOnly());
+      if (import.meta.hot) {
+        import.meta.hot.accept('my-components', module => template__imports__.NamedComponent = module['NamedComponent']);
+        import.meta.hot.accept('my-components', module => template__imports__.Other = module['Other']);
+        import.meta.hot.accept('my-components', module => template__imports__.SomeComponent = module['default']);
+        import.meta.hot.accept('my-helpers', module => template__imports__.myhelper = module['default']);
+      }"
     `);
 
     const resultWired = babel.transform(preTransformed, {
@@ -258,7 +274,13 @@ describe('convert template with hot reload helpers', () => {
         "moduleName": "/rewritten-app/a.gts",
         "scope": () => [template__imports__],
         "isStrictMode": true
-      }), templateOnly());"
+      }), templateOnly());
+      if (import.meta.hot) {
+        import.meta.hot.accept('my-components', module => template__imports__.NamedComponent = module['NamedComponent']);
+        import.meta.hot.accept('my-components', module => template__imports__.Other = module['Other']);
+        import.meta.hot.accept('my-components', module => template__imports__.SomeComponent = module['default']);
+        import.meta.hot.accept('my-helpers', module => template__imports__.myhelper = module['default']);
+      }"
     `);
   });
 });

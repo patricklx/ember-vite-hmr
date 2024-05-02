@@ -1,10 +1,11 @@
-import { PluginObj } from '@babel/core';
+import { parse, PluginObj } from '@babel/core';
 import type * as BabelTypesNamespace from '@babel/types';
 import {
+  Identifier,
   ImportDefaultSpecifier,
   ImportNamespaceSpecifier,
   ImportSpecifier,
-  Program
+  Program, StringLiteral
 } from '@babel/types';
 import * as glimmer from '@glimmer/syntax';
 import {
@@ -247,6 +248,34 @@ export default function hotReplaceAst(
         const lastImportIndex = path.node.body.findLastIndex((e: BabelTypesNamespace.Statement) => e.type === 'ImportDeclaration') + 1
 
         path.node.body.splice(Math.max(varDeclaration, lastImportIndex), 0, assign);
+
+        const findImport = function findImport(specifier) {
+          return path.node.body.find(b => b.type === 'ImportDeclaration' && b.specifiers.some(s => s.local.name === specifier));
+        }
+
+        const hotAccepts = [];
+        for (const imp of bindings) {
+          const importDeclaration = findImport(imp) as BabelTypesNamespace.ImportDeclaration;
+          const source = importDeclaration.source.value;
+          const specifier = importDeclaration.specifiers.find((s) => s.local.name === imp);
+          const specifierName =
+              ((specifier as ImportSpecifier).imported as Identifier)?.name ||
+              ((specifier as ImportSpecifier).imported as StringLiteral)?.value ||
+              'default';
+          const ast = parse(
+              `import.meta.hot.accept('${source}', (module) => (${hotAstProcessor.meta.importVar}.${imp}=module['${specifierName}']))`,
+          );
+          const impHot = ast?.program.body[0];
+          hotAccepts.push(impHot);
+        }
+        const ifHot = t.ifStatement(
+            t.memberExpression(
+                t.metaProperty(t.identifier('import'), t.identifier('meta')),
+                t.identifier('hot'),
+            ),
+            t.blockStatement([...hotAccepts]),
+        );
+        path.node.body.push(ifHot);
       }
     },
   } as PluginObj;
