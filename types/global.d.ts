@@ -4,25 +4,36 @@ declare module 'thread-loader' {
 
 declare module '*.hbs';
 
+type ReqJSEntry = {
+  module: Module
+}
+
 type Module = {
   id: string;
   exports: any;
+  version: number;
 };
 
-declare global {
-  interface Window {
-    emberHotReloadPlugin: {
-      versionMap: Record<string, number>;
-      subscribe(cb: (newModule: Module, oldModule: Module) => void): void;
-      unsubscribe(cb: (newModule: Module, oldModule: Module) => void): void;
-    };
-  }
-  interface ImportMeta {
-    webpackHot: {
-      accept(): void;
-      addStatusHandler(cb: (status: string) => void): void;
-    };
-  }
+interface Window {
+  emberHotReloadPlugin: {
+    subscribers: any;
+    loadNew(old: any, new: any): unknown;
+    version: number;
+    changed: any;
+    notifyNew(): unknown;
+    __import(moduleUrl: string): unknown;
+    _accepting: number;
+    moduleDepCallbacks: Record<string, Record<string, Function[]>>;
+    versionMap: Record<string, number>;
+    subscribe(cb: (newModule: Module, oldModule: Module) => void): void;
+    unsubscribe(cb: (newModule: Module, oldModule: Module) => void): void;
+  };
+}
+interface ImportMeta {
+  hot: {
+    accept(): void;
+    on(status: string, cb: (options: any) => void): void;
+  };
 }
 
 declare const requirejs: any;

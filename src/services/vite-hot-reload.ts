@@ -6,7 +6,7 @@ import Controller from '@ember/controller';
 
 const ChangeMap = new WeakMap();
 
-function getLatestChange(obj) {
+function getLatestChange(obj: any) {
   while (ChangeMap.has(obj)) {
     obj = ChangeMap.get(obj);
   }
@@ -25,36 +25,40 @@ if (import.meta.hot) {
     version: 1,
     moduleDepCallbacks: {},
     versionMap: {},
+
     clear(module) {
       this.moduleDepCallbacks[module.id] = {};
     },
     register(module, dep, callback) {
       dep = dep.replace(new RegExp(`^${modulePrefix}/`), './');
-      this.moduleDepCallbacks[module.id][dep] =
-        this.moduleDepCallbacks[module.id][dep] || [];
-      this.moduleDepCallbacks[module.id][dep].push(callback);
+      this.moduleDepCallbacks[module.id]![dep] =
+        this.moduleDepCallbacks[module.id]![dep] || [] as Function[];
+      this.moduleDepCallbacks[module.id]![dep]!.push(callback);
     },
-    loadNew(oldModule, newModule) {
+    loadNew(oldModule: Module, newModule: Module) {
       this.versionMap[newModule.id] = newModule.version;
-      const entry = Object.values(requirejs.entries).find(
+      const entry = Object.values(requirejs.entries as Record<string, ReqJSEntry>).find(
         (module) => module.module.exports.default === oldModule.exports.default,
       );
       if (!entry) return;
       entry.module = {
+        id: newModule.id,
         exports: newModule.exports,
+        version: newModule.version
       };
     },
 
-    __import(moduleUrl) {
+    __import(moduleUrl: string) {
       return import(/* @vite-ignore */ moduleUrl);
     },
 
-    async canAcceptNew(moduleUrl) {
+    async canAcceptNew(moduleUrl: string) {
       this._accepting += 1;
       const m = await this.__import(moduleUrl);
-      const module = {
+      const module: Module = {
         exports: m,
-        id: moduleUrl.split('?')[0],
+        id: moduleUrl.split('?')[0]!,
+        version: 0
       };
       this._accepting -= 1;
       if (this._accepting === 0) {
