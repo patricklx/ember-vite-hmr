@@ -88,7 +88,7 @@
     "babel-import-util": "2.0.3",
     "concurrently": "^8.0.1",
     "ember-resolver": "^11.0.1",
-    "ember-source": "^5.3.0",
+    "ember-source": "^5.8.0",
     "ember-template-lint": "^5.11.2",
     "eslint": "^8.33.0",
     "eslint-config-prettier": "^9.0.0",
