@@ -17,10 +17,13 @@ type Module = {
 interface Window {
   emberHotReloadPlugin: {
     subscribers: any;
-    loadNew(old: any, new: any): unknown;
+    loadNew(old: any, _new: any): unknown;
     version: number;
-    changed: any;
+    changed: Record<string, any>;
     notifyNew(): unknown;
+    register: any;
+    canAcceptNew: any;
+    clear(module: Module): unknown;
     __import(moduleUrl: string): unknown;
     _accepting: number;
     moduleDepCallbacks: Record<string, Record<string, Function[]>>;
@@ -30,7 +33,7 @@ interface Window {
   };
 }
 interface ImportMeta {
-  hot: {
+  hot?: {
     accept(): void;
     on(status: string, cb: (options: any) => void): void;
   };

@@ -3,6 +3,7 @@ import { getOwner } from '@ember/owner';
 import RouterService from '@ember/routing/router-service';
 import Router from '@ember/routing/route';
 import Controller from '@ember/controller';
+import ApplicationInstance from "@ember/application/instance";
 
 const ChangeMap = new WeakMap();
 
@@ -26,10 +27,10 @@ if (import.meta.hot) {
     moduleDepCallbacks: {},
     versionMap: {},
 
-    clear(module) {
+    clear(module: Module) {
       this.moduleDepCallbacks[module.id] = {};
     },
-    register(module, dep, callback) {
+    register(module: Module, dep: string, callback: Function) {
       dep = dep.replace(new RegExp(`^${modulePrefix}/`), './');
       this.moduleDepCallbacks[module.id]![dep] =
         this.moduleDepCallbacks[module.id]![dep] || [] as Function[];
@@ -88,7 +89,7 @@ if (import.meta.hot) {
       this.version += 1;
       Object.values(this.changed).forEach((change) => {
         this.loadNew(change.old, change.new);
-        this.subscribers.forEach((fn) => fn(change.old, change.new));
+        this.subscribers.forEach((fn: any) => fn(change.old, change.new));
       });
       this.changed = {};
     },
@@ -108,15 +109,16 @@ export default class ViteHotReloadService extends Service {
   declare container: any;
   @service() router!: RouterService;
 
-  init() {
-    super.init();
+  init(args: any) {
+    super.init(args);
     if (!window.emberHotReloadPlugin) return;
-    modulePrefix = getOwner(this)!.application.modulePrefix;
-    podModulePrefix = getOwner(this)!.application.podModulePrefix;
+    const app = (getOwner(this) as ApplicationInstance)!.application as any;
+    modulePrefix = app.modulePrefix;
+    podModulePrefix = app.podModulePrefix;
     if (import.meta.hot) {
       import.meta.hot.on('vite:beforeUpdate', (options) => {
         options.updates = options.updates.filter(
-            (u) => !u.path.startsWith(`/assets/${modulePrefix}.js`),
+            (u: any) => !u.path.startsWith(`/assets/${modulePrefix}.js`),
         );
       });
     }
@@ -124,7 +126,7 @@ export default class ViteHotReloadService extends Service {
     Object.defineProperty(this.router._router, '_routerMicrolib', {
       set(v) {
         const getRoute = v.getRoute;
-        v.getRoute = function (name) {
+        v.getRoute = function (name: string) {
           const route = getRoute.call(
             this,
             `${name}--hot-version--${window.emberHotReloadPlugin.version}`,
@@ -141,7 +143,7 @@ export default class ViteHotReloadService extends Service {
         return this.___routerMicrolib;
       },
     });
-    this.container = getOwner(this)?.__container__;
+    this.container = (getOwner(this) as any)?.__container__;
     window.emberHotReloadPlugin.subscribe((oldModule, newModule) => {
       const types = [
         'route',
@@ -199,7 +201,7 @@ export default class ViteHotReloadService extends Service {
       }
     });
   }
-  getLatestChange(obj) {
+  getLatestChange(obj: any) {
     return getLatestChange(obj);
   }
 }

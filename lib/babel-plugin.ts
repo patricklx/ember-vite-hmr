@@ -170,6 +170,9 @@ class HotAstProcessor {
           node.original === 'modifier'
         ) {
           const parent = p.parentNode as ASTv1.MustacheStatement;
+          if (typeof (parent.params[0] as ASTv1.StringLiteral).original !== 'string') {
+            return;
+          }
           const original = (parent.params[0] as ASTv1.StringLiteral).original.split('.')[0];
           if (
               original &&
