@@ -100,7 +100,7 @@ if (import.meta.hot) {
   };
 }
 
-export default class WebpackHotReloadService extends Service {
+export default class ViteHotReloadService extends Service {
   declare container: any;
   @service() router!: RouterService;
 
@@ -206,6 +206,6 @@ export default class WebpackHotReloadService extends Service {
 // like `@service('hot-reload') declare altName: HotReloadService;`.
 declare module '@ember/service' {
   interface Registry {
-    'hot-reload': WebpackHotReloadService;
+    'hot-reload': ViteHotReloadService;
   }
 }

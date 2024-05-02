@@ -10,6 +10,7 @@
     "esModuleInterop": true,
     "declarationDir": "declarations",
     "noEmitOnError": false,
+    "target": "ES2020",
     /**
       We don't want to include types dependencies in our compiled output, so tell TypeScript
       to enforce using `import type` instead of `import` for Types.

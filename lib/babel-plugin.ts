@@ -12,6 +12,7 @@ import {
   NodeVisitor,
   WalkerPath
 } from '@glimmer/syntax';
+import { ImportUtil } from 'babel-import-util';
 
 export type BabelTypes = typeof BabelTypesNamespace;
 
@@ -96,9 +97,14 @@ class HotAstProcessor {
   }
 
   transform(env: ASTPluginEnvironment) {
+    if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
+      return {
+        visitor: {}
+      }
+    }
     const meta = this.meta;
-    const imports = [...env.locals];
-    const importVar = env.meta.jsutils.bindExpression('null', null, { nameHint: 'template__imports__' });
+    const importVar = meta.importVar || env.meta.jsutils.bindExpression('null', null, { nameHint: 'template__imports__' });
+    meta.importVar = importVar;
     const findImport = function findImport(specifier) {
       return meta.babelProgram.body.find(b => b.type === 'ImportDeclaration' && b.specifiers.some(s => s.local.name === specifier));
     }
@@ -106,23 +112,14 @@ class HotAstProcessor {
       visitor: {
         ...this.buildVisitor({
           importVar,
-          imports,
+          importBindings: meta.importBindings,
           babelProgram: meta.babelProgram
         }),
-        Template: {
-          exit() {
-            for (const local of env.locals) {
-              if (findImport(local)) {
-                meta.importBindings.add(local);
-              }
-            }
-          }
-        }
       },
     };
   }
 
-  buildVisitor({ importVar, imports, babelProgram }: { importVar: string, imports: string[], babelProgram: Program }) {
+  buildVisitor({ importVar, importBindings, babelProgram }: { importVar: string, importBindings: Set<string>, babelProgram: Program }) {
 
     const findImport = function findImport(specifier) {
       return babelProgram.body.find(b => b.type === 'ImportDeclaration' && b.specifiers.some(s => s.local.name === specifier));
@@ -186,9 +183,10 @@ class HotAstProcessor {
           return;
         }
         if (importVar) {
-          if (imports.includes(node.original) && findImport(node.original)) {
+          if (findImport(node.original)) {
             node.original = `${importVar}.${original}` + node.original.split('.').slice(1).join('.');
             node.parts = node.original.split('.');
+            importBindings.add(original)
           }
           return;
         }
@@ -197,10 +195,12 @@ class HotAstProcessor {
         element: ASTv1.ElementNode,
         p: WalkerPath<ASTv1.ElementNode>,
       ) => {
-        if (findBlockParams(element.tag.split('.')[0], p)) return;
+        const original = element.tag.split('.')[0];
+        if (findBlockParams(original, p)) return;
         if (importVar) {
-          if (imports.includes(element.tag) && findImport(element.tag)) {
-            element.tag = `${importVar}.${element.tag}`;
+          if (findImport(original)) {
+            element.tag = `${importVar}.${original}`;
+            importBindings.add(original)
           }
           return;
         }
@@ -227,8 +227,26 @@ export default function hotReplaceAst(
     },
     visitor: {
       Program(path, state) {
-        t.class
-        path.node.body;
+        if (!hotAstProcessor.meta.importVar) {
+          return;
+        }
+        if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
+          return;
+        }
+        const util = new ImportUtil(t, path);
+        const tracked = util.import(path, '@glimmer/tracking', 'tracked')
+        const klass = t.classExpression(path.scope.generateUidIdentifier('Imports'), null, t.classBody([]));
+        const bindings = [...hotAstProcessor.meta.importBindings].sort();
+        for (const local of bindings) {
+          klass.body.body.push(t.classProperty(t.identifier(local), t.identifier(local), null, [t.decorator(tracked)]));
+        }
+
+        const assign = t.assignmentExpression('=', t.identifier(hotAstProcessor.meta.importVar), klass);
+
+        const varDeclaration = path.node.body.findIndex((e: BabelTypesNamespace.Statement) => e.type === 'VariableDeclaration' && (e.declarations[0]!.id as BabelTypesNamespace.Identifier).name === hotAstProcessor.meta.importVar) + 1;
+        const lastImportIndex = path.node.body.findLastIndex((e: BabelTypesNamespace.Statement) => e.type === 'ImportDeclaration') + 1
+
+        path.node.body.splice(Math.max(varDeclaration, lastImportIndex), 0, assign);
       }
     },
   } as PluginObj;

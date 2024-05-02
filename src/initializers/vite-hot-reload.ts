@@ -1,5 +1,5 @@
 export function initialize(application) {
-  application.__container__.lookup('service:webpack-hot-reload');
+  application.__container__.lookup('service:vite-hot-reload');
   const resolver =
     application.__registry__.resolver._fallback ||
     application.__registry__.resolver;

@@ -25,3 +25,5 @@
 !tsconfig.json
 !tsconfig.lib.json
 !webpack.js
+!babel.config.lib.json
+!babel.config.ember.json

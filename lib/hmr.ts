@@ -1,9 +1,13 @@
 import path from 'path';
+import { Plugin } from 'vite';
 
-export function hmr() {
+export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
   return {
     name: 'hmr-plugin',
     enforce: 'post',
+    configResolved(config) {
+      process.env['EMBER_VITE_HMR_ENABLED'] = enableViteHmrForModes.includes(config.mode).toString()
+    },
     resolveId(id) {
       if (id.startsWith('/@id/embroider_virtual:')) {
         return this.resolve(id.replace('/@id/', ''), path.join(process.cwd(), 'package.json'));

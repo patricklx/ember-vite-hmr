@@ -1,6 +1,6 @@
 {
   "name": "ember-vite-hmr",
-  "version": "0.6.9",
+  "version": "1.0.0",
   "keywords": [
     "ember-addon"
   ],
@@ -85,6 +85,7 @@
     "@types/node": "^15.12.2",
     "@types/semver": "^7.3.6",
     "babel-plugin-ember-template-compilation": "^2.2.2",
+    "babel-import-util": "2.0.3",
     "concurrently": "^8.0.1",
     "ember-resolver": "^11.0.1",
     "ember-source": "^5.3.0",
@@ -101,7 +102,8 @@
   },
   "peerDependencies": {
     "@embroider/compat": "*",
-    "babel-plugin-ember-template-compilation": "^2.2.2"
+    "babel-plugin-ember-template-compilation": "^2.2.2",
+    "babel-import-util": "2.0.3"
   },
   "engines": {
     "node": "12.* || 14.* || >= 16"
@@ -114,8 +116,8 @@
     "type": "addon",
     "main": "addon-main.cjs",
     "app-js": {
-      "./initializers/webpack-hot-reload.js": "./dist/_app_/initializers/webpack-hot-reload.js",
-      "./services/webpack-hot-reload.js": "./dist/_app_/services/webpack-hot-reload.js"
+      "./initializers/vite-hot-reload.js": "./dist/_app_/initializers/vite-hot-reload.js",
+      "./services/vite-hot-reload.js": "./dist/_app_/services/vite-hot-reload.js"
     }
   },
   "exports": {
