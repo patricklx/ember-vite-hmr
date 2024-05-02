@@ -97,14 +97,14 @@ class HotAstProcessor {
     this.meta.importBindings = new Set<string>();
   }
 
-  transform(env: ASTPluginEnvironment) {
+  transform(env: ASTPluginEnvironment): any {
     if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
       return {
         visitor: {}
       }
     }
     const meta = this.meta;
-    const importVar = meta.importVar || env.meta.jsutils.bindExpression('null', null, { nameHint: 'template__imports__' });
+    const importVar = meta.importVar || (env as any).meta.jsutils.bindExpression('null', null, { nameHint: 'template__imports__' });
     meta.importVar = importVar;
     const findImport = function findImport(specifier) {
       return meta.babelProgram.body.find(b => b.type === 'ImportDeclaration' && b.specifiers.some(s => s.local.name === specifier));
@@ -250,7 +250,7 @@ export default function hotReplaceAst(
         const varDeclaration = path.node.body.findIndex((e: BabelTypesNamespace.Statement) => e.type === 'VariableDeclaration' && (e.declarations[0]!.id as BabelTypesNamespace.Identifier).name === hotAstProcessor.meta.importVar) + 1;
         const lastImportIndex = path.node.body.findLastIndex((e: BabelTypesNamespace.Statement) => e.type === 'ImportDeclaration') + 1
 
-        path.node.body.splice(Math.max(varDeclaration, lastImportIndex), 0, assign);
+        path.node.body.splice(Math.max(varDeclaration, lastImportIndex), 0, assign as any);
 
         const findImport = function findImport(specifier) {
           return path.node.body.find(b => b.type === 'ImportDeclaration' && b.specifiers.some(s => s.local.name === specifier));
