@@ -279,6 +279,7 @@ export default function hotReplaceAst(
             t.blockStatement([...hotAccepts]),
         );
         path.node.body.push(ifHot);
+        path.scope.crawl();
       }
     },
   } as PluginObj;
