@@ -12,16 +12,16 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (id.startsWith('/@id/embroider_virtual:')) {
         return this.resolve(id.replace('/@id/', ''), path.join(process.cwd(), 'package.json'));
       }
-      if (id === '/ember-vite-hmr/services/webpack-hot-reload') {
+      if (id === '/ember-vite-hmr/services/vite-hot-reload') {
         return this.resolve(
-          'ember-vite-hmr/services/webpack-hot-reload',
+          'ember-vite-hmr/services/vite-hot-reload',
           path.join(process.cwd(), 'package.json'),
         );
       }
     },
     transformIndexHtml(html) {
       return (
-        `<script type="module" src="/ember-vite-hmr/services/webpack-hot-reload" />` +
+        `<script type="module" src="/ember-vite-hmr/services/vite-hot-reload" />` +
         html
       );
     },
