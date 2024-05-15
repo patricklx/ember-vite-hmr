@@ -63,14 +63,14 @@ describe('convert template with hot reload helpers', () => {
       import myhelper from "embroider_compat/helpers/my-helper";
       import { precompileTemplate } from "@ember/template-compilation";
       import { tracked } from "@glimmer/tracking";
-      template__imports__ = class _Imports {
+      template__imports__ = new class _Imports {
         static {
           [_init_NamedComponent, _init_SomeComponent, _init_myhelper] = _applyDecs2203R(this, [[tracked, 0, "NamedComponent"], [tracked, 0, "SomeComponent"], [tracked, 0, "myhelper"]], []).e;
         }
         NamedComponent = _init_NamedComponent(this, NamedComponent);
         SomeComponent = _init_SomeComponent(this, SomeComponent);
         myhelper = _init_myhelper(this, myhelper);
-      }
+      }()
       export default precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
         moduleName: 'a.hbs',
         scope: () => ({
@@ -114,14 +114,14 @@ describe('convert template with hot reload helpers', () => {
       import myhelper from "embroider_compat/helpers/my-helper";
       import { createTemplateFactory } from "@ember/template-factory";
       import { tracked } from "@glimmer/tracking";
-      template__imports__ = class _Imports {
+      template__imports__ = new class _Imports {
         static {
           [_init_NamedComponent, _init_SomeComponent, _init_myhelper] = _applyDecs2203R(this, [[tracked, 0, "NamedComponent"], [tracked, 0, "SomeComponent"], [tracked, 0, "myhelper"]], []).e;
         }
         NamedComponent = _init_NamedComponent(this, NamedComponent);
         SomeComponent = _init_SomeComponent(this, SomeComponent);
         myhelper = _init_myhelper(this, myhelper);
-      }
+      }()
       export default createTemplateFactory(
       /*
         
@@ -156,6 +156,7 @@ describe('convert template with hot reload helpers', () => {
         
         <template>
       {{(myhelper)}}
+      {{component SomeComponent}}
       <SomeComponent />
       <NamedComponent />
     </template>
@@ -184,7 +185,7 @@ describe('convert template with hot reload helpers', () => {
       import templateOnly from "@ember/component/template-only";
       import { tracked } from "@glimmer/tracking";
       let template__imports__ = null;
-      template__imports__ = class _Imports {
+      template__imports__ = new class _Imports {
         static {
           [_init_NamedComponent, _init_Other, _init_SomeComponent, _init_myhelper] = _applyDecs2203R(this, [[tracked, 0, "NamedComponent"], [tracked, 0, "Other"], [tracked, 0, "SomeComponent"], [tracked, 0, "myhelper"]], []).e;
         }
@@ -192,14 +193,14 @@ describe('convert template with hot reload helpers', () => {
         Other = _init_Other(this, Other);
         SomeComponent = _init_SomeComponent(this, SomeComponent);
         myhelper = _init_myhelper(this, myhelper);
-      }
+      }()
       const T = setComponentTemplate(precompileTemplate("\\n            <template__imports__.Other />\\n        ", {
         scope: () => ({
           template__imports__
         }),
         strictMode: true
       }), templateOnly());
-      export default setComponentTemplate(precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
+      export default setComponentTemplate(precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      {{component template__imports__.SomeComponent}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
         scope: () => ({
           template__imports__
         }),
@@ -238,7 +239,7 @@ describe('convert template with hot reload helpers', () => {
       import templateOnly from "@ember/component/template-only";
       import { tracked } from "@glimmer/tracking";
       let template__imports__ = null;
-      template__imports__ = class _Imports {
+      template__imports__ = new class _Imports {
         static {
           [_init_NamedComponent, _init_Other, _init_SomeComponent, _init_myhelper] = _applyDecs2203R(this, [[tracked, 0, "NamedComponent"], [tracked, 0, "Other"], [tracked, 0, "SomeComponent"], [tracked, 0, "myhelper"]], []).e;
         }
@@ -246,7 +247,7 @@ describe('convert template with hot reload helpers', () => {
         Other = _init_Other(this, Other);
         SomeComponent = _init_SomeComponent(this, SomeComponent);
         myhelper = _init_myhelper(this, myhelper);
-      }
+      }()
       const T = setComponentTemplate(createTemplateFactory(
       /*
         
@@ -264,13 +265,14 @@ describe('convert template with hot reload helpers', () => {
       /*
         
             {{(myhelper)}}
+            {{component SomeComponent}}
             <SomeComponent />
             <NamedComponent />
           
       */
       {
         "id": "--id--",
-        "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[]]",
+        "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[46,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[\\"component\\"]]",
         "moduleName": "/rewritten-app/a.gts",
         "scope": () => [template__imports__],
         "isStrictMode": true
