@@ -3,7 +3,7 @@ import { getOwner } from '@ember/owner';
 import RouterService from '@ember/routing/router-service';
 import Router from '@ember/routing/route';
 import Controller from '@ember/controller';
-import ApplicationInstance from "@ember/application/instance";
+import ApplicationInstance from '@ember/application/instance';
 
 const ChangeMap = new WeakMap();
 
@@ -33,19 +33,21 @@ if (import.meta.hot) {
     register(module: Module, dep: string, callback: Function) {
       dep = dep.replace(new RegExp(`^${modulePrefix}/`), './');
       this.moduleDepCallbacks[module.id]![dep] =
-        this.moduleDepCallbacks[module.id]![dep] || [] as Function[];
+        this.moduleDepCallbacks[module.id]![dep] || ([] as Function[]);
       this.moduleDepCallbacks[module.id]![dep]!.push(callback);
     },
     loadNew(oldModule: Module, newModule: Module) {
       this.versionMap[newModule.id] = newModule.version;
-      const entry = Object.values(requirejs.entries as Record<string, ReqJSEntry>).find(
+      const entry = Object.values(
+        requirejs.entries as Record<string, ReqJSEntry>,
+      ).find(
         (module) => module.module.exports.default === oldModule.exports.default,
       );
       if (!entry) return;
       entry.module = {
         id: newModule.id,
         exports: newModule.exports,
-        version: newModule.version
+        version: newModule.version,
       };
     },
 
@@ -59,7 +61,7 @@ if (import.meta.hot) {
       const module: Module = {
         exports: m,
         id: moduleUrl.split('?')[0]!,
-        version: 0
+        version: 0,
       };
       this._accepting -= 1;
       if (this._accepting === 0) {
@@ -118,7 +120,7 @@ export default class ViteHotReloadService extends Service {
     if (import.meta.hot) {
       import.meta.hot.on('vite:beforeUpdate', (options) => {
         options.updates = options.updates.filter(
-            (u: any) => !u.path.startsWith(`/assets/${modulePrefix}.js`),
+          (u: any) => !u.path.startsWith(`/assets/${modulePrefix}.js`),
         );
       });
     }
@@ -131,7 +133,7 @@ export default class ViteHotReloadService extends Service {
             this,
             `${name}--hot-version--${window.emberHotReloadPlugin.version}`,
           );
-          route.fullRouteName = route.fullRouteName.replace(
+          route.fullRouteName = `route:${name}`.replace(
             /--hot-version--.*$/,
             '',
           );

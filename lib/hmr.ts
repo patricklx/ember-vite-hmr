@@ -6,11 +6,16 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
     name: 'hmr-plugin',
     enforce: 'post',
     configResolved(config) {
-      process.env['EMBER_VITE_HMR_ENABLED'] = enableViteHmrForModes.includes(config.mode).toString()
+      process.env['EMBER_VITE_HMR_ENABLED'] = enableViteHmrForModes
+        .includes(config.mode)
+        .toString();
     },
     resolveId(id) {
       if (id.startsWith('/@id/embroider_virtual:')) {
-        return this.resolve(id.replace('/@id/', ''), path.join(process.cwd(), 'package.json'));
+        return this.resolve(
+          id.replace('/@id/', ''),
+          path.join(process.cwd(), 'package.json'),
+        );
       }
       if (id === '/ember-vite-hmr/services/vite-hot-reload') {
         return this.resolve(
@@ -30,11 +35,23 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         return ctx.modules;
       }
       const otherModules = [];
-      const pairedModule = ctx.modules.find(m => [...m.importers].find(i => i.id.startsWith('embroider_virtual') && i.id.endsWith('-embroider-pair-component')));
+      const pairedModule = ctx.modules.find((m) =>
+        [...m.importers].find(
+          (i) =>
+            i.id.startsWith('embroider_virtual') &&
+            i.id.endsWith('-embroider-pair-component'),
+        ),
+      );
       if (pairedModule) {
-        const pairComponent = [...pairedModule.importers].find(i => i.id.startsWith('embroider_virtual') && i.id.endsWith('-embroider-pair-component'));
+        const pairComponent = [...pairedModule.importers].find(
+          (i) =>
+            i.id.startsWith('embroider_virtual') &&
+            i.id.endsWith('-embroider-pair-component'),
+        );
         if (pairComponent) {
-          const componentModule = [...pairComponent.clientImportedModules].find(cim => cim.id.split('?')[0].match(/\/component\.(js|ts|gjs|gts)/));
+          const componentModule = [...pairComponent.clientImportedModules].find(
+            (cim) => cim.id.split('?')[0].match(/\/component\.(js|ts|gjs|gts)/),
+          );
           if (componentModule) {
             otherModules.push(componentModule);
           }
@@ -56,7 +73,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (resourcePath.includes('/-components/')) {
         return source;
       }
-      const name =  require(`${process.cwd()}/package.json`).name;
+      const name = require(`${process.cwd()}/package.json`).name;
       if (resourcePath.includes(`/assets/${name}.js`)) {
         source += `\nimport.meta.hot.accept();`;
       }
@@ -72,7 +89,10 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           const dep = resultElement[1];
           const resolved = await this.resolve(dep, resourcePath, {});
           let id = resolved.id;
-          if (id.includes('rewritten-app') && !id.startsWith('embroider_virtual:')) {
+          if (
+            id.includes('rewritten-app') &&
+            !id.startsWith('embroider_virtual:')
+          ) {
             id = id.split('rewritten-app')[1];
           }
           if (id.startsWith('embroider_virtual:')) {
@@ -92,7 +112,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             `import.meta.hot.accept('${id}'`,
           );
         }
-        return source;
       }
       if (
         !supportedPaths.some((s) => resourcePath.includes(`/${s}/`)) &&
