@@ -24,6 +24,7 @@ if (import.meta.hot) {
     changed: {},
     subscribers: [],
     version: 1,
+    routerVersion: 1,
     moduleDepCallbacks: {},
     versionMap: {},
 
@@ -131,7 +132,7 @@ export default class ViteHotReloadService extends Service {
         v.getRoute = function (name: string) {
           const route = getRoute.call(
             this,
-            `${name}--hot-version--${window.emberHotReloadPlugin.version}`,
+            `${name}--hot-version--${window.emberHotReloadPlugin.routerVersion}`,
           );
           route.fullRouteName = `route:${name}`.replace(
             /--hot-version--.*$/,
@@ -147,6 +148,21 @@ export default class ViteHotReloadService extends Service {
     });
     this.container = (getOwner(this) as any)?.__container__;
     window.emberHotReloadPlugin.subscribe((oldModule, newModule) => {
+      let changed = false;
+      if (oldModule.exports.default?.prototype && oldModule.exports.default.prototype instanceof Router) {
+        changed = true;
+      }
+      if (oldModule.exports.default?.prototype && oldModule.exports.default.prototype instanceof Controller) {
+        changed = true;
+      }
+      if (oldModule.id.startsWith('./templates/') && !oldModule.id.startsWith('./templates/components/')) {
+        changed = true;
+      }
+      if (oldModule.id.startsWith(`./${podModulePrefix}/`)) {
+        changed = true;
+      }
+      if (!changed) return;
+      window.emberHotReloadPlugin.routerVersion += 1;
       const types = [
         'route',
         'controller',
