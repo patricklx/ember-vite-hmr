@@ -46,10 +46,10 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       const resourcePath = id.replace(/\\/g, '/').split('?')[0];
       const supportedPaths = ['routers', 'controllers', 'routes'];
       const supportedFileNames = [
-        'router.js',
-        'router.ts',
-        'router.gts',
-        'router.gjs',
+        'route.js',
+        'route.ts',
+        'route.gts',
+        'route.gjs',
         'controller.js',
         'controller.ts',
       ];
