@@ -75,13 +75,21 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       }
       const name = require(`${process.cwd()}/package.json`).name;
       if (resourcePath.includes(`/assets/${name}.js`)) {
-        source += `\nimport.meta.hot.accept();`;
+        const result = [
+          ...source.matchAll(/import \* as [^ ]+ from (.*);/g),
+        ];
+        source += result.map(r => {
+          if (r[1].includes('initializers')) {
+            return `\nimport.meta.hot.accept(${r[1]}, () => window.location.reload());`;
+          }
+          return `\nimport.meta.hot.accept(${r[1]});`;
+        }).join('');
       }
       if (
         resourcePath.endsWith('.hbs') ||
         resourcePath.endsWith('.gjs') ||
-        resourcePath.endsWith('.gts')
-      ) {
+        resourcePath.endsWith('.gts') ||
+        resourcePath.includes(`/assets/${name}.js`)) {
         const result = [
           ...source.matchAll(/import.meta.hot.accept\(\'([^']+)\'/g),
         ];

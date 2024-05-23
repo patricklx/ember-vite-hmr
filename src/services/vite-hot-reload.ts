@@ -118,13 +118,6 @@ export default class ViteHotReloadService extends Service {
     const app = (getOwner(this) as ApplicationInstance)!.application as any;
     modulePrefix = app.modulePrefix;
     podModulePrefix = app.podModulePrefix;
-    if (import.meta.hot) {
-      import.meta.hot.on('vite:beforeUpdate', (options) => {
-        options.updates = options.updates.filter(
-          (u: any) => !u.path.startsWith(`/assets/${modulePrefix}.js`),
-        );
-      });
-    }
     this.router._router;
     Object.defineProperty(this.router._router, '_routerMicrolib', {
       set(v) {
