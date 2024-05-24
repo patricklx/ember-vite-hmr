@@ -179,16 +179,20 @@ class HotAstProcessor {
             findBlockParams(original, p)
           )
             return;
-          if (original?.includes('.')) return;
           if (!original) return;
-          const param = glimmer.builders.path(`${importVar}.${original}`);
-          parent.params.splice(0, 1);
-          parent.params.push(param);
+          if (original?.includes('.')) return;
+          if (findImport(node.original)) {
+            const param = parent.params[0] as ASTv1.PathExpression;
+            param.original = `${importVar}.${param.original}`;
+            param.parts = param.original.split('.')
+            importBindings.add(original);
+            return;
+          }
           return;
         }
         if (importVar) {
           if (findImport(node.original)) {
-            node.original = `${importVar}.${original}` + node.original.split('.').slice(1).join('.');
+            node.original = `${importVar}.${node.original}`;
             node.parts = node.original.split('.');
             importBindings.add(original)
           }
@@ -203,7 +207,7 @@ class HotAstProcessor {
         if (findBlockParams(original, p)) return;
         if (importVar) {
           if (findImport(original)) {
-            element.tag = `${importVar}.${original}`;
+            element.tag = `${importVar}.${element.tag}`;
             importBindings.add(original)
           }
           return;

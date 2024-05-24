@@ -13,7 +13,9 @@ describe('convert template with hot reload helpers', () => {
   it('should convert hbs correctly', () => {
     const code = `
       {{(myhelper)}}
+      {{this.Component}}
       <SomeComponent />
+      <this.SomeComponent />
       <NamedComponent />
     `;
     const preTransformed = TemplateCompiler.prototype.processString(code, 'a.hbs');
@@ -71,7 +73,7 @@ describe('convert template with hot reload helpers', () => {
         SomeComponent = _init_SomeComponent(this, SomeComponent);
         myhelper = _init_myhelper(this, myhelper);
       }
-      export default precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
+      export default precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      {{this.Component}}\\n      <template__imports__.SomeComponent />\\n      <this.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
         moduleName: 'a.hbs',
         scope: () => ({
           template__imports__
@@ -126,13 +128,15 @@ describe('convert template with hot reload helpers', () => {
       /*
         
             {{(myhelper)}}
+            {{this.Component}}
             <SomeComponent />
+            <this.SomeComponent />
             <NamedComponent />
           
       */
       {
         "id": "--id--",
-        "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[]]",
+        "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[1,[30,0,[\\"Component\\"]]],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[30,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[]]",
         "moduleName": "a.hbs",
         "scope": () => [template__imports__],
         "isStrictMode": false
@@ -156,7 +160,9 @@ describe('convert template with hot reload helpers', () => {
         
         <template>
       {{(myhelper)}}
+      {{this.Component}}
       <SomeComponent />
+      <this.SomeComponent />
       <NamedComponent />
     </template>
     
@@ -199,9 +205,10 @@ describe('convert template with hot reload helpers', () => {
         }),
         strictMode: true
       }), templateOnly());
-      export default setComponentTemplate(precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
+      export default setComponentTemplate(precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      {{this.Component}}\\n      <template__imports__.SomeComponent />\\n      <this.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
         scope: () => ({
-          template__imports__
+          template__imports__,
+          this
         }),
         strictMode: true
       }), templateOnly());
@@ -264,13 +271,15 @@ describe('convert template with hot reload helpers', () => {
       /*
         
             {{(myhelper)}}
+            {{this.Component}}
             <SomeComponent />
+            <this.SomeComponent />
             <NamedComponent />
           
       */
       {
         "id": "--id--",
-        "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[]]",
+        "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[1,[30,0,[\\"Component\\"]]],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[30,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[]]",
         "moduleName": "/rewritten-app/a.gts",
         "scope": () => [template__imports__],
         "isStrictMode": true
