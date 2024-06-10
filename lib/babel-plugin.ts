@@ -182,10 +182,11 @@ class HotAstProcessor {
             return;
           if (original?.includes('.')) return;
           if (!original) return;
-          const param = glimmer.builders.path(`${importVar}.${original}`);
-          parent.params.splice(0, 1, param);
-          importBindings.add(original);
-
+          if (findImport(original)) {
+            const param = glimmer.builders.path(`${importVar}.${original}`);
+            parent.params.splice(0, 1, param);
+            importBindings.add(original);
+          }
           return;
         }
         if (importVar) {

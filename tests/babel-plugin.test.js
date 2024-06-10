@@ -13,6 +13,8 @@ describe('convert template with hot reload helpers', () => {
   it('should convert hbs correctly', () => {
     const code = `
       {{(myhelper)}}
+      <this.X />
+      {{component this.X}}
       <SomeComponent />
       <NamedComponent />
     `;
@@ -71,7 +73,7 @@ describe('convert template with hot reload helpers', () => {
         SomeComponent = _init_SomeComponent(this, SomeComponent);
         myhelper = _init_myhelper(this, myhelper);
       }()
-      export default precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
+      export default precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      <this.X />\\n      {{component this.X}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
         moduleName: 'a.hbs',
         scope: () => ({
           template__imports__
@@ -126,13 +128,15 @@ describe('convert template with hot reload helpers', () => {
       /*
         
             {{(myhelper)}}
+            <this.X />
+            {{component this.X}}
             <SomeComponent />
             <NamedComponent />
           
       */
       {
         "id": "--id--",
-        "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[]]",
+        "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[8,[30,0,[\\"X\\"]],null,null,null],[1,\\"\\\\n      \\"],[46,[30,0,[\\"X\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[\\"component\\"]]",
         "moduleName": "a.hbs",
         "scope": () => [template__imports__],
         "isStrictMode": false
@@ -152,8 +156,7 @@ describe('convert template with hot reload helpers', () => {
        
        const T = <template>
             <Other />
-        </template>;
-        
+        </template>;        
         <template>
       {{(myhelper)}}
       {{component SomeComponent}}
