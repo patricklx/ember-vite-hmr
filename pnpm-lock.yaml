@@ -173,8 +173,8 @@ devDependencies:
     specifier: ^5.7.0
     version: 5.7.0
   thread-loader:
-    specifier: ^3.0.4
-    version: 3.0.4(webpack@5.39.1)
+    specifier: ^4.0.2
+    version: 4.0.2(webpack@5.39.1)
   typescript:
     specifier: ^5.1.6
     version: 5.1.6
@@ -10496,17 +10496,16 @@ packages:
     engines: {node: '>=0.8'}
     dev: true
 
-  /thread-loader@3.0.4(webpack@5.39.1):
-    resolution: {integrity: sha512-ByaL2TPb+m6yArpqQUZvP+5S1mZtXsEP7nWKKlAUTm7fCml8kB5s1uI3+eHRP2bk5mVYfRSBI7FFf+tWEyLZwA==}
-    engines: {node: '>= 10.13.0'}
+  /thread-loader@4.0.2(webpack@5.39.1):
+    resolution: {integrity: sha512-UOk/KBydsQjh4Ja5kocxDUzhv11KYptHN/h8gdSwo6/MBkYrWqQua6K2qwlpXnCXS9c/uLs8F/JF8rpveF0+fA==}
+    engines: {node: '>= 16.10.0'}
     peerDependencies:
-      webpack: ^4.27.0 || ^5.0.0
+      webpack: ^5.0.0
     dependencies:
       json-parse-better-errors: 1.0.2
       loader-runner: 4.3.0
-      loader-utils: 2.0.4
       neo-async: 2.6.2
-      schema-utils: 3.3.0
+      schema-utils: 4.2.0
       webpack: 5.39.1
     dev: true
 

@@ -57,7 +57,7 @@
     "style-loader": "^2.0.0",
     "supports-color": "^8.1.0",
     "terser": "^5.7.0",
-    "thread-loader": "^3.0.4",
+    "thread-loader": "^4.0.2",
     "vite": "^5.2.11",
     "vitest": "^1.2.2",
     "ember-cli-htmlbars": "^6.3.0",
