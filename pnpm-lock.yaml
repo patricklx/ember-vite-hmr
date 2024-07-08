@@ -175,8 +175,8 @@ importers:
         specifier: ^5.7.0
         version: 5.7.0
       thread-loader:
-        specifier: ^3.0.4
-        version: 3.0.4(webpack@5.92.1)
+        specifier: ^4.0.2
+        version: 4.0.2(webpack@5.92.1)
       typescript:
         specifier: ^5.1.6
         version: 5.1.6
@@ -4793,11 +4793,11 @@ packages:
     resolution: {integrity: sha512-49WtAWS+tcsy93dRt6P0P3AMD2m5PvXRhuEA0kaXos5ZLlujtYmpmFsB+QvWUSxE1ZsstmYXfQ7L40+EcQgpAQ==}
     engines: {node: '>=0.8'}
 
-  thread-loader@3.0.4:
-    resolution: {integrity: sha512-ByaL2TPb+m6yArpqQUZvP+5S1mZtXsEP7nWKKlAUTm7fCml8kB5s1uI3+eHRP2bk5mVYfRSBI7FFf+tWEyLZwA==}
-    engines: {node: '>= 10.13.0'}
+  thread-loader@4.0.2:
+    resolution: {integrity: sha512-UOk/KBydsQjh4Ja5kocxDUzhv11KYptHN/h8gdSwo6/MBkYrWqQua6K2qwlpXnCXS9c/uLs8F/JF8rpveF0+fA==}
+    engines: {node: '>= 16.10.0'}
     peerDependencies:
-      webpack: ^4.27.0 || ^5.0.0
+      webpack: ^5.0.0
 
   through2@3.0.2:
     resolution: {integrity: sha512-enaDQ4MUyP2W6ZyT6EsMzqBPZaM/avg8iuo+l2d3QCs0J+6RaqkHV/2/lOwDTueBHeJ/2LG9lrLW3d5rWPucuQ==}
@@ -11827,13 +11827,12 @@ snapshots:
 
   textextensions@2.6.0: {}
 
-  thread-loader@3.0.4(webpack@5.92.1):
+  thread-loader@4.0.2(webpack@5.92.1):
     dependencies:
       json-parse-better-errors: 1.0.2
       loader-runner: 4.3.0
-      loader-utils: 2.0.4
       neo-async: 2.6.2
-      schema-utils: 3.3.0
+      schema-utils: 4.2.0
       webpack: 5.92.1
 
   through2@3.0.2:
