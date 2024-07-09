@@ -119,7 +119,7 @@ importers:
         version: 1.2.1
       babel-plugin-ember-template-compilation:
         specifier: ^2.2.2
-        version: 2.2.2
+        version: 2.2.5
       concurrently:
         specifier: ^8.0.1
         version: 8.0.1
@@ -1933,6 +1933,10 @@ packages:
     resolution: {integrity: sha512-N1ZfNprtf/37x0R05J0QCW/9pCAcuI+bjZIK9tlu0JEkwEST7ssdD++gxHRbD58AiG5QE5OuNYhRoEFsc1wESw==}
     engines: {node: '>= 12.*'}
 
+  babel-import-util@3.0.0:
+    resolution: {integrity: sha512-4YNPkuVsxAW5lnSTa6cn4Wk49RX6GAB6vX+M6LqEtN0YePqoFczv1/x0EyLK/o+4E1j9jEuYj5Su7IEPab5JHQ==}
+    engines: {node: '>= 12.*'}
+
   babel-loader@8.2.2:
     resolution: {integrity: sha512-JvTd0/D889PQBtUXJ2PXaKU/pjZDMtHA9V2ecm+eNRmmBCMR09a+fmpGTNwnJtFmFl5Ei7Vy47LjBb+L0wQ99g==}
     engines: {node: '>= 8.9'}
@@ -1966,8 +1970,8 @@ packages:
     resolution: {integrity: sha512-pJajN/DkQUnStw0Az8c6khVcMQHgzqWr61lLNtVeu0g61LRW0k9jyK7vaedrHDWGe/Qe8sxG5wpiyW9NsMqFzA==}
     engines: {node: 6.* || 8.* || >= 10.*}
 
-  babel-plugin-ember-template-compilation@2.2.2:
-    resolution: {integrity: sha512-wdT2F9/n6uC1rLvAjXCx5+fXbwkl8MIcwt0rg5csWedPbERdzQqhRlDqj0kIwNfUJ9gaXAcKrgSOUXbJcByGOQ==}
+  babel-plugin-ember-template-compilation@2.2.5:
+    resolution: {integrity: sha512-NQ2DT0DsYyHVrEpFQIy2U8S91JaKSE8NOSZzMd7KZFJVgA6KodJq3Uj852HcH9LsSfvwppnM+dRo1G8bzTnnFw==}
     engines: {node: '>= 12.*'}
 
   babel-plugin-filter-imports@4.0.0:
@@ -6917,7 +6921,7 @@ snapshots:
       '@types/yargs': 17.0.29
       assert-never: 1.2.1
       babel-import-util: 2.0.1
-      babel-plugin-ember-template-compilation: 2.2.2
+      babel-plugin-ember-template-compilation: 2.2.5
       babel-plugin-syntax-dynamic-import: 6.18.0
       babylon: 6.18.0
       bind-decorator: 1.0.11
@@ -6961,7 +6965,7 @@ snapshots:
       '@embroider/macros': 1.15.0(@glint/template@1.2.0)(supports-color@8.1.0)
       '@embroider/shared-internals': 2.5.2(supports-color@8.1.0)
       assert-never: 1.2.1
-      babel-plugin-ember-template-compilation: 2.2.2
+      babel-plugin-ember-template-compilation: 2.2.5
       broccoli-node-api: 1.7.0
       broccoli-persistent-filter: 3.1.3(supports-color@8.1.0)
       broccoli-plugin: 4.0.7(supports-color@8.1.0)
@@ -8086,6 +8090,8 @@ snapshots:
 
   babel-import-util@2.0.1: {}
 
+  babel-import-util@3.0.0: {}
+
   babel-loader@8.2.2(@babel/core@7.23.2(supports-color@8.1.0))(webpack@5.92.1):
     dependencies:
       '@babel/core': 7.23.2(supports-color@8.1.0)
@@ -8126,10 +8132,10 @@ snapshots:
     dependencies:
       ember-rfc176-data: 0.3.18
 
-  babel-plugin-ember-template-compilation@2.2.2:
+  babel-plugin-ember-template-compilation@2.2.5:
     dependencies:
       '@glimmer/syntax': 0.84.3
-      babel-import-util: 2.0.1
+      babel-import-util: 3.0.0
 
   babel-plugin-filter-imports@4.0.0:
     dependencies:
@@ -9145,7 +9151,7 @@ snapshots:
       '@embroider/shared-internals': 2.5.0(supports-color@8.1.0)
       babel-loader: 8.2.2(@babel/core@7.23.2(supports-color@8.1.0))(webpack@5.92.1)
       babel-plugin-ember-modules-api-polyfill: 3.5.0
-      babel-plugin-ember-template-compilation: 2.2.2
+      babel-plugin-ember-template-compilation: 2.2.5
       babel-plugin-htmlbars-inline-precompile: 5.3.1
       babel-plugin-syntax-dynamic-import: 6.18.0
       broccoli-debug: 0.6.5(supports-color@8.1.0)
@@ -9248,7 +9254,7 @@ snapshots:
   ember-cli-htmlbars@6.3.0(supports-color@8.1.0):
     dependencies:
       '@ember/edition-utils': 1.2.0
-      babel-plugin-ember-template-compilation: 2.2.2
+      babel-plugin-ember-template-compilation: 2.2.5
       babel-plugin-htmlbars-inline-precompile: 5.3.1
       broccoli-debug: 0.6.5(supports-color@8.1.0)
       broccoli-persistent-filter: 3.1.3(supports-color@8.1.0)
