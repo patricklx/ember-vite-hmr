@@ -55,7 +55,7 @@
     "content-tag": "^2.0.1",
     "source-map-url": "^0.4.1",
     "style-loader": "^2.0.0",
-    "supports-color": "^8.1.0",
+    "supports-color": "^9.4.0",
     "terser": "^5.7.0",
     "thread-loader": "^4.0.2",
     "vite": "^5.2.11",
