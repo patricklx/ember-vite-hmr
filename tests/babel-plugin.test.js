@@ -198,16 +198,16 @@ describe('convert template with hot reload helpers', () => {
         myhelper = _init_myhelper(this, myhelper);
       }()
       const T = setComponentTemplate(precompileTemplate("\\n            <template__imports__.Other />\\n        ", {
+        strictMode: true,
         scope: () => ({
           template__imports__
-        }),
-        strictMode: true
+        })        
       }), templateOnly());
       export default setComponentTemplate(precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      {{component template__imports__.SomeComponent}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
+        strictMode: true,
         scope: () => ({
           template__imports__
         }),
-        strictMode: true
       }), templateOnly());
       if (import.meta.hot) {
         import.meta.hot.accept('my-components', module => template__imports__.NamedComponent = module['NamedComponent']);
