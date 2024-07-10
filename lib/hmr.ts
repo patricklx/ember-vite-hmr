@@ -25,6 +25,9 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       }
     },
     transformIndexHtml(html) {
+      if (!process.env['EMBER_VITE_HMR_ENABLED']) {
+        return html;
+      }
       return (
         `<script type="module" src="/ember-vite-hmr/services/vite-hot-reload" />` +
         html
