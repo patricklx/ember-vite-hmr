@@ -79,7 +79,7 @@
     "@types/babel__traverse": "^7.20.3",
     "@types/csso": "^3.5.1",
     "@types/debug": "^4.1.5",
-    "@types/fs-extra": "^9.0.12",
+    "@types/fs-extra": "^11.0.4",
     "@types/lodash": "^4.14.170",
     "@types/mini-css-extract-plugin": "^2.5.1",
     "@types/node": "^20.14.10",
