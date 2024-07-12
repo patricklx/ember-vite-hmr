@@ -6,11 +6,16 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
     name: 'hmr-plugin',
     enforce: 'post',
     configResolved(config) {
-      process.env['EMBER_VITE_HMR_ENABLED'] = enableViteHmrForModes.includes(config.mode).toString()
+      process.env['EMBER_VITE_HMR_ENABLED'] = enableViteHmrForModes
+        .includes(config.mode)
+        .toString();
     },
     resolveId(id) {
       if (id.startsWith('/@id/embroider_virtual:')) {
-        return this.resolve(id.replace('/@id/', ''), path.join(process.cwd(), 'package.json'));
+        return this.resolve(
+          id.replace('/@id/', ''),
+          path.join(process.cwd(), 'package.json'),
+        );
       }
       if (id === '/ember-vite-hmr/services/vite-hot-reload') {
         return this.resolve(
@@ -20,6 +25,9 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       }
     },
     transformIndexHtml(html) {
+      if (!process.env['EMBER_VITE_HMR_ENABLED']) {
+        return html;
+      }
       return (
         `<script type="module" src="/ember-vite-hmr/services/vite-hot-reload" />` +
         html
@@ -30,11 +38,23 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         return ctx.modules;
       }
       const otherModules = [];
-      const pairedModule = ctx.modules.find(m => [...m.importers].find(i => i.id.startsWith('embroider_virtual') && i.id.endsWith('-embroider-pair-component')));
+      const pairedModule = ctx.modules.find((m) =>
+        [...m.importers].find(
+          (i) =>
+            i.id.startsWith('embroider_virtual') &&
+            i.id.endsWith('-embroider-pair-component'),
+        ),
+      );
       if (pairedModule) {
-        const pairComponent = [...pairedModule.importers].find(i => i.id.startsWith('embroider_virtual') && i.id.endsWith('-embroider-pair-component'));
+        const pairComponent = [...pairedModule.importers].find(
+          (i) =>
+            i.id.startsWith('embroider_virtual') &&
+            i.id.endsWith('-embroider-pair-component'),
+        );
         if (pairComponent) {
-          const componentModule = [...pairComponent.clientImportedModules].find(cim => cim.id.split('?')[0].match(/\/component\.(js|ts|gjs|gts)/));
+          const componentModule = [...pairComponent.clientImportedModules].find(
+            (cim) => cim.id.split('?')[0].match(/\/component\.(js|ts|gjs|gts)/),
+          );
           if (componentModule) {
             otherModules.push(componentModule);
           }
@@ -46,25 +66,33 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       const resourcePath = id.replace(/\\/g, '/').split('?')[0];
       const supportedPaths = ['routers', 'controllers', 'routes'];
       const supportedFileNames = [
-        'router.js',
-        'router.ts',
-        'router.gts',
-        'router.gjs',
+        'route.js',
+        'route.ts',
+        'route.gts',
+        'route.gjs',
         'controller.js',
         'controller.ts',
       ];
       if (resourcePath.includes('/-components/')) {
         return source;
       }
-      const name =  require(`${process.cwd()}/package.json`).name;
+      const name = require(`${process.cwd()}/package.json`).name;
       if (resourcePath.includes(`/assets/${name}.js`)) {
-        source += `\nimport.meta.hot.accept();`;
+        const result = [
+          ...source.matchAll(/import \* as [^ ]+ from (.*);/g),
+        ];
+        source += result.map(r => {
+          if (r[1].includes('initializers')) {
+            return `\nimport.meta.hot.accept(${r[1]}, () => window.location.reload());`;
+          }
+          return `\nimport.meta.hot.accept(${r[1]});`;
+        }).join('');
       }
       if (
         resourcePath.endsWith('.hbs') ||
         resourcePath.endsWith('.gjs') ||
-        resourcePath.endsWith('.gts')
-      ) {
+        resourcePath.endsWith('.gts') ||
+        resourcePath.includes(`/assets/${name}.js`)) {
         const result = [
           ...source.matchAll(/import.meta.hot.accept\(\'([^']+)\'/g),
         ];
@@ -72,7 +100,10 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           const dep = resultElement[1];
           const resolved = await this.resolve(dep, resourcePath, {});
           let id = resolved.id;
-          if (id.includes('rewritten-app') && !id.startsWith('embroider_virtual:')) {
+          if (
+            id.includes('rewritten-app') &&
+            !id.startsWith('embroider_virtual:')
+          ) {
             id = id.split('rewritten-app')[1];
           }
           if (id.startsWith('embroider_virtual:')) {
@@ -92,7 +123,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             `import.meta.hot.accept('${id}'`,
           );
         }
-        return source;
       }
       if (
         !supportedPaths.some((s) => resourcePath.includes(`/${s}/`)) &&

@@ -1,6 +1,6 @@
 {
   "name": "ember-vite-hmr",
-  "version": "1.4.3",
+  "version": "1.4.10",
   "keywords": [
     "ember-addon"
   ],
@@ -55,9 +55,9 @@
     "content-tag": "^2.0.1",
     "source-map-url": "^0.4.1",
     "style-loader": "^2.0.0",
-    "supports-color": "^8.1.0",
+    "supports-color": "^9.4.0",
     "terser": "^5.7.0",
-    "thread-loader": "^3.0.4",
+    "thread-loader": "^4.0.2",
     "vite": "^5.2.11",
     "vitest": "^1.2.2",
     "ember-cli-htmlbars": "^6.3.0",
@@ -81,8 +81,8 @@
     "@types/debug": "^4.1.5",
     "@types/fs-extra": "^9.0.12",
     "@types/lodash": "^4.14.170",
-    "@types/mini-css-extract-plugin": "^1.4.3",
-    "@types/node": "^18.19.31",
+    "@types/mini-css-extract-plugin": "^2.5.1",
+    "@types/node": "^20.14.10",
     "@types/semver": "^7.3.6",
     "@types/rsvp": "^4.0.9",
     "babel-plugin-ember-template-compilation": "^2.2.2",

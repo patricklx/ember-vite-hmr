@@ -5,8 +5,8 @@ declare module 'thread-loader' {
 declare module '*.hbs';
 
 type ReqJSEntry = {
-  module: Module
-}
+  module: Module;
+};
 
 type Module = {
   id: string;
@@ -19,6 +19,7 @@ interface Window {
     subscribers: any;
     loadNew(old: any, _new: any): unknown;
     version: number;
+    routerVersion: number;
     changed: Record<string, any>;
     notifyNew(): unknown;
     register: any;

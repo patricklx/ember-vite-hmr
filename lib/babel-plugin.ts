@@ -1,11 +1,12 @@
 import { parse, PluginObj } from '@babel/core';
 import type * as BabelTypesNamespace from '@babel/types';
 import {
+  AssignmentExpression,
   Identifier,
   ImportDefaultSpecifier,
   ImportNamespaceSpecifier,
   ImportSpecifier,
-  Program, StringLiteral
+  Program, Statement, StringLiteral
 } from '@babel/types';
 import * as glimmer from '@glimmer/syntax';
 import {
@@ -179,14 +180,12 @@ class HotAstProcessor {
             findBlockParams(original, p)
           )
             return;
-          if (!original) return;
           if (original?.includes('.')) return;
-          if (findImport(node.original)) {
-            const param = parent.params[0] as ASTv1.PathExpression;
-            param.original = `${importVar}.${param.original}`;
-            param.parts = param.original.split('.')
+          if (!original) return;
+          if (findImport(original)) {
+            const param = glimmer.builders.path(`${importVar}.${original}`);
+            parent.params.splice(0, 1, param);
             importBindings.add(original);
-            return;
           }
           return;
         }
@@ -194,7 +193,7 @@ class HotAstProcessor {
           if (findImport(node.original)) {
             node.original = `${importVar}.${node.original}`;
             node.parts = node.original.split('.');
-            importBindings.add(original)
+            importBindings.add(original);
           }
           return;
         }
@@ -207,7 +206,7 @@ class HotAstProcessor {
         if (findBlockParams(original, p)) return;
         if (importVar) {
           if (findImport(original)) {
-            element.tag = `${importVar}.${element.tag}`;
+            element.tag = `${importVar}.${original}`;
             importBindings.add(original)
           }
           return;
@@ -249,12 +248,13 @@ export default function hotReplaceAst(
           klass.body.body.push(t.classProperty(t.identifier(local), t.identifier(local), null, [t.decorator(tracked)]));
         }
 
-        const assign = t.assignmentExpression('=', t.identifier(hotAstProcessor.meta.importVar), klass);
+        const newExp = t.newExpression(klass, []);
+        const assign = t.assignmentExpression('=', t.identifier(hotAstProcessor.meta.importVar), newExp);
 
         const varDeclaration = path.node.body.findIndex((e: BabelTypesNamespace.Statement) => e.type === 'VariableDeclaration' && (e.declarations[0]!.id as BabelTypesNamespace.Identifier).name === hotAstProcessor.meta.importVar) + 1;
         const lastImportIndex = path.node.body.findLastIndex((e: BabelTypesNamespace.Statement) => e.type === 'ImportDeclaration') + 1
 
-        path.node.body.splice(Math.max(varDeclaration, lastImportIndex), 0, assign as any);
+        path.node.body.splice(Math.max(varDeclaration, lastImportIndex), 0, assign as unknown as Statement);
 
         const findImport = function findImport(specifier) {
           return path.node.body.find(b => b.type === 'ImportDeclaration' && b.specifiers.some(s => s.local.name === specifier));
