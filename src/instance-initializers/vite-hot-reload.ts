@@ -7,7 +7,8 @@ import { Renderer } from '@ember/-internals/glimmer/lib/renderer';
 function patchResolver(application: ApplicationInstance) {
   application.__container__.lookup('service:vite-hot-reload');
   const resolver =
-      (application.__registry__.resolver as any)._fallback ||
+      (application.__registry__.resolver as any)?._fallback ||
+      (application.__registry__.fallback?.resolver as any)._fallback ||
       application.__registry__.resolver;
   const resolverResolve = resolver.resolve;
   resolver.resolve = function (name: string) {
