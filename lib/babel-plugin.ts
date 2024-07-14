@@ -136,6 +136,9 @@ class HotAstProcessor {
         | ASTv1.PathExpression
       >,
     ): boolean {
+      if ((p.node as any).type === 'Template') {
+        return false;
+      }
       if (
         p.node &&
         p.node.type === 'BlockStatement' &&
@@ -169,7 +172,7 @@ class HotAstProcessor {
           node.original === 'helper' ||
           node.original === 'component' ||
           node.original === 'modifier'
-        ) {
+        ) {(node.original);
           const parent = p.parentNode as ASTv1.MustacheStatement;
           if (typeof (parent.params[0] as ASTv1.StringLiteral).original !== 'string') {
             return;
@@ -207,6 +210,7 @@ class HotAstProcessor {
         if (importVar) {
           if (findImport(original)) {
             element.tag = `${importVar}.${original}`;
+            p.node.tag = element.tag;
             importBindings.add(original)
           }
           return;
