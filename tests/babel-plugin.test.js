@@ -198,16 +198,16 @@ describe('convert template with hot reload helpers', () => {
         myhelper = _init_myhelper(this, myhelper);
       }()
       const T = setComponentTemplate(precompileTemplate("\\n            <template__imports__.Other />\\n        ", {
-        strictMode: true,
         scope: () => ({
           template__imports__
-        })
+        }),
+        strictMode: true
       }), templateOnly());
       export default setComponentTemplate(precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      {{component template__imports__.SomeComponent}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
-        strictMode: true,
         scope: () => ({
           template__imports__
-        })
+        }),
+        strictMode: true
       }), templateOnly());
       if (import.meta.hot) {
         import.meta.hot.accept('my-components', module => template__imports__.NamedComponent = module['NamedComponent']);
@@ -237,8 +237,8 @@ describe('convert template with hot reload helpers', () => {
       function _applyDecs2203R(e, t, r) { return (_applyDecs2203R = applyDecs2203RFactory())(e, t, r); }
       import SomeComponent, { NamedComponent, Other } from 'my-components';
       import myhelper from 'my-helpers';
-      import { setComponentTemplate } from "@ember/component";
       import { createTemplateFactory } from "@ember/template-factory";
+      import { setComponentTemplate } from "@ember/component";
       import templateOnly from "@ember/component/template-only";
       import { tracked } from "@glimmer/tracking";
       let template__imports__ = null;
