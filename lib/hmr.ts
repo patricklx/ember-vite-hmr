@@ -25,7 +25,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       }
     },
     transformIndexHtml(html) {
-      if (!process.env['EMBER_VITE_HMR_ENABLED']) {
+      if (!process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
         return html;
       }
       return (
