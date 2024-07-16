@@ -74,7 +74,7 @@
     "@glint/environment-ember-template-imports": "^1.2.0",
     "@glint/template": "^1.2.0",
     "@rollup/plugin-babel": "^6.0.3",
-    "@tsconfig/ember": "^2.0.0",
+    "@tsconfig/ember": "^3.0.8",
     "@types/babel__core": "^7.20.3",
     "@types/babel__traverse": "^7.20.3",
     "@types/csso": "^3.5.1",
