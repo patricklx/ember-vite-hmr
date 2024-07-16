@@ -166,8 +166,8 @@ importers:
         specifier: ^0.4.1
         version: 0.4.1
       style-loader:
-        specifier: ^2.0.0
-        version: 2.0.0(webpack@5.39.1)
+        specifier: ^4.0.0
+        version: 4.0.0(webpack@5.39.1)
       supports-color:
         specifier: ^9.4.0
         version: 9.4.0
@@ -4876,6 +4876,12 @@ packages:
     engines: {node: '>= 10.13.0'}
     peerDependencies:
       webpack: ^4.0.0 || ^5.0.0
+
+  style-loader@4.0.0:
+    resolution: {integrity: sha512-1V4WqhhZZgjVAVJyt7TdDPZoPBPNHbekX4fWnCJL1yQukhCeZhJySUL+gL9y6sNdN95uEOS83Y55SqHcP7MzLA==}
+    engines: {node: '>= 18.12.0'}
+    peerDependencies:
+      webpack: ^5.27.0
 
   supports-color@2.0.0:
     resolution: {integrity: sha512-KKNVtd6pCYgPIKU4cp2733HWYCpplQhddZLBUryaAHou723x+FRzQ5Df824Fj+IyyuiQTRoub4SnIFfIcrp70g==}
@@ -12758,6 +12764,10 @@ snapshots:
     dependencies:
       loader-utils: 2.0.4
       schema-utils: 3.3.0
+      webpack: 5.39.1
+
+  style-loader@4.0.0(webpack@5.39.1):
+    dependencies:
       webpack: 5.39.1
 
   supports-color@2.0.0: {}
