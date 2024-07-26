@@ -33,8 +33,8 @@ importers:
         specifier: ^2.0.1
         version: 2.0.1
       babel-loader:
-        specifier: ^8.2.2
-        version: 8.2.2(@babel/core@7.23.2(supports-color@9.4.0))(webpack@5.39.1)
+        specifier: ^9.1.3
+        version: 9.1.3(@babel/core@7.23.2(supports-color@9.4.0))(webpack@5.39.1)
       babel-preset-env:
         specifier: ^1.7.0
         version: 1.7.0(supports-color@9.4.0)
@@ -1961,6 +1961,13 @@ packages:
       '@babel/core': ^7.0.0
       webpack: '>=2'
 
+  babel-loader@9.1.3:
+    resolution: {integrity: sha512-xG3ST4DglodGf8qSwv0MdeWLhrDsw/32QMdTO5T1ZIp9gQur0HkCyFs7Awskr10JKXFXwpAhiCuYX5oGXnRGbw==}
+    engines: {node: '>= 14.15.0'}
+    peerDependencies:
+      '@babel/core': ^7.12.0
+      webpack: '>=5'
+
   babel-messages@6.23.0:
     resolution: {integrity: sha512-Bl3ZiA+LjqaMtNYopA9TYE9HP1tQ+E5dLxE0XrAzcIJeK2UqF0/EaqXwBn9esd4UmTfEab+P+UYQ1GnioFIb/w==}
 
@@ -2437,6 +2444,9 @@ packages:
   commander@8.3.0:
     resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
     engines: {node: '>= 12'}
+
+  common-path-prefix@3.0.0:
+    resolution: {integrity: sha512-QE33hToZseCH3jS0qN96O/bSh3kaw/h+Tq7ngyY9eWDUnTlTNUyqfqvCXioLe5Na5jFsL78ra/wuBU4iuEgd4w==}
 
   commondir@1.0.1:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
@@ -3043,6 +3053,10 @@ packages:
   find-cache-dir@3.3.2:
     resolution: {integrity: sha512-wXZV5emFEjrridIgED11OoUKLxiYjAcqot/NJdAkOhlJ+vGzwhOAfcG5OX1jP+S0PcjEn8bdMJv+g2jwQ3Onig==}
     engines: {node: '>=8'}
+
+  find-cache-dir@4.0.0:
+    resolution: {integrity: sha512-9ZonPT4ZAK4a+1pUPVPZJapbi7O5qbbJPdYw/NOQWZZbVLdDTYM3A4R9z/DpAM08IDaFGsvPgiGZ82WEwUDWjg==}
+    engines: {node: '>=14.16'}
 
   find-index@1.1.1:
     resolution: {integrity: sha512-XYKutXMrIK99YMUPf91KX5QVJoG31/OsgftD6YoTPAObfQIxM4ziA9f0J1AsqKhJmo+IeaIPP0CFopTD4bdUBw==}
@@ -4213,6 +4227,10 @@ packages:
   pkg-dir@4.2.0:
     resolution: {integrity: sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==}
     engines: {node: '>=8'}
+
+  pkg-dir@7.0.0:
+    resolution: {integrity: sha512-Ie9z/WINcxxLp27BKOCHGde4ITq9UklYKDzVo1nhk5sqGEXU3FpkwP5GM2voTGJkGd9B3Otl+Q4uwSOeSUtOBA==}
+    engines: {node: '>=14.16'}
 
   pkg-types@1.0.3:
     resolution: {integrity: sha512-nN7pYi0AQqJnoLPC9eHFQ8AcyaixBUOwvqc5TDnIKCMEE6I0y8P7OKA7fPexsXGCGxQDl/cmrLAp26LhcwxZ4A==}
@@ -8214,15 +8232,6 @@ snapshots:
 
   babel-import-util@2.0.1: {}
 
-  babel-loader@8.2.2(@babel/core@7.23.2(supports-color@9.4.0))(webpack@5.39.1):
-    dependencies:
-      '@babel/core': 7.23.2(supports-color@9.4.0)
-      find-cache-dir: 3.3.2
-      loader-utils: 1.4.2
-      make-dir: 3.1.0
-      schema-utils: 2.7.1
-      webpack: 5.39.1
-
   babel-loader@8.2.2(@babel/core@7.24.8(supports-color@9.4.0))(webpack@5.39.1):
     dependencies:
       '@babel/core': 7.24.8(supports-color@9.4.0)
@@ -8230,6 +8239,13 @@ snapshots:
       loader-utils: 1.4.2
       make-dir: 3.1.0
       schema-utils: 2.7.1
+      webpack: 5.39.1
+
+  babel-loader@9.1.3(@babel/core@7.23.2(supports-color@9.4.0))(webpack@5.39.1):
+    dependencies:
+      '@babel/core': 7.23.2(supports-color@9.4.0)
+      find-cache-dir: 4.0.0
+      schema-utils: 4.2.0
       webpack: 5.39.1
 
   babel-messages@6.23.0:
@@ -9068,6 +9084,8 @@ snapshots:
   commander@4.1.1: {}
 
   commander@8.3.0: {}
+
+  common-path-prefix@3.0.0: {}
 
   commondir@1.0.1: {}
 
@@ -10085,6 +10103,11 @@ snapshots:
       commondir: 1.0.1
       make-dir: 3.1.0
       pkg-dir: 4.2.0
+
+  find-cache-dir@4.0.0:
+    dependencies:
+      common-path-prefix: 3.0.0
+      pkg-dir: 7.0.0
 
   find-index@1.1.1: {}
 
@@ -11309,6 +11332,10 @@ snapshots:
   pkg-dir@4.2.0:
     dependencies:
       find-up: 4.1.0
+
+  pkg-dir@7.0.0:
+    dependencies:
+      find-up: 6.3.0
 
   pkg-types@1.0.3:
     dependencies:
