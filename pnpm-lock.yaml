@@ -62,10 +62,10 @@ importers:
         version: 5.0.0(@glint/template@1.2.0)(rollup@4.18.1)(supports-color@9.4.0)
       '@embroider/compat':
         specifier: ^3.4.6
-        version: 3.4.6(@embroider/core@3.4.6(@glint/template@1.2.0)(supports-color@9.4.0))(@glint/template@1.2.0)(supports-color@9.4.0)
+        version: 3.4.6(@embroider/core@3.4.14(@glint/template@1.2.0)(supports-color@9.4.0))(@glint/template@1.2.0)(supports-color@9.4.0)
       '@embroider/core':
         specifier: ^3.4.6
-        version: 3.4.6(@glint/template@1.2.0)(supports-color@9.4.0)
+        version: 3.4.14(@glint/template@1.2.0)(supports-color@9.4.0)
       '@glint/core':
         specifier: ^1.2.0
         version: 1.2.0(supports-color@9.4.0)(typescript@5.1.6)
@@ -957,10 +957,6 @@ packages:
 
   '@embroider/core@3.4.14':
     resolution: {integrity: sha512-WVVKup9j1LzciQDL3jfvADJIyLTPe3+cWKzZwqwSnDkYIx2Nsq5a/drKcjJZPJtwU1ddbMpDnUVgGtOurN1VcA==}
-    engines: {node: 12.* || 14.* || >= 16}
-
-  '@embroider/core@3.4.6':
-    resolution: {integrity: sha512-RR+3WHS0l/itoyNYs2n/Fk7YOtpT7j7n9onJJeUo+C1RpocpGYsww/cR1EQaPbWVF8iv1PyRKKlS8kVO4zuipA==}
     engines: {node: 12.* || 14.* || >= 16}
 
   '@embroider/macros@1.15.0':
@@ -5732,7 +5728,7 @@ snapshots:
   '@babel/helpers@7.23.2(supports-color@9.4.0)':
     dependencies:
       '@babel/template': 7.22.15
-      '@babel/traverse': 7.24.0(supports-color@9.4.0)
+      '@babel/traverse': 7.24.8(supports-color@9.4.0)
       '@babel/types': 7.24.9
     transitivePeerDependencies:
       - supports-color
@@ -6064,7 +6060,7 @@ snapshots:
   '@babel/plugin-transform-async-generator-functions@7.23.2(@babel/core@7.23.2(supports-color@9.4.0))':
     dependencies:
       '@babel/core': 7.23.2(supports-color@9.4.0)
-      '@babel/helper-environment-visitor': 7.22.20
+      '@babel/helper-environment-visitor': 7.24.7
       '@babel/helper-plugin-utils': 7.22.5
       '@babel/helper-remap-async-to-generator': 7.22.20(@babel/core@7.23.2(supports-color@9.4.0))
       '@babel/plugin-syntax-async-generators': 7.8.4(@babel/core@7.23.2(supports-color@9.4.0))
@@ -6072,7 +6068,7 @@ snapshots:
   '@babel/plugin-transform-async-generator-functions@7.23.2(@babel/core@7.24.8(supports-color@9.4.0))':
     dependencies:
       '@babel/core': 7.24.8(supports-color@9.4.0)
-      '@babel/helper-environment-visitor': 7.22.20
+      '@babel/helper-environment-visitor': 7.24.7
       '@babel/helper-plugin-utils': 7.22.5
       '@babel/helper-remap-async-to-generator': 7.22.20(@babel/core@7.24.8(supports-color@9.4.0))
       '@babel/plugin-syntax-async-generators': 7.8.4(@babel/core@7.24.8(supports-color@9.4.0))
@@ -6142,12 +6138,12 @@ snapshots:
       '@babel/core': 7.23.2(supports-color@9.4.0)
       '@babel/helper-annotate-as-pure': 7.22.5
       '@babel/helper-compilation-targets': 7.24.8
-      '@babel/helper-environment-visitor': 7.22.20
-      '@babel/helper-function-name': 7.23.0
+      '@babel/helper-environment-visitor': 7.24.7
+      '@babel/helper-function-name': 7.24.7
       '@babel/helper-optimise-call-expression': 7.22.5
       '@babel/helper-plugin-utils': 7.22.5
       '@babel/helper-replace-supers': 7.22.20(@babel/core@7.23.2(supports-color@9.4.0))
-      '@babel/helper-split-export-declaration': 7.22.6
+      '@babel/helper-split-export-declaration': 7.24.7
       globals: 11.12.0
 
   '@babel/plugin-transform-classes@7.22.15(@babel/core@7.24.8(supports-color@9.4.0))':
@@ -6155,12 +6151,12 @@ snapshots:
       '@babel/core': 7.24.8(supports-color@9.4.0)
       '@babel/helper-annotate-as-pure': 7.22.5
       '@babel/helper-compilation-targets': 7.24.8
-      '@babel/helper-environment-visitor': 7.22.20
-      '@babel/helper-function-name': 7.23.0
+      '@babel/helper-environment-visitor': 7.24.7
+      '@babel/helper-function-name': 7.24.7
       '@babel/helper-optimise-call-expression': 7.22.5
       '@babel/helper-plugin-utils': 7.22.5
       '@babel/helper-replace-supers': 7.22.20(@babel/core@7.24.8(supports-color@9.4.0))
-      '@babel/helper-split-export-declaration': 7.22.6
+      '@babel/helper-split-export-declaration': 7.24.7
       globals: 11.12.0
 
   '@babel/plugin-transform-computed-properties@7.22.5(@babel/core@7.23.2(supports-color@9.4.0))':
@@ -6257,14 +6253,14 @@ snapshots:
     dependencies:
       '@babel/core': 7.23.2(supports-color@9.4.0)
       '@babel/helper-compilation-targets': 7.24.8
-      '@babel/helper-function-name': 7.23.0
+      '@babel/helper-function-name': 7.24.7
       '@babel/helper-plugin-utils': 7.22.5
 
   '@babel/plugin-transform-function-name@7.22.5(@babel/core@7.24.8(supports-color@9.4.0))':
     dependencies:
       '@babel/core': 7.24.8(supports-color@9.4.0)
       '@babel/helper-compilation-targets': 7.24.8
-      '@babel/helper-function-name': 7.23.0
+      '@babel/helper-function-name': 7.24.7
       '@babel/helper-plugin-utils': 7.22.5
 
   '@babel/plugin-transform-json-strings@7.22.11(@babel/core@7.23.2(supports-color@9.4.0))':
@@ -6348,7 +6344,7 @@ snapshots:
   '@babel/plugin-transform-modules-systemjs@7.23.0(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0)':
     dependencies:
       '@babel/core': 7.23.2(supports-color@9.4.0)
-      '@babel/helper-hoist-variables': 7.22.5
+      '@babel/helper-hoist-variables': 7.24.7
       '@babel/helper-module-transforms': 7.24.8(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0)
       '@babel/helper-plugin-utils': 7.22.5
       '@babel/helper-validator-identifier': 7.24.7
@@ -6358,7 +6354,7 @@ snapshots:
   '@babel/plugin-transform-modules-systemjs@7.23.0(@babel/core@7.24.8(supports-color@9.4.0))(supports-color@9.4.0)':
     dependencies:
       '@babel/core': 7.24.8(supports-color@9.4.0)
-      '@babel/helper-hoist-variables': 7.22.5
+      '@babel/helper-hoist-variables': 7.24.7
       '@babel/helper-module-transforms': 7.24.8(@babel/core@7.24.8(supports-color@9.4.0))(supports-color@9.4.0)
       '@babel/helper-plugin-utils': 7.22.5
       '@babel/helper-validator-identifier': 7.24.7
@@ -6902,7 +6898,7 @@ snapshots:
   '@babel/template@7.22.15':
     dependencies:
       '@babel/code-frame': 7.22.13
-      '@babel/parser': 7.23.0
+      '@babel/parser': 7.24.8
       '@babel/types': 7.24.9
 
   '@babel/template@7.24.7':
@@ -6981,7 +6977,7 @@ snapshots:
       '@embroider/shared-internals': 1.8.3
       semver: 7.3.5
 
-  '@embroider/compat@3.4.6(@embroider/core@3.4.6(@glint/template@1.2.0)(supports-color@9.4.0))(@glint/template@1.2.0)(supports-color@9.4.0)':
+  '@embroider/compat@3.4.6(@embroider/core@3.4.14(@glint/template@1.2.0)(supports-color@9.4.0))(@glint/template@1.2.0)(supports-color@9.4.0)':
     dependencies:
       '@babel/code-frame': 7.22.13
       '@babel/core': 7.23.2(supports-color@9.4.0)
@@ -6990,7 +6986,7 @@ snapshots:
       '@babel/preset-env': 7.23.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0)
       '@babel/runtime': 7.24.8
       '@babel/traverse': 7.24.0(supports-color@9.4.0)
-      '@embroider/core': 3.4.6(@glint/template@1.2.0)(supports-color@9.4.0)
+      '@embroider/core': 3.4.14(@glint/template@1.2.0)(supports-color@9.4.0)
       '@embroider/macros': 1.15.0(@glint/template@1.2.0)(supports-color@9.4.0)
       '@types/babel__code-frame': 7.0.6
       '@types/yargs': 17.0.29
@@ -7047,39 +7043,6 @@ snapshots:
       broccoli-source: 3.0.1
       debug: 4.3.4(supports-color@9.4.0)
       fast-sourcemap-concat: 2.1.1(supports-color@9.4.0)
-      filesize: 10.1.0
-      fs-extra: 9.1.0
-      fs-tree-diff: 2.0.1(supports-color@9.4.0)
-      handlebars: 4.7.8
-      js-string-escape: 1.0.1
-      jsdom: 16.6.0(supports-color@9.4.0)
-      lodash: 4.17.21
-      resolve: 1.22.8
-      resolve-package-path: 4.0.3
-      typescript-memoize: 1.1.1
-      walk-sync: 3.0.0
-    transitivePeerDependencies:
-      - '@glint/template'
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
-
-  '@embroider/core@3.4.6(@glint/template@1.2.0)(supports-color@9.4.0)':
-    dependencies:
-      '@babel/core': 7.23.2(supports-color@9.4.0)
-      '@babel/parser': 7.23.0
-      '@babel/traverse': 7.24.0(supports-color@9.4.0)
-      '@embroider/macros': 1.15.0(@glint/template@1.2.0)(supports-color@9.4.0)
-      '@embroider/shared-internals': 2.5.2(supports-color@9.4.0)
-      assert-never: 1.3.0
-      babel-plugin-ember-template-compilation: 2.2.2
-      broccoli-node-api: 1.7.0
-      broccoli-persistent-filter: 3.1.3(supports-color@9.4.0)
-      broccoli-plugin: 4.0.7(supports-color@9.4.0)
-      broccoli-source: 3.0.1
-      debug: 4.3.4(supports-color@9.4.0)
-      fast-sourcemap-concat: 1.4.0(supports-color@9.4.0)
       filesize: 10.1.0
       fs-extra: 9.1.0
       fs-tree-diff: 2.0.1(supports-color@9.4.0)
@@ -7695,7 +7658,7 @@ snapshots:
 
   '@types/babel__template@7.4.3':
     dependencies:
-      '@babel/parser': 7.23.0
+      '@babel/parser': 7.24.8
       '@babel/types': 7.24.9
 
   '@types/babel__traverse@7.20.3':
@@ -9313,8 +9276,8 @@ snapshots:
       '@babel/plugin-proposal-class-properties': 7.18.6(@babel/core@7.24.8(supports-color@9.4.0))
       '@babel/plugin-proposal-decorators': 7.23.2(@babel/core@7.24.8(supports-color@9.4.0))
       '@babel/preset-env': 7.23.2(@babel/core@7.24.8(supports-color@9.4.0))(supports-color@9.4.0)
-      '@embroider/macros': 1.15.0(@glint/template@1.2.0)(supports-color@9.4.0)
-      '@embroider/shared-internals': 2.5.2(supports-color@9.4.0)
+      '@embroider/macros': 1.16.5(@glint/template@1.2.0)(supports-color@9.4.0)
+      '@embroider/shared-internals': 2.6.2(supports-color@9.4.0)
       babel-loader: 8.2.2(@babel/core@7.24.8(supports-color@9.4.0))(webpack@5.39.1)
       babel-plugin-ember-modules-api-polyfill: 3.5.0
       babel-plugin-ember-template-compilation: 2.2.2
@@ -9516,8 +9479,8 @@ snapshots:
 
   ember-router-generator@2.0.0(supports-color@9.4.0):
     dependencies:
-      '@babel/parser': 7.24.0
-      '@babel/traverse': 7.24.0(supports-color@9.4.0)
+      '@babel/parser': 7.24.8
+      '@babel/traverse': 7.24.8(supports-color@9.4.0)
       recast: 0.18.10
     transitivePeerDependencies:
       - supports-color
@@ -10756,7 +10719,7 @@ snapshots:
   jsdom@16.6.0(supports-color@9.4.0):
     dependencies:
       abab: 2.0.6
-      acorn: 8.10.0
+      acorn: 8.11.3
       acorn-globals: 6.0.0
       cssom: 0.4.4
       cssstyle: 2.3.0
