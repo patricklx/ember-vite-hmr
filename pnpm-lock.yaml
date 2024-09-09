@@ -145,8 +145,8 @@ importers:
         specifier: ^9.0.0
         version: 9.0.0(eslint@8.33.0(supports-color@9.4.0))
       eslint-plugin-ember:
-        specifier: ^11.11.1
-        version: 11.11.1(eslint@8.33.0(supports-color@9.4.0))(supports-color@9.4.0)
+        specifier: ^12.2.0
+        version: 12.2.0(@babel/core@7.23.2(supports-color@9.4.0))(eslint@8.33.0(supports-color@9.4.0))
       eslint-plugin-n:
         specifier: ^17.9.0
         version: 17.9.0(eslint@8.33.0(supports-color@9.4.0))
@@ -234,6 +234,13 @@ packages:
     engines: {node: ^10.13.0 || ^12.13.0 || >=14.0.0}
     peerDependencies:
       '@babel/core': '>=7.11.0'
+      eslint: ^7.5.0 || ^8.0.0
+
+  '@babel/eslint-parser@7.23.10':
+    resolution: {integrity: sha512-3wSYDPZVnhseRnxRJH6ZVTNknBz76AEnyC+AYYhasjP3Yy23qz0ERR7Fcd2SHmYuSFJ2kY9gaaDd3vyqU09eSw==}
+    engines: {node: ^10.13.0 || ^12.13.0 || >=14.0.0}
+    peerDependencies:
+      '@babel/core': ^7.11.0
       eslint: ^7.5.0 || ^8.0.0
 
   '@babel/generator@7.23.0':
@@ -2843,6 +2850,16 @@ packages:
     resolution: {integrity: sha512-2UBUa5SAuPg8/kRVaiOfTwlXdeVweal1zdNPibwItrhR0IvPrXpaqwJDlEZnWKEoB+h33V0JIfiWleSG6hGkkA==}
     engines: {node: 10.* || >= 12.*}
 
+  ember-eslint-parser@0.4.3:
+    resolution: {integrity: sha512-wMPoaaA+i/F/tPPxURRON9XXJH5MRUOZ5x/9CVJTSpL+0n4EWphyztb20gR+ZJeShnOACQpAdFy6YSS1/JSHKw==}
+    engines: {node: '>=16.0.0'}
+    peerDependencies:
+      '@babel/core': ^7.23.6
+      '@typescript-eslint/parser': '*'
+    peerDependenciesMeta:
+      '@typescript-eslint/parser':
+        optional: true
+
   ember-resolver@11.0.1:
     resolution: {integrity: sha512-ucBk3oM+PR+AfYoSUXeQh8cDQS1sSiEKp4Pcgbew5cFMSqPxJfqd1zyZsfQKNTuyubeGmWxBOyMVSTvX2LeCyg==}
     engines: {node: 14.* || 16.* || >= 18}
@@ -2962,11 +2979,15 @@ packages:
   eslint-formatter-kakoune@1.0.0:
     resolution: {integrity: sha512-Uk/TVLt6Nf6Xoz7C1iYuZjOSdJxe5aaauGRke8JhKeJwD66Y61/pY2FjtLP04Ooq9PwV34bzrkKkU2UZ5FtDRA==}
 
-  eslint-plugin-ember@11.11.1:
-    resolution: {integrity: sha512-dvsDa4LkDkGqCE2bzBIguRMi1g40JVwRWMSHmn8S7toRDxSOU3M7yromgi5eSAJX2O2vEvJZ9QnR15YDbvNfVQ==}
-    engines: {node: 14.* || 16.* || >= 18}
+  eslint-plugin-ember@12.2.0:
+    resolution: {integrity: sha512-Pf0LB70qzrGqbxrieASFDqxvGu7/xgejM78Kj+VsH27XqkuoluF1M5fBU5xxNB7oRCpA5IFA5jdN9WnnSjLzKA==}
+    engines: {node: 18.* || 20.* || >= 21}
     peerDependencies:
-      eslint: '>= 7'
+      '@typescript-eslint/parser': '*'
+      eslint: '>= 8'
+    peerDependenciesMeta:
+      '@typescript-eslint/parser':
+        optional: true
 
   eslint-plugin-es-x@7.8.0:
     resolution: {integrity: sha512-7Ds8+wAAoV3T+LAKeu39Y5BzXCrGKrcISfgKEqTS4BDN8SFEDQd0S43jiQ8vIa3wUKD07qitZdfzlenSi8/0qQ==}
@@ -3485,6 +3506,10 @@ packages:
     resolution: {integrity: sha512-D5JbOMBIR/TVZkubHT+OyT2705QvogUW4IBn6nHd756OwieSF9aDYFj4dv6HHEVGYbHaLETa3WggZYWWMyy3ZQ==}
     engines: {node: '>=10'}
 
+  html-tags@3.3.1:
+    resolution: {integrity: sha512-ztqyC3kLto0e9WbNp0aeP+M3kTt+nbaIveGmUxAtZa+8iFgKLUOD4YKM5j+f3QD89bra7UeumolZHKuOXnTmeQ==}
+    engines: {node: '>=8'}
+
   http-errors@1.6.3:
     resolution: {integrity: sha512-lks+lVC8dgGyh97jxvxeYTWQFvh4uw4yC12gVl63Cg30sjPX4wuGcdkICVXDAESr6OJGjqGA8Iz5mkeN6zlD7A==}
     engines: {node: '>= 0.6'}
@@ -3964,10 +3989,6 @@ packages:
 
   magic-string@0.30.11:
     resolution: {integrity: sha512-+Wri9p0QHMy+545hKww7YAu5NyzF8iomPL/RQazugQ9+Ez4Ic3mERMd8ZTX5rfK944j+560ZJi8iAwgak1Ac7A==}
-
-  magic-string@0.30.5:
-    resolution: {integrity: sha512-7xlpfBaQaP/T6Vh8MO/EqXSW5En6INHEvEXQiuff7Gku0PWjU3uf6w/j9o7O+SpB5fOAkrI5HeoNgwjEO0pFsA==}
-    engines: {node: '>=12'}
 
   make-dir@3.1.0:
     resolution: {integrity: sha512-g3FeP20LNwhALb/6Cz6Dd4F2ngze0jz7tbzrD2wAV+o9FeNHe4rL+yK2md0J/fiSf1sa1ADhXqi5+oVwOM/eGw==}
@@ -4814,10 +4835,6 @@ packages:
   source-list-map@2.0.1:
     resolution: {integrity: sha512-qnQ7gVMxGNxsiL4lEuJwe/To8UnK7fAnmbGEEH8RpLouuKbeEm0lhbQVFIrNSuB+G7tVrAlVsZgETT5nljf+Iw==}
 
-  source-map-js@1.0.2:
-    resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
-    engines: {node: '>=0.10.0'}
-
   source-map-js@1.2.0:
     resolution: {integrity: sha512-itJW8lvSA0TXEphiRoawsCksnlf8SyvmFzIhltqAHluXd88pkCd+cXJVHTDwdCr0IzwptSm035IHQktUu1QUMg==}
     engines: {node: '>=0.10.0'}
@@ -5575,6 +5592,14 @@ snapshots:
       - supports-color
 
   '@babel/eslint-parser@7.19.1(@babel/core@7.23.2(supports-color@9.4.0))(eslint@8.33.0(supports-color@9.4.0))':
+    dependencies:
+      '@babel/core': 7.23.2(supports-color@9.4.0)
+      '@nicolo-ribaudo/eslint-scope-5-internals': 5.1.1-v1
+      eslint: 8.33.0(supports-color@9.4.0)
+      eslint-visitor-keys: 2.1.0
+      semver: 6.3.1
+
+  '@babel/eslint-parser@7.23.10(@babel/core@7.23.2(supports-color@9.4.0))(eslint@8.33.0(supports-color@9.4.0))':
     dependencies:
       '@babel/core': 7.23.2(supports-color@9.4.0)
       '@nicolo-ribaudo/eslint-scope-5-internals': 5.1.1-v1
@@ -9414,7 +9439,7 @@ snapshots:
   css-tree@2.3.1:
     dependencies:
       mdn-data: 2.0.30
-      source-map-js: 1.0.2
+      source-map-js: 1.2.0
 
   cssesc@3.0.0: {}
 
@@ -9751,6 +9776,17 @@ snapshots:
       - '@babel/core'
       - supports-color
 
+  ember-eslint-parser@0.4.3(@babel/core@7.23.2(supports-color@9.4.0))(eslint@8.33.0(supports-color@9.4.0)):
+    dependencies:
+      '@babel/core': 7.23.2(supports-color@9.4.0)
+      '@babel/eslint-parser': 7.23.10(@babel/core@7.23.2(supports-color@9.4.0))(eslint@8.33.0(supports-color@9.4.0))
+      '@glimmer/syntax': 0.92.0
+      content-tag: 1.2.2
+      eslint-scope: 7.2.2
+      html-tags: 3.3.1
+    transitivePeerDependencies:
+      - eslint
+
   ember-resolver@11.0.1(ember-source@5.11.0(@glimmer/component@1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.4.0)(rsvp@4.8.5)(supports-color@9.4.0)(webpack@5.39.1))(supports-color@9.4.0):
     dependencies:
       ember-cli-babel: 7.26.11(supports-color@9.4.0)
@@ -10002,24 +10038,21 @@ snapshots:
 
   eslint-formatter-kakoune@1.0.0: {}
 
-  eslint-plugin-ember@11.11.1(eslint@8.33.0(supports-color@9.4.0))(supports-color@9.4.0):
+  eslint-plugin-ember@12.2.0(@babel/core@7.23.2(supports-color@9.4.0))(eslint@8.33.0(supports-color@9.4.0)):
     dependencies:
       '@ember-data/rfc395-data': 0.0.4
-      '@glimmer/syntax': 0.84.3
       css-tree: 2.3.1
+      ember-eslint-parser: 0.4.3(@babel/core@7.23.2(supports-color@9.4.0))(eslint@8.33.0(supports-color@9.4.0))
       ember-rfc176-data: 0.3.18
-      ember-template-imports: 3.4.2(supports-color@9.4.0)
-      ember-template-recast: 6.1.4(supports-color@9.4.0)
       eslint: 8.33.0(supports-color@9.4.0)
       eslint-utils: 3.0.0(eslint@8.33.0(supports-color@9.4.0))
       estraverse: 5.3.0
       lodash.camelcase: 4.3.0
       lodash.kebabcase: 4.1.1
-      magic-string: 0.30.5
       requireindex: 1.2.0
       snake-case: 3.0.4
     transitivePeerDependencies:
-      - supports-color
+      - '@babel/core'
 
   eslint-plugin-es-x@7.8.0(eslint@8.33.0(supports-color@9.4.0)):
     dependencies:
@@ -10734,6 +10767,8 @@ snapshots:
     dependencies:
       whatwg-encoding: 1.0.5
 
+  html-tags@3.3.1: {}
+
   http-errors@1.6.3:
     dependencies:
       depd: 1.1.2
@@ -11203,10 +11238,6 @@ snapshots:
   magic-string@0.30.11:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
-
-  magic-string@0.30.5:
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.4.15
 
   make-dir@3.1.0:
     dependencies:
@@ -12087,8 +12118,6 @@ snapshots:
       - supports-color
 
   source-list-map@2.0.1: {}
-
-  source-map-js@1.0.2: {}
 
   source-map-js@1.2.0: {}
 
