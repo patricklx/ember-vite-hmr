@@ -31,6 +31,7 @@ export default {
       'modifiers/**/*.js',
       'services/**/*.js',
       'initializers/**/*.js',
+      'instance-initializers/**/*.js',
     ]),
 
     // Follow the V2 Addon rules about dependencies. Your code can import from
