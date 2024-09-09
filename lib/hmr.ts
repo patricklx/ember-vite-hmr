@@ -101,7 +101,8 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         for (const resultElement of result) {
           const dep = resultElement[1];
           const resolved = await this.resolve(dep, resourcePath, {});
-          let id = resolved.id;
+          let id = resolved?.id;
+          if (!id) continue;
           let appRoot = conf.root + '/app/';
           if (
             id.startsWith(appRoot) &&

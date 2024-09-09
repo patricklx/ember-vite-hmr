@@ -34,7 +34,7 @@
     "start": "concurrently 'npm:start:*'",
     "start:js": "rollup --config --watch --no-watch.clearScreen",
     "start:types": "glint --declaration --watch",
-    "test": "vitest --run",
+    "test": "vitest run",
     "prepack": "pnpm build || echo 'its okay'"
   },
   "dependencies": {
@@ -51,16 +51,6 @@
     "semver": "^7.3.5"
   },
   "devDependencies": {
-    "assert-never": "^1.2.1",
-    "content-tag": "^2.0.1",
-    "source-map-url": "^0.4.1",
-    "style-loader": "^4.0.0",
-    "supports-color": "^9.4.0",
-    "terser": "^5.7.0",
-    "thread-loader": "^4.0.2",
-    "vite": "^5.2.11",
-    "vitest": "^2.0.5",
-    "ember-cli-htmlbars": "^6.3.0",
     "@babel/eslint-parser": "^7.19.1",
     "@babel/plugin-proposal-class-properties": "^7.16.7",
     "@babel/plugin-proposal-decorators": "^7.23.2",
@@ -75,6 +65,7 @@
     "@glint/template": "^1.2.0",
     "@rollup/plugin-babel": "^6.0.3",
     "@tsconfig/ember": "^3.0.8",
+    "@types": "link:@types",
     "@types/babel__core": "^7.20.3",
     "@types/babel__traverse": "^7.20.3",
     "@types/csso": "^3.5.1",
@@ -83,11 +74,14 @@
     "@types/lodash": "^4.14.170",
     "@types/mini-css-extract-plugin": "^2.5.1",
     "@types/node": "^20.14.10",
-    "@types/semver": "^7.3.6",
     "@types/rsvp": "^4.0.9",
-    "babel-plugin-ember-template-compilation": "^2.2.2",
+    "@types/semver": "^7.3.6",
+    "assert-never": "^1.2.1",
     "babel-import-util": "2.0.3",
+    "babel-plugin-ember-template-compilation": "^2.2.2",
     "concurrently": "^8.0.1",
+    "content-tag": "^2.0.1",
+    "ember-cli-htmlbars": "^6.3.0",
     "ember-resolver": "^11.0.1",
     "ember-source": "^5.10.1",
     "ember-template-lint": "^5.11.2",
@@ -96,15 +90,27 @@
     "eslint-plugin-ember": "^12.2.0",
     "eslint-plugin-n": "^17.9.0",
     "eslint-plugin-prettier": "^5.0.0",
+    "execa": "^9.3.1",
+    "fs-extra": "^11.2.0",
+    "playwright-chromium": "^1.47.0",
     "prettier": "^3.0.3",
     "prettier-plugin-ember-template-tag": "^2.0.2",
+    "puppeteer-chromium-resolver": "^23.0.0",
     "rollup": "^4.18.1",
-    "typescript": "^5.1.6"
+    "source-map-url": "^0.4.1",
+    "strip-ansi": "^7.1.0",
+    "style-loader": "^4.0.0",
+    "supports-color": "^9.4.0",
+    "terser": "^5.7.0",
+    "thread-loader": "^4.0.2",
+    "typescript": "^5.1.6",
+    "vite": "^5.2.11",
+    "vitest": "^2.0.5"
   },
   "peerDependencies": {
     "@embroider/compat": "*",
-    "babel-plugin-ember-template-compilation": "^2.2.2",
-    "babel-import-util": "2.0.3"
+    "babel-import-util": "2.0.3",
+    "babel-plugin-ember-template-compilation": "^2.2.2"
   },
   "engines": {
     "node": "12.* || 14.* || >= 16"
@@ -117,6 +123,7 @@
     "type": "addon",
     "main": "addon-main.cjs",
     "app-js": {
+      "./instance-initializers/vite-hot-reload.js": "./dist/_app_/instance-initializers/vite-hot-reload.js",
       "./services/vite-hot-reload.js": "./dist/_app_/services/vite-hot-reload.js"
     }
   },

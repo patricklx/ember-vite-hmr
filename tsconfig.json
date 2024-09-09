@@ -5,6 +5,7 @@
     "environment": ["ember-loose", "ember-template-imports"]
   },
   "compilerOptions": {
+    "rootDir": ".",
     "allowJs": true,
     "declaration": true,
     "esModuleInterop": true,
