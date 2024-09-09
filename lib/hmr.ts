@@ -107,10 +107,10 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             id.startsWith(appRoot) &&
             !id.startsWith('embroider_virtual:')
           ) {
-            id = '/app/' + id.split(appRoot)[1];
+            id = 'app/' + id.split(appRoot)[1];
           }
           if (id.startsWith('embroider_virtual:')) {
-            id = '/@id/' + id;
+            id = '@id/' + id;
           }
           if (
             path.resolve(id).replace(/\\/g, '/') === id &&
