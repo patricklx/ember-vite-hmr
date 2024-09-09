@@ -2,10 +2,12 @@ import path from 'path';
 import { Plugin } from 'vite';
 
 export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
+  let conf: any;
   return {
     name: 'hmr-plugin',
     enforce: 'post',
     configResolved(config) {
+      conf = config;
       process.env['EMBER_VITE_HMR_ENABLED'] = enableViteHmrForModes
         .includes(config.mode)
         .toString();
@@ -100,11 +102,12 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           const dep = resultElement[1];
           const resolved = await this.resolve(dep, resourcePath, {});
           let id = resolved.id;
+          let appRoot = conf.root + '/app/';
           if (
-            id.includes('rewritten-app') &&
+            id.startsWith(appRoot) &&
             !id.startsWith('embroider_virtual:')
           ) {
-            id = id.split('rewritten-app')[1];
+            id = '/app/' + id.split(appRoot)[1];
           }
           if (id.startsWith('embroider_virtual:')) {
             id = '/@id/' + id;
