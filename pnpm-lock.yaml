@@ -68,7 +68,7 @@ importers:
         version: 3.4.15(@glint/template@1.2.0)(supports-color@9.4.0)
       '@glint/core':
         specifier: ^1.2.0
-        version: 1.2.0(supports-color@9.4.0)(typescript@5.5.4)
+        version: 1.4.0(supports-color@9.4.0)(typescript@5.5.4)
       '@glint/environment-ember-loose':
         specifier: ^1.2.0
         version: 1.2.0(@glimmer/component@1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.2.0)(ember-cli-htmlbars@6.3.0(supports-color@9.4.0))
@@ -1247,8 +1247,8 @@ packages:
   '@glimmer/wire-format@0.92.0':
     resolution: {integrity: sha512-yKhfU7b3PN86iqbfKksB+F9PB/RqbVkZlcRpZWRpEL3HnZ0bJUKC9bsOJynOg77PDXuYQXkbDMfL8ngTuxk+rg==}
 
-  '@glint/core@1.2.0':
-    resolution: {integrity: sha512-dugZ4wSWOubC9O4+pxhX1EgTf7rVi1ZNYsZ66XKEKPY2JGxAtI5dqyjl4BsX8SkbGKKDKeMKIZjcaDsz17VMqw==}
+  '@glint/core@1.4.0':
+    resolution: {integrity: sha512-nq27a/1R6kc3lsuciz8z9IZO1NQCbNkEBxf5KJI7AUrnps6RzQzmq3pmwO24zQYmFcH4sqpod8fleNIpg8YEqg==}
     hasBin: true
     peerDependencies:
       typescript: '>=4.8.0'
@@ -5633,7 +5633,7 @@ snapshots:
       '@babel/core': 7.23.2(supports-color@9.4.0)
       '@babel/helper-compilation-targets': 7.24.8
       '@babel/helper-plugin-utils': 7.22.5
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.6(supports-color@9.4.0)
       lodash.debounce: 4.0.8
       resolve: 1.22.8
     transitivePeerDependencies:
@@ -5644,7 +5644,7 @@ snapshots:
       '@babel/core': 7.24.8(supports-color@9.4.0)
       '@babel/helper-compilation-targets': 7.24.8
       '@babel/helper-plugin-utils': 7.22.5
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.6(supports-color@9.4.0)
       lodash.debounce: 4.0.8
       resolve: 1.22.8
     transitivePeerDependencies:
@@ -7166,13 +7166,13 @@ snapshots:
       js-string-escape: 1.0.1
       lodash: 4.17.21
       resolve-package-path: 4.0.3
-      semver: 7.3.5
+      semver: 7.5.4
       typescript-memoize: 1.1.1
 
   '@embroider/shared-internals@2.5.2(supports-color@9.4.0)':
     dependencies:
       babel-import-util: 2.0.1
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.6(supports-color@9.4.0)
       ember-rfc176-data: 0.3.18
       fs-extra: 9.1.0
       js-string-escape: 1.0.1
@@ -7508,7 +7508,7 @@ snapshots:
       '@glimmer/interfaces': 0.92.0
       '@glimmer/util': 0.92.0
 
-  '@glint/core@1.2.0(supports-color@9.4.0)(typescript@5.5.4)':
+  '@glint/core@1.4.0(supports-color@9.4.0)(typescript@5.5.4)':
     dependencies:
       '@glimmer/syntax': 0.84.3
       escape-string-regexp: 4.0.0
@@ -8047,7 +8047,7 @@ snapshots:
 
   agent-base@6.0.2(supports-color@9.4.0):
     dependencies:
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.6(supports-color@9.4.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -8178,7 +8178,7 @@ snapshots:
 
   async-disk-cache@2.1.0(supports-color@9.4.0):
     dependencies:
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.6(supports-color@9.4.0)
       heimdalljs: 0.2.6
       istextorbinary: 2.6.0
       mkdirp: 0.5.6
@@ -8941,7 +8941,7 @@ snapshots:
       broccoli-persistent-filter: 2.3.1(supports-color@9.4.0)
       broccoli-plugin: 2.1.0
       chalk: 2.4.2
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.6(supports-color@9.4.0)
       ensure-posix-path: 1.1.1
       fs-extra: 8.1.0
       minimatch: 3.1.2
@@ -10569,14 +10569,14 @@ snapshots:
     dependencies:
       '@tootallnate/once': 1.1.2
       agent-base: 6.0.2(supports-color@9.4.0)
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.6(supports-color@9.4.0)
     transitivePeerDependencies:
       - supports-color
 
   https-proxy-agent@5.0.1(supports-color@9.4.0):
     dependencies:
       agent-base: 6.0.2(supports-color@9.4.0)
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.6(supports-color@9.4.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -12096,7 +12096,7 @@ snapshots:
 
   sync-disk-cache@2.1.0(supports-color@9.4.0):
     dependencies:
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.6(supports-color@9.4.0)
       heimdalljs: 0.2.6
       mkdirp: 0.5.6
       rimraf: 3.0.2
