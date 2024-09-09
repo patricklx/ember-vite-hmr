@@ -9,6 +9,7 @@ function patchResolver(application: ApplicationInstance) {
   const resolver =
       (application.__registry__.resolver as any)?._fallback ||
       (application.__registry__.fallback?.resolver as any)._fallback ||
+      (application.__registry__.fallback?.resolver as any) ||
       application.__registry__.resolver;
   const resolverResolve = resolver.resolve;
   resolver.resolve = function (name: string) {
