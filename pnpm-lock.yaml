@@ -22,7 +22,7 @@ importers:
         version: 7.24.9
       '@embroider/addon-shim':
         specifier: ^1.0.0
-        version: 1.0.0
+        version: 1.8.9(supports-color@9.4.0)
       '@glimmer/syntax':
         specifier: ^0.88.1
         version: 0.88.1
@@ -948,8 +948,8 @@ packages:
       rollup:
         optional: true
 
-  '@embroider/addon-shim@1.0.0':
-    resolution: {integrity: sha512-RkUkQDe56M/15pA7rAL9mTdxYnw/MukQYM2JcJ+9x8mTjkFc6mRnuHVdjVt/r6mUw9YG6FvN3G5nIadsDdXTyQ==}
+  '@embroider/addon-shim@1.8.9':
+    resolution: {integrity: sha512-qyN64T1jMHZ99ihlk7VFHCWHYZHLE1DOdHi0J7lmn5waV1DoW7gD8JLi1i7FregzXtKhbDc7shyEmTmWPTs8MQ==}
     engines: {node: 12.* || 14.* || >= 16}
 
   '@embroider/compat@3.4.6':
@@ -980,10 +980,6 @@ packages:
     peerDependenciesMeta:
       '@glint/template':
         optional: true
-
-  '@embroider/shared-internals@1.8.3':
-    resolution: {integrity: sha512-N5Gho6Qk8z5u+mxLCcMYAoQMbN4MmH+z2jXwQHVs859bxuZTxwF6kKtsybDAASCtd2YGxEmzcc1Ja/wM28824w==}
-    engines: {node: 12.* || 14.* || >= 16}
 
   '@embroider/shared-internals@2.5.2':
     resolution: {integrity: sha512-jNDJ9YlV6Qp9Na9v17qirUewVuq6T0t32nn+bbnFlCRTvmllKluZdYPSC5RuRnEZKTloVYRSF0+f1rgkTIEvxQ==}
@@ -2013,10 +2009,6 @@ packages:
     resolution: {integrity: sha512-CtWYYHU/MgK88rxMrLfkD356dApswtR/kWZ/c6JifG1m10e7tBBrs/366dFzWMAoqYmG5/JSh+94tUSpIwh+ag==}
     engines: {node: '>= 12.*'}
 
-  babel-import-util@1.4.1:
-    resolution: {integrity: sha512-TNdiTQdPhXlx02pzG//UyVPSKE7SNWjY0n4So/ZnjQpWwaM5LvWBLkWa1JKll5u06HNscHD91XZPuwrMg1kadQ==}
-    engines: {node: '>= 12.*'}
-
   babel-import-util@2.0.1:
     resolution: {integrity: sha512-N1ZfNprtf/37x0R05J0QCW/9pCAcuI+bjZIK9tlu0JEkwEST7ssdD++gxHRbD58AiG5QE5OuNYhRoEFsc1wESw==}
     engines: {node: '>= 12.*'}
@@ -2512,6 +2504,9 @@ packages:
   commander@8.3.0:
     resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
     engines: {node: '>= 12'}
+
+  common-ancestor-path@1.0.1:
+    resolution: {integrity: sha512-L3sHRo1pXXEqX8VU28kfgUY+YGsk09hPqZiZmLacNib6XNTCM8ubYeT7ryXQw8asB1sKgcU5lkB7ONug08aB8w==}
 
   common-path-prefix@3.0.0:
     resolution: {integrity: sha512-QE33hToZseCH3jS0qN96O/bSh3kaw/h+Tq7ngyY9eWDUnTlTNUyqfqvCXioLe5Na5jFsL78ra/wuBU4iuEgd4w==}
@@ -7024,10 +7019,14 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@embroider/addon-shim@1.0.0':
+  '@embroider/addon-shim@1.8.9(supports-color@9.4.0)':
     dependencies:
-      '@embroider/shared-internals': 1.8.3
-      semver: 7.3.5
+      '@embroider/shared-internals': 2.6.3(supports-color@9.4.0)
+      broccoli-funnel: 3.0.8(supports-color@9.4.0)
+      common-ancestor-path: 1.0.1
+      semver: 7.5.4
+    transitivePeerDependencies:
+      - supports-color
 
   '@embroider/compat@3.4.6(@embroider/core@3.4.15(@glint/template@1.2.0)(supports-color@9.4.0))(@glint/template@1.2.0)(supports-color@9.4.0)':
     dependencies:
@@ -7144,17 +7143,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@embroider/shared-internals@1.8.3':
-    dependencies:
-      babel-import-util: 1.4.1
-      ember-rfc176-data: 0.3.18
-      fs-extra: 9.1.0
-      js-string-escape: 1.0.1
-      lodash: 4.17.21
-      resolve-package-path: 4.0.3
-      semver: 7.5.4
-      typescript-memoize: 1.1.1
-
   '@embroider/shared-internals@2.5.2(supports-color@9.4.0)':
     dependencies:
       babel-import-util: 2.0.1
@@ -7172,7 +7160,7 @@ snapshots:
   '@embroider/shared-internals@2.6.3(supports-color@9.4.0)':
     dependencies:
       babel-import-util: 2.0.1
-      debug: 4.3.4(supports-color@9.4.0)
+      debug: 4.3.6(supports-color@9.4.0)
       ember-rfc176-data: 0.3.18
       fs-extra: 9.1.0
       js-string-escape: 1.0.1
@@ -8285,8 +8273,6 @@ snapshots:
 
   babel-import-util@0.2.0: {}
 
-  babel-import-util@1.4.1: {}
-
   babel-import-util@2.0.1: {}
 
   babel-loader@8.2.2(@babel/core@7.24.8(supports-color@9.4.0))(webpack@5.39.1):
@@ -9137,6 +9123,8 @@ snapshots:
   commander@4.1.1: {}
 
   commander@8.3.0: {}
+
+  common-ancestor-path@1.0.1: {}
 
   common-path-prefix@3.0.0: {}
 
