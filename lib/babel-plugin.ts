@@ -6,18 +6,15 @@ import {
   ImportDefaultSpecifier,
   ImportNamespaceSpecifier,
   ImportSpecifier,
-  Program, Statement, StringLiteral
+  Program,
+  Statement,
+  StringLiteral,
 } from '@babel/types';
 import * as glimmer from '@glimmer/syntax';
-import {
-  ASTv1,
-  NodeVisitor,
-  WalkerPath
-} from '@glimmer/syntax';
+import { ASTv1, NodeVisitor, WalkerPath } from '@glimmer/syntax';
 import { ImportUtil } from 'babel-import-util';
 
 export type BabelTypes = typeof BabelTypesNamespace;
-
 
 interface ASTPluginEnvironment {
   locals: string[];
@@ -85,7 +82,12 @@ class HotAstProcessor {
     importVar: null,
     babelProgram: null,
     importBindings: new Set(),
-  } as { locals: Set<string>, importVar: any, importBindings: Set<string>, babelProgram: Program };
+  } as {
+    locals: Set<string>;
+    importVar: any;
+    importBindings: Set<string>;
+    babelProgram: Program;
+  };
   didCreateImportClass: boolean = false;
 
   constructor() {
@@ -101,31 +103,50 @@ class HotAstProcessor {
   transform(env: ASTPluginEnvironment): any {
     if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
       return {
-        visitor: {}
-      }
+        visitor: {},
+      };
     }
     const meta = this.meta;
-    const importVar = meta.importVar || (env as any).meta.jsutils.bindExpression('null', null, { nameHint: 'template__imports__' });
+    const importVar =
+      meta.importVar ||
+      (env as any).meta.jsutils.bindExpression('null', null, {
+        nameHint: 'template__imports__',
+      });
     meta.importVar = importVar;
     const findImport = function findImport(specifier) {
-      return meta.babelProgram.body.find(b => b.type === 'ImportDeclaration' && b.specifiers.some(s => s.local.name === specifier));
-    }
+      return meta.babelProgram.body.find(
+        (b) =>
+          b.type === 'ImportDeclaration' &&
+          b.specifiers.some((s) => s.local.name === specifier),
+      );
+    };
     return {
       visitor: {
         ...this.buildVisitor({
           importVar,
           importBindings: meta.importBindings,
-          babelProgram: meta.babelProgram
+          babelProgram: meta.babelProgram,
         }),
       },
     };
   }
 
-  buildVisitor({ importVar, importBindings, babelProgram }: { importVar: string, importBindings: Set<string>, babelProgram: Program }) {
-
+  buildVisitor({
+    importVar,
+    importBindings,
+    babelProgram,
+  }: {
+    importVar: string;
+    importBindings: Set<string>;
+    babelProgram: Program;
+  }) {
     const findImport = function findImport(specifier) {
-      return babelProgram.body.find(b => b.type === 'ImportDeclaration' && b.specifiers.some(s => s.local.name === specifier));
-    }
+      return babelProgram.body.find(
+        (b) =>
+          b.type === 'ImportDeclaration' &&
+          b.specifiers.some((s) => s.local.name === specifier),
+      );
+    };
 
     const findBlockParams = function (
       expression: string,
@@ -172,17 +193,19 @@ class HotAstProcessor {
           node.original === 'helper' ||
           node.original === 'component' ||
           node.original === 'modifier'
-        ) {(node.original);
+        ) {
+          node.original;
           const parent = p.parentNode as ASTv1.MustacheStatement;
-          if (typeof (parent.params[0] as ASTv1.StringLiteral).original !== 'string') {
+          if (
+            typeof (parent.params[0] as ASTv1.StringLiteral).original !==
+            'string'
+          ) {
             return;
           }
-          const original = (parent.params[0] as ASTv1.StringLiteral).original.split('.')[0];
-          if (
-              original &&
-            findBlockParams(original, p)
-          )
-            return;
+          const original = (
+            parent.params[0] as ASTv1.StringLiteral
+          ).original.split('.')[0];
+          if (original && findBlockParams(original, p)) return;
           if (original?.includes('.')) return;
           if (!original) return;
           if (findImport(original)) {
@@ -211,7 +234,7 @@ class HotAstProcessor {
           if (findImport(original)) {
             element.tag = `${importVar}.${original}`;
             p.node.tag = element.tag;
-            importBindings.add(original)
+            importBindings.add(original);
           }
           return;
         }
@@ -223,13 +246,19 @@ class HotAstProcessor {
 
 export const hotAstProcessor = new HotAstProcessor();
 
-export default function hotReplaceAst(
-  { types: t }: { types: BabelTypes }) {
+export default function hotReplaceAst({ types: t }: { types: BabelTypes }) {
   let imports: string[] = [];
-  let importMap: Record<string, {
-    source: string;
-    specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
-  }> = {};
+  let importMap: Record<
+    string,
+    {
+      source: string;
+      specifiers: (
+        | ImportSpecifier
+        | ImportDefaultSpecifier
+        | ImportNamespaceSpecifier
+      )[];
+    }
+  > = {};
   return {
     name: 'a-hot-reload-imports',
     pre(file) {
@@ -245,50 +274,84 @@ export default function hotReplaceAst(
           return;
         }
         const util = new ImportUtil(t, path);
-        const tracked = util.import(path, '@glimmer/tracking', 'tracked')
-        const klass = t.classExpression(path.scope.generateUidIdentifier('Imports'), null, t.classBody([]));
+        const tracked = util.import(path, '@glimmer/tracking', 'tracked');
+        const klass = t.classExpression(
+          path.scope.generateUidIdentifier('Imports'),
+          null,
+          t.classBody([]),
+        );
         const bindings = [...hotAstProcessor.meta.importBindings].sort();
         for (const local of bindings) {
-          klass.body.body.push(t.classProperty(t.identifier(local), t.identifier(local), null, [t.decorator(tracked)]));
+          klass.body.body.push(
+            t.classProperty(t.identifier(local), t.identifier(local), null, [
+              t.decorator(tracked),
+            ]),
+          );
         }
 
         const newExp = t.newExpression(klass, []);
-        const assign = t.assignmentExpression('=', t.identifier(hotAstProcessor.meta.importVar), newExp);
+        const assign = t.assignmentExpression(
+          '=',
+          t.identifier(hotAstProcessor.meta.importVar),
+          newExp,
+        );
 
-        const varDeclaration = path.node.body.findIndex((e: BabelTypesNamespace.Statement) => e.type === 'VariableDeclaration' && (e.declarations[0]!.id as BabelTypesNamespace.Identifier).name === hotAstProcessor.meta.importVar) + 1;
-        const lastImportIndex = path.node.body.findLastIndex((e: BabelTypesNamespace.Statement) => e.type === 'ImportDeclaration') + 1
+        const varDeclaration =
+          path.node.body.findIndex(
+            (e: BabelTypesNamespace.Statement) =>
+              e.type === 'VariableDeclaration' &&
+              (e.declarations[0]!.id as BabelTypesNamespace.Identifier).name ===
+                hotAstProcessor.meta.importVar,
+          ) + 1;
+        const lastImportIndex =
+          path.node.body.findLastIndex(
+            (e: BabelTypesNamespace.Statement) =>
+              e.type === 'ImportDeclaration',
+          ) + 1;
 
-        path.node.body.splice(Math.max(varDeclaration, lastImportIndex), 0, assign as unknown as Statement);
+        path.node.body.splice(
+          Math.max(varDeclaration, lastImportIndex),
+          0,
+          assign as unknown as Statement,
+        );
 
         const findImport = function findImport(specifier) {
-          return path.node.body.find(b => b.type === 'ImportDeclaration' && b.specifiers.some(s => s.local.name === specifier));
-        }
+          return path.node.body.find(
+            (b) =>
+              b.type === 'ImportDeclaration' &&
+              b.specifiers.some((s) => s.local.name === specifier),
+          );
+        };
 
         const hotAccepts = [];
         for (const imp of bindings) {
-          const importDeclaration = findImport(imp) as BabelTypesNamespace.ImportDeclaration;
+          const importDeclaration = findImport(
+            imp,
+          ) as BabelTypesNamespace.ImportDeclaration;
           const source = importDeclaration.source.value;
-          const specifier = importDeclaration.specifiers.find((s) => s.local.name === imp);
+          const specifier = importDeclaration.specifiers.find(
+            (s) => s.local.name === imp,
+          );
           const specifierName =
-              ((specifier as ImportSpecifier).imported as Identifier)?.name ||
-              ((specifier as ImportSpecifier).imported as StringLiteral)?.value ||
-              'default';
+            ((specifier as ImportSpecifier).imported as Identifier)?.name ||
+            ((specifier as ImportSpecifier).imported as StringLiteral)?.value ||
+            'default';
           const ast = parse(
-              `import.meta.hot.accept('${source}', (module) => (${hotAstProcessor.meta.importVar}.${imp}=module['${specifierName}']))`,
+            `import.meta.hot.accept('${source}', (module) => (${hotAstProcessor.meta.importVar}.${imp}=module['${specifierName}']))`,
           );
           const impHot = ast?.program.body[0];
           hotAccepts.push(impHot);
         }
         const ifHot = t.ifStatement(
-            t.memberExpression(
-                t.metaProperty(t.identifier('import'), t.identifier('meta')),
-                t.identifier('hot'),
-            ),
-            t.blockStatement([...hotAccepts]),
+          t.memberExpression(
+            t.metaProperty(t.identifier('import'), t.identifier('meta')),
+            t.identifier('hot'),
+          ),
+          t.blockStatement([...hotAccepts]),
         );
         path.node.body.push(ifHot);
         path.scope.crawl();
-      }
+      },
     },
   } as PluginObj;
 }

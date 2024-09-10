@@ -1,7 +1,7 @@
 import babel from '@babel/core';
 import { describe, expect, it } from 'vitest';
 import { Preprocessor } from 'content-tag';
-import plugin, {hotAstProcessor} from '../lib/babel-plugin';
+import plugin, { hotAstProcessor } from '../lib/babel-plugin';
 import emberBabel from 'babel-plugin-ember-template-compilation';
 import TemplateCompiler from 'ember-cli-htmlbars/lib/template-compiler-plugin';
 
@@ -9,7 +9,6 @@ process.env['EMBER_VITE_HMR_ENABLED'] = 'true';
 const p = new Preprocessor();
 
 describe('convert template with hot reload helpers', () => {
-
   it('should convert hbs correctly', () => {
     const code = `
       {{(myhelper)}}
@@ -18,8 +17,10 @@ describe('convert template with hot reload helpers', () => {
       <SomeComponent />
       <NamedComponent />
     `;
-    const preTransformed = TemplateCompiler.prototype.processString(code, 'a.hbs');
-
+    const preTransformed = TemplateCompiler.prototype.processString(
+      code,
+      'a.hbs',
+    );
 
     // this will be done by @embroider/compat when all static
     const imports = `
@@ -29,11 +30,26 @@ describe('convert template with hot reload helpers', () => {
       return {
         visitor: {
           Template(node, path) {
-            env.meta.jsutils.bindImport('embroider_compat/components/named-component', 'default', null, { nameHint: 'NamedComponent' });
-            env.meta.jsutils.bindImport('embroider_compat/components/some-component', 'default', null, { nameHint: 'SomeComponent' });
-            env.meta.jsutils.bindImport('embroider_compat/helpers/my-helper', 'default', null, { nameHint: 'myhelper' });
-          }
-        }
+            env.meta.jsutils.bindImport(
+              'embroider_compat/components/named-component',
+              'default',
+              null,
+              { nameHint: 'NamedComponent' },
+            );
+            env.meta.jsutils.bindImport(
+              'embroider_compat/components/some-component',
+              'default',
+              null,
+              { nameHint: 'SomeComponent' },
+            );
+            env.meta.jsutils.bindImport(
+              'embroider_compat/helpers/my-helper',
+              'default',
+              null,
+              { nameHint: 'myhelper' },
+            );
+          },
+        },
       };
     }
 
@@ -41,18 +57,21 @@ describe('convert template with hot reload helpers', () => {
       filename: '/rewritten-app/a.hbs',
       plugins: [
         plugin,
-        ["@babel/plugin-proposal-decorators", { version: "2022-03" }],
-        [emberBabel, {
-          transforms: [transform, hotAstProcessor.transform],
-          targetFormat: 'hbs',
-          //compiler: require('ember-source/dist/ember-template-compiler'),
-          enableLegacyModules: [
-            'ember-cli-htmlbars',
-            'ember-cli-htmlbars-inline-precompile',
-            'htmlbars-inline-precompile',
-          ],
-        }],
-      ]
+        ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
+        [
+          emberBabel,
+          {
+            transforms: [transform, hotAstProcessor.transform],
+            targetFormat: 'hbs',
+            //compiler: require('ember-source/dist/ember-template-compiler'),
+            enableLegacyModules: [
+              'ember-cli-htmlbars',
+              'ember-cli-htmlbars-inline-precompile',
+              'htmlbars-inline-precompile',
+            ],
+          },
+        ],
+      ],
     });
 
     expect(result.code).toMatchInlineSnapshot(`
@@ -90,21 +109,27 @@ describe('convert template with hot reload helpers', () => {
       filename: '/rewritten-app/a.hbs',
       plugins: [
         plugin,
-        ["@babel/plugin-proposal-decorators", { version: "2022-03" }],
-        [emberBabel, {
-          transforms: [transform, hotAstProcessor.transform],
-          //targetFormat: 'hbs',
-          compiler: require('ember-source/dist/ember-template-compiler'),
-          enableLegacyModules: [
-            'ember-cli-htmlbars',
-            'ember-cli-htmlbars-inline-precompile',
-            'htmlbars-inline-precompile',
-          ],
-        }],
-      ]
+        ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
+        [
+          emberBabel,
+          {
+            transforms: [transform, hotAstProcessor.transform],
+            //targetFormat: 'hbs',
+            compiler: require('ember-source/dist/ember-template-compiler'),
+            enableLegacyModules: [
+              'ember-cli-htmlbars',
+              'ember-cli-htmlbars-inline-precompile',
+              'htmlbars-inline-precompile',
+            ],
+          },
+        ],
+      ],
     });
 
-    const resultCode = resultWired.code.replace(/"id": ".*",\n.*"block":/, '"id": "--id--",\n  "block":');
+    const resultCode = resultWired.code.replace(
+      /"id": ".*",\n.*"block":/,
+      '"id": "--id--",\n  "block":',
+    );
 
     expect(resultCode).toMatchInlineSnapshot(`
       "var _init_NamedComponent, _init_SomeComponent, _init_myhelper;
@@ -147,7 +172,7 @@ describe('convert template with hot reload helpers', () => {
         import.meta.hot.accept('embroider_compat/helpers/my-helper', module => template__imports__.myhelper = module['default']);
       }"
     `);
-  })
+  });
 
   it('should convert gts correctly', () => {
     const code = `
@@ -169,13 +194,16 @@ describe('convert template with hot reload helpers', () => {
     const result = babel.transform(preTransformed, {
       filename: '/rewritten-app/a.gts',
       plugins: [
-        ["@babel/plugin-proposal-decorators", { version: "2022-03" }],
+        ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
         plugin,
-        [emberBabel, {
-          transforms: [hotAstProcessor.transform],
-          targetFormat: 'hbs'
-        }],
-      ]
+        [
+          emberBabel,
+          {
+            transforms: [hotAstProcessor.transform],
+            targetFormat: 'hbs',
+          },
+        ],
+      ],
     });
     expect(result.code).toMatchInlineSnapshot(`
       "var _init_NamedComponent, _init_Other, _init_SomeComponent, _init_myhelper;
@@ -220,16 +248,22 @@ describe('convert template with hot reload helpers', () => {
     const resultWired = babel.transform(preTransformed, {
       filename: '/rewritten-app/a.gts',
       plugins: [
-        ["@babel/plugin-proposal-decorators", { version: "2022-03" }],
+        ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
         plugin,
-        [emberBabel, {
-          transforms: [hotAstProcessor.transform],
-          compiler: require('ember-source/dist/ember-template-compiler')
-        }],
-      ]
+        [
+          emberBabel,
+          {
+            transforms: [hotAstProcessor.transform],
+            compiler: require('ember-source/dist/ember-template-compiler'),
+          },
+        ],
+      ],
     });
 
-    const resultCode = resultWired.code.replace(/"id": ".*",\n.*"block":/g, '"id": "--id--",\n  "block":');
+    const resultCode = resultWired.code.replace(
+      /"id": ".*",\n.*"block":/g,
+      '"id": "--id--",\n  "block":',
+    );
 
     expect(resultCode).toMatchInlineSnapshot(`
       "var _init_NamedComponent, _init_Other, _init_SomeComponent, _init_myhelper;

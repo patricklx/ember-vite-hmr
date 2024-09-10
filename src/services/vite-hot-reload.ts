@@ -61,7 +61,7 @@ if (import.meta.hot) {
       const m = await this.__import(moduleUrl);
       const module: Module = {
         exports: m,
-        id: moduleUrl.split('?')[0]!,
+        id: moduleUrl.split('?')[0]!.replace(/http:\/\/.*:[^\/]*\//, ''),
         version: 0,
       };
       this._accepting -= 1;
@@ -72,9 +72,14 @@ if (import.meta.hot) {
         module.id.includes('/routes/') ||
         module.id.includes('/routers/') ||
         module.id.includes('/controllers/') ||
+        module.id.includes('/templates/') ||
         module.id.match(/controller\.(js|ts)$/) ||
         module.id.match(/route\.(js|ts|gts)$/);
       if (!ok) {
+        return false;
+      }
+
+      if (module.id.includes('templates') && module.id.includes('components')) {
         return false;
       }
 
@@ -142,13 +147,22 @@ export default class ViteHotReloadService extends Service {
     this.container = (getOwner(this) as any)?.__container__;
     window.emberHotReloadPlugin.subscribe((oldModule, newModule) => {
       let changed = false;
-      if (oldModule.exports.default?.prototype && oldModule.exports.default.prototype instanceof Router) {
+      if (
+        oldModule.exports.default?.prototype &&
+        oldModule.exports.default.prototype instanceof Router
+      ) {
         changed = true;
       }
-      if (oldModule.exports.default?.prototype && oldModule.exports.default.prototype instanceof Controller) {
+      if (
+        oldModule.exports.default?.prototype &&
+        oldModule.exports.default.prototype instanceof Controller
+      ) {
         changed = true;
       }
-      if (oldModule.id.startsWith('./templates/') && !oldModule.id.startsWith('./templates/components/')) {
+      if (
+        oldModule.id.startsWith('app/templates/') &&
+        !oldModule.id.startsWith('app/templates/components/')
+      ) {
         changed = true;
       }
       if (oldModule.id.startsWith(`./${podModulePrefix}/`)) {
@@ -202,8 +216,8 @@ export default class ViteHotReloadService extends Service {
         this.router.refresh();
       }
       if (
-        oldModule.id.startsWith('./templates/') &&
-        !oldModule.id.startsWith('./templates/components/')
+        oldModule.id.startsWith('app/templates/') &&
+        !oldModule.id.startsWith('app/templates/components/')
       ) {
         this.router.refresh();
       }
