@@ -66,7 +66,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
     },
     async transform(source, id) {
       const resourcePath = id.replace(/\\/g, '/').split('?')[0];
-      const supportedPaths = ['routers', 'controllers', 'routes'];
+      const supportedPaths = ['routers', 'controllers', 'routes', 'templates'];
       const supportedFileNames = [
         'route.js',
         'route.ts',
@@ -80,33 +80,32 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       }
       const name = require(`${process.cwd()}/package.json`).name;
       if (resourcePath.includes(`/assets/${name}.js`)) {
-        const result = [
-          ...source.matchAll(/import \* as [^ ]+ from (.*);/g),
-        ];
-        source += result.map(r => {
-          if (r[1].includes('initializers')) {
-            return `\nimport.meta.hot.accept(${r[1]}, () => window.location.reload());`;
-          }
-          return `\nimport.meta.hot.accept(${r[1]});`;
-        }).join('');
+        const result = [...source.matchAll(/import \* as [^ ]+ from (.*);/g)];
+        source += result
+          .map((r) => {
+            if (r[1].includes('initializers')) {
+              return `\nimport.meta.hot.accept(${r[1]}, () => window.location.reload());`;
+            }
+            return `\nimport.meta.hot.accept(${r[1]});`;
+          })
+          .join('');
       }
       if (
         resourcePath.endsWith('.hbs') ||
         resourcePath.endsWith('.gjs') ||
         resourcePath.endsWith('.gts') ||
-        resourcePath.includes(`/assets/${name}.js`)) {
+        resourcePath.includes(`/assets/${name}.js`)
+      ) {
         const result = [
           ...source.matchAll(/import.meta.hot.accept\(\'([^']+)\'/g),
         ];
         for (const resultElement of result) {
           const dep = resultElement[1];
           const resolved = await this.resolve(dep, resourcePath, {});
-          let id = resolved.id;
+          let id = resolved?.id;
+          if (!id) continue;
           let appRoot = conf.root + '/app/';
-          if (
-            id.startsWith(appRoot) &&
-            !id.startsWith('embroider_virtual:')
-          ) {
+          if (id.startsWith(appRoot) && !id.startsWith('embroider_virtual:')) {
             id = 'app/' + id.split(appRoot)[1];
           }
           if (id.startsWith('embroider_virtual:')) {
@@ -121,6 +120,9 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             }
             id = '/@fs' + id;
           }
+          if (!id.startsWith('/') && !id.startsWith('.')) {
+            id = '/' + id;
+          }
           source = source.replace(
             `import.meta.hot.accept('${dep}'`,
             `import.meta.hot.accept('${id}'`,
@@ -130,6 +132,12 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (
         !supportedPaths.some((s) => resourcePath.includes(`/${s}/`)) &&
         !supportedFileNames.some((s) => resourcePath.endsWith(s))
+      ) {
+        return source;
+      }
+      if (
+        supportedPaths.includes('templates') &&
+        supportedPaths.includes('components')
       ) {
         return source;
       }

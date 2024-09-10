@@ -9,6 +9,8 @@
 !src/**/*
 !types
 !types/**/*
+!utils
+!utils/**/*
 !.eslintignore
 !.eslintrc.cjs
 !.gitignore
