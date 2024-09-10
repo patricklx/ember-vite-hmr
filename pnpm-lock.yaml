@@ -71,10 +71,10 @@ importers:
         version: 1.4.0(supports-color@9.4.0)(typescript@5.5.4)
       '@glint/environment-ember-loose':
         specifier: ^1.2.0
-        version: 1.2.0(@glimmer/component@1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.4.0)(ember-cli-htmlbars@6.3.0(supports-color@9.4.0))
+        version: 1.4.0(@glimmer/component@1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.4.0)(ember-cli-htmlbars@6.3.0(supports-color@9.4.0))
       '@glint/environment-ember-template-imports':
         specifier: ^1.2.0
-        version: 1.2.0(@glint/environment-ember-loose@1.2.0(@glimmer/component@1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.4.0)(ember-cli-htmlbars@6.3.0(supports-color@9.4.0)))(@glint/template@1.4.0)(ember-template-imports@3.4.2(supports-color@9.4.0))
+        version: 1.2.0(@glint/environment-ember-loose@1.4.0(@glimmer/component@1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.4.0)(ember-cli-htmlbars@6.3.0(supports-color@9.4.0)))(@glint/template@1.4.0)(ember-template-imports@3.4.2(supports-color@9.4.0))
       '@glint/template':
         specifier: ^1.2.0
         version: 1.4.0
@@ -1309,11 +1309,11 @@ packages:
     peerDependencies:
       typescript: '>=4.8.0'
 
-  '@glint/environment-ember-loose@1.2.0':
-    resolution: {integrity: sha512-zj26Gh0cPY8FdT8X+UBUfgXB2Gt7T1RUn9jhlG1O7sZJTCmL8B/UNSZEB4KMAcs/dDv53u/pBl78+JF2B7F+7w==}
+  '@glint/environment-ember-loose@1.4.0':
+    resolution: {integrity: sha512-vFR3qgPTisGzS36e04195wTUrtUc6GuVwm6hsC/XXx6PeRw/6rtMxhK08Aw/VtDc00UqQzM9sIEghPVKHwqVVQ==}
     peerDependencies:
       '@glimmer/component': ^1.1.2
-      '@glint/template': ^1.2.0
+      '@glint/template': ^1.4.0
       '@types/ember__array': ^4.0.2
       '@types/ember__component': ^4.0.10
       '@types/ember__controller': ^4.0.2
@@ -7714,16 +7714,16 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@glint/environment-ember-loose@1.2.0(@glimmer/component@1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.4.0)(ember-cli-htmlbars@6.3.0(supports-color@9.4.0))':
+  '@glint/environment-ember-loose@1.4.0(@glimmer/component@1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.4.0)(ember-cli-htmlbars@6.3.0(supports-color@9.4.0))':
     dependencies:
       '@glimmer/component': 1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0)
       '@glint/template': 1.4.0
     optionalDependencies:
       ember-cli-htmlbars: 6.3.0(supports-color@9.4.0)
 
-  '@glint/environment-ember-template-imports@1.2.0(@glint/environment-ember-loose@1.2.0(@glimmer/component@1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.4.0)(ember-cli-htmlbars@6.3.0(supports-color@9.4.0)))(@glint/template@1.4.0)(ember-template-imports@3.4.2(supports-color@9.4.0))':
+  '@glint/environment-ember-template-imports@1.2.0(@glint/environment-ember-loose@1.4.0(@glimmer/component@1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.4.0)(ember-cli-htmlbars@6.3.0(supports-color@9.4.0)))(@glint/template@1.4.0)(ember-template-imports@3.4.2(supports-color@9.4.0))':
     dependencies:
-      '@glint/environment-ember-loose': 1.2.0(@glimmer/component@1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.4.0)(ember-cli-htmlbars@6.3.0(supports-color@9.4.0))
+      '@glint/environment-ember-loose': 1.4.0(@glimmer/component@1.1.2(@babel/core@7.23.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.4.0)(ember-cli-htmlbars@6.3.0(supports-color@9.4.0))
       '@glint/template': 1.4.0
       ember-template-imports: 3.4.2(supports-color@9.4.0)
 
