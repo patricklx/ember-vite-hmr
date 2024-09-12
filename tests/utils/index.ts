@@ -37,6 +37,7 @@ export async function startVite({ cwd }) {
 
     runvite.stdout?.on('data', (data) => {
       // remove color codes
+      console.log('stdout', String(data));
       const chunk = String(data).replace(/\u001b[^m]*?m/g, '');
       messages.push(...chunk.split('\n'));
       console.log('stdout', chunk);
@@ -62,6 +63,7 @@ export async function startVite({ cwd }) {
     const page = await browser.newPage();
     await page.goto('http://localhost:60173');
     page.on('console', (msg) => {
+      console.log(msg.text());
       messages.push(msg.text());
     });
 
@@ -69,7 +71,7 @@ export async function startVite({ cwd }) {
       function later() {
         setTimeout(onCb, 100);
       }
-      page.on('message', later);
+      page.on('console', later);
       runvite.stdout?.on('data', later);
     }
 

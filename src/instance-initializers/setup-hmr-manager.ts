@@ -1,8 +1,9 @@
 import Component from '@glimmer/component';
 // @ts-ignore
 import { getInternalComponentManager } from '@glimmer/manager';
-// vite dep optimizer is currently broken and cannot optimize new deps, need to include this ones from start
 
+
+// vite dep optimizer is currently broken and cannot optimize new deps, need to include this ones from start
 import { tracked } from '@glimmer/tracking';
 // @ts-ignore
 import { createComputeRef } from '@glimmer/reference';
@@ -36,6 +37,7 @@ function findPropertyDescriptor(component: Object, key: string) {
 function getState(component: HotComponent) {
   const state: Record<string, any> = {};
   for (const key in component) {
+    if (key === 'args') continue;
     const entry = findPropertyDescriptor(component, key);
     if (entry) {
       if (

@@ -29,6 +29,19 @@ plugins: [
 ]
 ```
 
+update you `babel.config.cjs`
+
+```js
+const { hotAstProcessor } = require('ember-vite-hmr/lib/babel-plugin');
+plugins: [['ember-vite-hmr/lib/babel-plugin'], ...other];
+```
+
+and for `'babel-plugin-ember-template-compilation'`
+
+```js
+transforms: [hotAstProcessor.transform, ...templateCompatSupport()],
+```
+
 ## Contributing
 
 See the [Contributing](CONTRIBUTING.md) guide for details.

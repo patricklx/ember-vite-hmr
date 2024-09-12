@@ -212,7 +212,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           );
         }
       }
-      console.log('didReplaceSources', didReplaceSources);
+
       if (didReplaceSources) {
         source = transformSync(source, {
           filename: id,
@@ -223,11 +223,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
               visitor: {
                 CallExpression(path) {
                   const node = path.node;
-                  console.log(
-                    'CallExpression',
-                    node.callee.type,
-                    node.arguments[0],
-                  );
                   if (
                     node.callee.type === 'Import' &&
                     node.arguments[0]?.type === 'StringLiteral' &&
@@ -236,12 +231,10 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
                     ) &&
                     node.arguments[0].value.includes('node_modules')
                   ) {
-                    console.log('is ember-vite-hmr in node_modules');
                     let IfStatement = path as NodePath;
                     while (IfStatement.type !== 'IfStatement') {
                       IfStatement = IfStatement.parentPath;
                     }
-                    console.log('removing if statement');
                     IfStatement.remove();
                   }
                 },
