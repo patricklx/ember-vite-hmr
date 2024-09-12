@@ -133,8 +133,14 @@ describe('hmr tests', () => {
         });
         await promise;
 
-        await editFile('./vite.config.mjs').replaceCode(/\n/, '\nimport { hmr } from \'ember-vite-hmr\';\n')
-        await editFile('./vite.config.mjs').replaceCode('contentFor(),', 'contentFor(),\n    hmr(),\n');
+        await editFile('./vite.config.mjs').replaceCode(
+          /\n/,
+          "\nimport { hmr } from 'ember-vite-hmr';\n",
+        );
+        await editFile('./vite.config.mjs').replaceCode(
+          'contentFor(),',
+          'contentFor(),\n    hmr(),\n',
+        );
       }
 
       await execa('pnpm build', {
@@ -200,5 +206,48 @@ describe('hmr tests', () => {
     const body = await page.waitForSelector('.ember-application');
     const bodyContent = await body.evaluate((el) => el.textContent);
     expect(bodyContent, bodyContent).toContain('Test Component HMR');
+  });
+
+  test('should hmr with state', async () => {
+    await editFile('./app/components/foo-component.gjs').setContent(`
+    import Component from "@glimmer/component";
+
+    export default class MyComponent extends Component {
+      count = 1;
+      <template>
+        count: {{this.count}}
+      </template>
+    }
+    `);
+
+    await editFile('./app/components/test-component.gjs').setContent(`
+    import Component from "@glimmer/component";
+    import FooComponent from "./foo-component.gjs";
+
+    export default class MyComponent extends Component {
+      <template>
+        <FooComponent />
+      </template>
+    }
+    `);
+    await waitForMessage('hmr update /app/templates/application.hbs');
+    let body = await page.waitForSelector('.ember-application');
+    let bodyContent = await body.evaluate((el) => el.textContent);
+    expect(bodyContent, bodyContent).toContain('count 1');
+
+    await editFile('./app/components/foo-component.gjs').setContent(`
+    import Component from "@glimmer/component";
+
+    export default class MyComponent extends Component {
+      count = 2;
+      <template>
+        count still 1: {{this.count}}
+      </template>
+    }
+    `);
+
+    body = await page.waitForSelector('.ember-application');
+    bodyContent = await body.evaluate((el) => el.textContent);
+    expect(bodyContent, bodyContent).toContain('count still 1: 1');
   });
 });
