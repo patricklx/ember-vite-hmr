@@ -246,7 +246,8 @@ class HotAstProcessor {
 
 export const hotAstProcessor = new HotAstProcessor();
 
-export default function hotReplaceAst({ types: t }: { types: BabelTypes }) {
+export default function hotReplaceAst(babel: { types: BabelTypes }) {
+  let t = babel.types;
   let imports: string[] = [];
   let importMap: Record<
     string,
@@ -273,7 +274,7 @@ export default function hotReplaceAst({ types: t }: { types: BabelTypes }) {
         if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
           return;
         }
-        const util = new ImportUtil(t, path);
+        const util = new ImportUtil(babel, path);
         const tracked = util.import(path, '@glimmer/tracking', 'tracked');
         const GlimmerComponent = util.import(
           path,
