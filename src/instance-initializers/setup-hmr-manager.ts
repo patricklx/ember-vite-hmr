@@ -1,7 +1,8 @@
+import Route from '@ember/routing/route';
+import Controller from '@ember/controller';
 import Component from '@glimmer/component';
 // @ts-ignore
 import { getInternalComponentManager } from '@glimmer/manager';
-
 
 // vite dep optimizer is currently broken and cannot optimize new deps, need to include this ones from start
 import { tracked } from '@glimmer/tracking';
@@ -34,10 +35,13 @@ function findPropertyDescriptor(component: Object, key: string) {
   }
 }
 
-function getState(component: HotComponent) {
+function getState(component: HotComponent, skip: string[]) {
   const state: Record<string, any> = {};
+  if (!component) {
+    return state;
+  }
   for (const key in component) {
-    if (key === 'args') continue;
+    if (skip.includes(key)) continue;
     const entry = findPropertyDescriptor(component, key);
     if (entry) {
       if (
@@ -61,7 +65,7 @@ function syncState(instance: Mutable<HotComponent>) {
     for (const k in state) {
       instance[k as keyof HotComponent] = state[k];
     }
-    instance.args.__hot__.getState = () => getState(instance);
+    instance.args.__hot__.getState = () => getState(instance, ['args']);
   }
 }
 
@@ -73,6 +77,32 @@ export function initialize() {
     const instance = create.call(this, ...args);
     syncState(instance.component);
     return instance;
+  };
+
+  const setupController = Route.prototype.setupController;
+
+  const StateCache: Record<string, any> = {};
+
+  Route.prototype.setupController = function (...args: any[]) {
+    const controller = args[0];
+    // @ts-ignore
+    const r = setupController.call(this, ...args);
+    const fullRouteName = this.fullRouteName;
+    const state = StateCache[fullRouteName] || {};
+    const skip = ['_qpDelegate', 'target', 'queryParams'];
+    const routerState = getState(state.router, skip);
+    const controllerState = getState(state.controller, skip);
+    for (const k in routerState) {
+      (this as any)[k] = routerState[k];
+    }
+    for (const k in controllerState) {
+      controller[k] = controllerState[k];
+    }
+    StateCache[fullRouteName] = {
+      route: this,
+      controller,
+    };
+    return r;
   };
 }
 

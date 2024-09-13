@@ -61,14 +61,25 @@ describe('hmr tests', () => {
     });
   }
 
-  class EditFile<T=void> {
+  class EditFile<T = void> {
     location: string;
     tasks: (() => Promise<void>)[] = [];
 
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): PromiseLike<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(
+      onfulfilled?:
+        | ((value: T) => TResult1 | PromiseLike<TResult1>)
+        | undefined
+        | null,
+      onrejected?:
+        | ((reason: any) => TResult2 | PromiseLike<TResult2>)
+        | undefined
+        | null,
+    ): PromiseLike<TResult1 | TResult2>;
 
-
-    async then(resolve: () => void, reject: (reason: Error) => void): Promise<void> {
+    async then(
+      resolve: () => void,
+      reject: (reason: Error) => void,
+    ): Promise<void> {
       try {
         for (const task of this.tasks) {
           await task();
@@ -77,7 +88,7 @@ describe('hmr tests', () => {
         console.log((await readFile(this.location)).toString());
         this.tasks = [];
         // wait a bit
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         resolve();
       } catch (e) {
         reject(e as Error);
@@ -283,4 +294,57 @@ describe('hmr tests', () => {
     bodyContent = await body.evaluate((el) => el.textContent);
     expect(bodyContent, bodyContent).toContain('count still 1: 1');
   });
+
+  test('should hmr with controller state', async () => {
+
+    await editFile('./app/templates/application.hbs').setContent(
+        '<TestComponent @controller={{this}} />',
+    );
+    await waitForMessage('hmr update /app/templates/application.hbs');
+    await waitForMessage('hot updated: /app/templates/application.hbs');
+
+    await editFile('./app/components/test-component.gjs').setContent(`
+    
+    import Component from "@glimmer/component";
+    import FooComponent from "./foo-component.gjs";
+
+    export default class MyComponent extends Component {
+
+      didInsert = () => {
+        this.args.controller.test = (this.args.controller.test ?? 0) + 1;
+      }
+
+      <template>
+        {{this.didInsert}}
+        hi {{@controller.test}}
+      </template>
+    }`)
+
+    await waitForMessage('hot updated: /app/templates/application.hbs');
+    let body = await page.waitForSelector('.ember-application');
+    let bodyContent = await body.evaluate((el) => el.textContent);
+    expect(bodyContent, bodyContent).toContain('hi 1');
+
+    await editFile('./app/components/test-component.gjs').setContent(`
+    
+    import Component from "@glimmer/component";
+    import FooComponent from "./foo-component.gjs";
+
+    export default class MyComponent extends Component {
+
+      didInsert = () => {
+        this.args.controller.test = (this.args.controller.test ?? 0) + 1;
+      }
+
+      <template>
+        {{this.didInsert}}
+        hi2 {{@controller.test}}
+      </template>
+    }`)
+
+    await waitForMessage('hot updated: /app/templates/application.hbs');
+    body = await page.waitForSelector('.ember-application');
+    bodyContent = await body.evaluate((el) => el.textContent);
+    expect(bodyContent, bodyContent).toContain('hi2 2');
+  })
 });
