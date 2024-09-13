@@ -23,9 +23,9 @@ update your `vite.config.mjs` with
 
 ```js
 import { hmr } from 'ember-vite-hmr';
-...hmr
+
 plugins: [
-  ...hmr()
+  hmr()
 ]
 ```
 
