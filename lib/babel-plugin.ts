@@ -1,7 +1,6 @@
 import { parse, PluginObj } from '@babel/core';
 import type * as BabelTypesNamespace from '@babel/types';
 import {
-  AssignmentExpression,
   Identifier,
   ImportDefaultSpecifier,
   ImportNamespaceSpecifier,
@@ -10,11 +9,10 @@ import {
   Statement,
   StringLiteral,
 } from '@babel/types';
+import type * as Babel from '@babel/core';
 import * as glimmer from '@glimmer/syntax';
 import { ASTv1, NodeVisitor, WalkerPath } from '@glimmer/syntax';
 import { ImportUtil } from 'babel-import-util';
-
-export type BabelTypes = typeof BabelTypesNamespace;
 
 interface ASTPluginEnvironment {
   locals: string[];
@@ -246,7 +244,7 @@ class HotAstProcessor {
 
 export const hotAstProcessor = new HotAstProcessor();
 
-export default function hotReplaceAst(babel: { types: BabelTypes }) {
+export default function hotReplaceAst(babel: Babel) {
   let t = babel.types;
   let imports: string[] = [];
   let importMap: Record<
