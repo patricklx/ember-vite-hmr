@@ -76,15 +76,15 @@ class HotAstProcessor {
   };
   counter = 0;
   meta = {
-    locals: new Set(),
+    locals: new Set<string>(),
     importVar: null,
-    babelProgram: null,
-    importBindings: new Set(),
+    babelProgram: undefined,
+    importBindings: new Set<string>(),
   } as {
     locals: Set<string>;
     importVar: any;
     importBindings: Set<string>;
-    babelProgram: Program;
+    babelProgram?: Program;
   };
   didCreateImportClass: boolean = false;
 
@@ -94,7 +94,7 @@ class HotAstProcessor {
 
   reset() {
     this.meta.importVar = null;
-    this.meta.babelProgram = null;
+    this.meta.babelProgram = undefined;
     this.meta.importBindings = new Set<string>();
   }
 
@@ -104,14 +104,14 @@ class HotAstProcessor {
         visitor: {},
       };
     }
-    const meta = this.meta;
+    const meta = this.meta as Required<typeof this.meta>;
     const importVar =
       meta.importVar ||
       (env as any).meta.jsutils.bindExpression('null', null, {
         nameHint: 'template__imports__',
       });
     meta.importVar = importVar;
-    const findImport = function findImport(specifier) {
+    const findImport = function findImport(specifier: string) {
       return meta.babelProgram.body.find(
         (b) =>
           b.type === 'ImportDeclaration' &&
@@ -138,7 +138,7 @@ class HotAstProcessor {
     importBindings: Set<string>;
     babelProgram: Program;
   }) {
-    const findImport = function findImport(specifier) {
+    const findImport = function findImport(specifier: string) {
       return babelProgram.body.find(
         (b) =>
           b.type === 'ImportDeclaration' &&
@@ -181,7 +181,7 @@ class HotAstProcessor {
         ) {
           return;
         }
-        const original = node.original.split('.')[0];
+        const original = node.original.split('.')[0]!;
         if (original === 'this') return;
         if (original.startsWith('@')) return;
         if (original === 'block') return;
@@ -226,7 +226,7 @@ class HotAstProcessor {
         element: ASTv1.ElementNode,
         p: WalkerPath<ASTv1.ElementNode>,
       ) => {
-        const original = element.tag.split('.')[0];
+        const original = element.tag.split('.')[0]!;
         if (findBlockParams(original, p)) return;
         if (importVar) {
           if (findImport(original)) {
@@ -244,7 +244,7 @@ class HotAstProcessor {
 
 export const hotAstProcessor = new HotAstProcessor();
 
-export default function hotReplaceAst(babel: Babel) {
+export default function hotReplaceAst(babel: typeof Babel) {
   let t = babel.types;
   let imports: string[] = [];
   let importMap: Record<
@@ -307,7 +307,7 @@ export default function hotReplaceAst(babel: Babel) {
               (e.declarations[0]!.id as BabelTypesNamespace.Identifier).name ===
                 hotAstProcessor.meta.importVar,
           ) + 1;
-        const lastImportIndex =
+        const lastImportIndex = // @ts-ignore
           path.node.body.findLastIndex(
             (e: BabelTypesNamespace.Statement) =>
               e.type === 'ImportDeclaration',
@@ -319,7 +319,7 @@ export default function hotReplaceAst(babel: Babel) {
           assign as unknown as Statement,
         );
 
-        const findImport = function findImport(specifier) {
+        const findImport = function findImport(specifier: string) {
           return path.node.body.find(
             (b) =>
               b.type === 'ImportDeclaration' &&
@@ -350,7 +350,7 @@ export default function hotReplaceAst(babel: Babel) {
             import.meta.hot.accept('${source}');
           `);
 
-          const importVirtual = ast?.program.body;
+          const importVirtual = ast!.program.body;
 
           const ifInstanceOfComponent = t.ifStatement(
             t.binaryExpression(
