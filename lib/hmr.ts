@@ -1,5 +1,40 @@
 import path from 'path';
 import { Plugin } from 'vite';
+import { NodePath, transform, transformSync } from '@babel/core';
+
+const getHotComponent = (imp: string, specifier: string) => `
+import { ${specifier} as TargetComponent } from "${imp}";
+import Component from "@glimmer/component";
+import { tracked } from "@glimmer/tracking";
+import { createComputeRef } from "@glimmer/reference";
+import { curry } from '@glimmer/runtime';
+import { CurriedTypes } from '@glimmer/vm';
+
+export default class HotComponent extends Component {
+  @tracked curried;
+  hot = {};
+  constructor(owner, args) {
+    super(owner, args);
+    const named = {};
+    const positional = [];
+    for (const name of Object.keys(args)) {
+      named[name] = createComputeRef(() => args[name]);
+    }
+    this.curried = curry(CurriedTypes.Component, TargetComponent, owner, { positional, named});
+    if (import.meta.hot) {
+      // Rehydrate any saved state
+      import.meta.hot.accept('${imp}', (module) => {
+        this.curried = curry(CurriedTypes.Component, module.default, owner, { positional, named});
+      })
+    }
+  }
+  <template>
+    <this.curried @__hot__={{this.hot}}></this.curried>
+  </template>
+}
+`;
+
+const virtualPrefix = 'ember-vite-hmr/virtual/component:';
 
 export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
   let conf: any;
@@ -12,8 +47,21 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         .includes(config.mode)
         .toString();
     },
-    resolveId(id) {
+    resolveId(id, importer) {
+      if (importer.startsWith(virtualPrefix)) {
+        importer = path.join(process.cwd(), 'package.json');
+        return this.resolve(id, importer);
+      }
+      if (id.startsWith(virtualPrefix)) {
+        return id;
+      }
       if (id.startsWith('/@id/embroider_virtual:')) {
+        return this.resolve(
+          id.replace('/@id/', ''),
+          path.join(process.cwd(), 'package.json'),
+        );
+      }
+      if (id.startsWith(`/@id/${virtualPrefix}`)) {
         return this.resolve(
           id.replace('/@id/', ''),
           path.join(process.cwd(), 'package.json'),
@@ -24,6 +72,14 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           'ember-vite-hmr/services/vite-hot-reload',
           path.join(process.cwd(), 'package.json'),
         );
+      }
+    },
+    load(id: string) {
+      if (id.startsWith(virtualPrefix)) {
+        const [imp, specifier] = id
+          .slice(virtualPrefix.length, -'.gts'.length)
+          .split(':');
+        return getHotComponent(imp, specifier);
       }
     },
     transformIndexHtml(html) {
@@ -78,6 +134,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (resourcePath.includes('/-components/')) {
         return source;
       }
+      let didReplaceSources = false;
       const name = require(`${process.cwd()}/package.json`).name;
       if (resourcePath.includes(`/assets/${name}.js`)) {
         const result = [...source.matchAll(/import \* as [^ ]+ from (.*);/g)];
@@ -96,14 +153,10 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         resourcePath.endsWith('.gts') ||
         resourcePath.includes(`/assets/${name}.js`)
       ) {
-        const result = [
-          ...source.matchAll(/import.meta.hot.accept\(\'([^']+)\'/g),
-        ];
-        for (const resultElement of result) {
-          const dep = resultElement[1];
+        const resolveDep = async (dep) => {
           const resolved = await this.resolve(dep, resourcePath, {});
           let id = resolved?.id;
-          if (!id) continue;
+          if (!id) return;
           let appRoot = conf.root + '/app/';
           if (id.startsWith(appRoot) && !id.startsWith('embroider_virtual:')) {
             id = 'app/' + id.split(appRoot)[1];
@@ -123,11 +176,72 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           if (!id.startsWith('/') && !id.startsWith('.')) {
             id = '/' + id;
           }
+          return id;
+        };
+
+        const result = [
+          ...source.matchAll(/import.meta.hot.accept\(\'([^']+)\'/g),
+        ];
+        for (const resultElement of result) {
+          const dep = resultElement[1];
+          const id = await resolveDep(dep);
+          if (!id) continue;
+          if (dep === id) continue;
+          didReplaceSources = true;
           source = source.replace(
             `import.meta.hot.accept('${dep}'`,
             `import.meta.hot.accept('${id}'`,
           );
         }
+        const importMatches = [...source.matchAll(/import\('([^']+)'/g)];
+        for (const resultElement of importMatches) {
+          const dep = resultElement[1];
+          if (!dep.startsWith(virtualPrefix)) {
+            continue;
+          }
+          const [imp, specifier] = dep
+            .slice(virtualPrefix.length, -'.gts'.length)
+            .split(':');
+          const id = await resolveDep(imp);
+          if (!id) continue;
+          if (dep === id) continue;
+          didReplaceSources = true;
+          source = source.replace(
+            `import('${virtualPrefix}${imp}`,
+            `import('${virtualPrefix}${id}`,
+          );
+        }
+      }
+
+      if (didReplaceSources) {
+        source = transformSync(source, {
+          filename: id,
+          babelrc: false,
+          plugins: [
+            {
+              name: 'cleanup',
+              visitor: {
+                CallExpression(path) {
+                  const node = path.node;
+                  if (
+                    node.callee.type === 'Import' &&
+                    node.arguments[0]?.type === 'StringLiteral' &&
+                    node.arguments[0].value.includes(
+                      'ember-vite-hmr/virtual/component',
+                    ) &&
+                    node.arguments[0].value.includes('node_modules')
+                  ) {
+                    let IfStatement = path as NodePath;
+                    while (IfStatement.type !== 'IfStatement') {
+                      IfStatement = IfStatement.parentPath;
+                    }
+                    IfStatement.remove();
+                  }
+                },
+              },
+            },
+          ],
+        }).code;
       }
       if (
         !supportedPaths.some((s) => resourcePath.includes(`/${s}/`)) &&

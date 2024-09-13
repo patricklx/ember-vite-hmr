@@ -275,6 +275,11 @@ export default function hotReplaceAst({ types: t }: { types: BabelTypes }) {
         }
         const util = new ImportUtil(t, path);
         const tracked = util.import(path, '@glimmer/tracking', 'tracked');
+        const GlimmerComponent = util.import(
+          path,
+          '@glimmer/component',
+          'default',
+        );
         const klass = t.classExpression(
           path.scope.generateUidIdentifier('Imports'),
           null,
@@ -323,7 +328,7 @@ export default function hotReplaceAst({ types: t }: { types: BabelTypes }) {
           );
         };
 
-        const hotAccepts = [];
+        const ifHotStatements = [];
         for (const imp of bindings) {
           const importDeclaration = findImport(
             imp,
@@ -332,22 +337,39 @@ export default function hotReplaceAst({ types: t }: { types: BabelTypes }) {
           const specifier = importDeclaration.specifiers.find(
             (s) => s.local.name === imp,
           );
+
           const specifierName =
             ((specifier as ImportSpecifier).imported as Identifier)?.name ||
             ((specifier as ImportSpecifier).imported as StringLiteral)?.value ||
             'default';
-          const ast = parse(
-            `import.meta.hot.accept('${source}', (module) => (${hotAstProcessor.meta.importVar}.${imp}=module['${specifierName}']))`,
+
+          const ast = parse(`
+            (async () => {
+              const c = await import('ember-vite-hmr/virtual/component:${source}:${specifierName}.gjs');
+              ${hotAstProcessor.meta.importVar}.${imp} = c.default;
+            })()
+            import.meta.hot.accept('${source}');
+          `);
+
+          const importVirtual = ast?.program.body;
+
+          const ifInstanceOfComponent = t.ifStatement(
+            t.binaryExpression(
+              'instanceof',
+              t.memberExpression(t.identifier(imp), t.identifier('prototype')),
+              GlimmerComponent,
+            ),
+            t.blockStatement([...importVirtual]),
           );
-          const impHot = ast?.program.body[0];
-          hotAccepts.push(impHot);
+
+          ifHotStatements.push(ifInstanceOfComponent);
         }
         const ifHot = t.ifStatement(
           t.memberExpression(
             t.metaProperty(t.identifier('import'), t.identifier('meta')),
             t.identifier('hot'),
           ),
-          t.blockStatement([...hotAccepts]),
+          t.blockStatement([...ifHotStatements]),
         );
         path.node.body.push(ifHot);
         path.scope.crawl();

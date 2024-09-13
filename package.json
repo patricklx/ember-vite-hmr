@@ -83,6 +83,7 @@
     "ember-cli-htmlbars": "^6.3.0",
     "ember-resolver": "^11.0.1",
     "ember-source": "^5.10.1",
+    "@glimmer/component": "^1.1.2",
     "ember-template-lint": "^5.11.2",
     "eslint": "^8.33.0",
     "eslint-config-prettier": "^9.0.0",
@@ -122,6 +123,7 @@
     "type": "addon",
     "main": "addon-main.cjs",
     "app-js": {
+      "./instance-initializers/setup-hmr-manager.js": "./dist/_app_/instance-initializers/setup-hmr-manager.js",
       "./instance-initializers/vite-hot-reload.js": "./dist/_app_/instance-initializers/vite-hot-reload.js",
       "./services/vite-hot-reload.js": "./dist/_app_/services/vite-hot-reload.js"
     }
