@@ -30,8 +30,8 @@ importers:
         specifier: ^8.1.0
         version: 8.1.3
       babel-import-util:
-        specifier: ^2.0.1
-        version: 2.1.1
+        specifier: ^3.0.0
+        version: 3.0.0
       babel-loader:
         specifier: ^9.1.3
         version: 9.1.3(@babel/core@7.25.2(supports-color@9.4.0))(webpack@5.94.0)
