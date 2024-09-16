@@ -39,7 +39,7 @@ plugins: [['ember-vite-hmr/lib/babel-plugin'], ...other];
 and for `'babel-plugin-ember-template-compilation'`
 
 ```js
-transforms: [hotAstProcessor.transform, ...templateCompatSupport()],
+transforms: [...templateCompatSupport(), hotAstProcessor.transform],
 ```
 
 ## Contributing
