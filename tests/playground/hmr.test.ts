@@ -164,7 +164,7 @@ describe('hmr tests', () => {
           )
           .replaceCode(
             '...templateCompatSupport()',
-            'hotAstProcessor.transform, ...templateCompatSupport()',
+            '...templateCompatSupport(), hotAstProcessor.transform',
           )
           .replaceCode(
             "require.resolve('decorator-transforms/runtime')",
