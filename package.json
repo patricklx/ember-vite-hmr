@@ -81,7 +81,7 @@
     "concurrently": "^8.0.1",
     "content-tag": "^2.0.1",
     "ember-cli-htmlbars": "^6.3.0",
-    "ember-resolver": "^11.0.1",
+    "ember-resolver": "^13.0.1",
     "ember-source": "^5.10.1",
     "@glimmer/component": "^1.1.2",
     "ember-template-lint": "^5.11.2",
