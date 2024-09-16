@@ -12,10 +12,7 @@ import { createComputeRef } from '@glimmer/reference';
 import { curry } from '@glimmer/runtime';
 
 (function () {
-  let run = false;
-  if (run) {
-    console.log(tracked, createComputeRef, curry);
-  }
+  console.log(tracked, createComputeRef, curry);
 })();
 
 interface HotComponent extends Component<{ __hot__?: any }> {
