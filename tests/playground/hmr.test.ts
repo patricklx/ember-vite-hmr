@@ -274,7 +274,7 @@ describe('hmr tests', () => {
       </template>
     }
     `);
-    await waitForMessage('hot updated: /app/templates/application.hbs');
+    await waitForMessage('hot updated: /app/components/test-component.gjs');
     let body = await page.waitForSelector('.ember-application');
     let bodyContent = await body.evaluate((el) => el.textContent);
     expect(bodyContent, bodyContent).toContain('count: 1');
