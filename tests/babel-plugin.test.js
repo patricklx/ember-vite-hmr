@@ -105,21 +105,21 @@ describe('convert template with hot reload helpers', () => {
       if (import.meta.hot) {
         if (NamedComponent.prototype instanceof _ref20) {
           (async () => {
-            const c = await import('ember-vite-hmr/virtual/component:embroider_compat/components/named-component:default.gjs');
+            const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/components/named-component:default.gjs');
             template__imports__.NamedComponent = c.default;
           })();
           import.meta.hot.accept('embroider_compat/components/named-component');
         }
         if (SomeComponent.prototype instanceof _ref20) {
           (async () => {
-            const c = await import('ember-vite-hmr/virtual/component:embroider_compat/components/some-component:default.gjs');
+            const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/components/some-component:default.gjs');
             template__imports__.SomeComponent = c.default;
           })();
           import.meta.hot.accept('embroider_compat/components/some-component');
         }
         if (myhelper.prototype instanceof _ref20) {
           (async () => {
-            const c = await import('ember-vite-hmr/virtual/component:embroider_compat/helpers/my-helper:default.gjs');
+            const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/helpers/my-helper:default.gjs');
             template__imports__.myhelper = c.default;
           })();
           import.meta.hot.accept('embroider_compat/helpers/my-helper');
@@ -195,21 +195,21 @@ describe('convert template with hot reload helpers', () => {
       if (import.meta.hot) {
         if (NamedComponent.prototype instanceof _ref20) {
           (async () => {
-            const c = await import('ember-vite-hmr/virtual/component:embroider_compat/components/named-component:default.gjs');
+            const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/components/named-component:default.gjs');
             template__imports__.NamedComponent = c.default;
           })();
           import.meta.hot.accept('embroider_compat/components/named-component');
         }
         if (SomeComponent.prototype instanceof _ref20) {
           (async () => {
-            const c = await import('ember-vite-hmr/virtual/component:embroider_compat/components/some-component:default.gjs');
+            const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/components/some-component:default.gjs');
             template__imports__.SomeComponent = c.default;
           })();
           import.meta.hot.accept('embroider_compat/components/some-component');
         }
         if (myhelper.prototype instanceof _ref20) {
           (async () => {
-            const c = await import('ember-vite-hmr/virtual/component:embroider_compat/helpers/my-helper:default.gjs');
+            const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/helpers/my-helper:default.gjs');
             template__imports__.myhelper = c.default;
           })();
           import.meta.hot.accept('embroider_compat/helpers/my-helper');
@@ -346,8 +346,8 @@ describe('convert template with hot reload helpers', () => {
       function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
       import SomeComponent, { NamedComponent, Other } from 'my-components';
       import myhelper from 'my-helpers';
+      import { precompileTemplate } from "@ember/template-compilation";
       import { setComponentTemplate } from "@ember/component";
-      import { createTemplateFactory } from "@ember/template-factory";
       import templateOnly from "@ember/component/template-only";
       import { tracked } from "@glimmer/tracking";
       import _ref20 from "@glimmer/component";
@@ -361,60 +361,43 @@ describe('convert template with hot reload helpers', () => {
         SomeComponent = _init_SomeComponent(this, SomeComponent);
         myhelper = _init_myhelper(this, myhelper);
       }()
-      const T = setComponentTemplate(createTemplateFactory(
-      /*
-        
-                  <Other />
-              
-      */
-      {
-        "id": "--id--",
-        "block": "[[[1,\\"\\\\n            \\"],[8,[32,0,[\\"Other\\"]],null,null,null],[1,\\"\\\\n        \\"]],[],false,[]]",
-        "moduleName": "/rewritten-app/a.gts",
-        "scope": () => [template__imports__],
-        "isStrictMode": true
+      const T = setComponentTemplate(precompileTemplate("\\n            <template__imports__.Other />\\n        ", {
+        strictMode: true,
+        scope: () => ({
+          template__imports__
+        })
       }), templateOnly());
-      export default setComponentTemplate(createTemplateFactory(
-      /*
-        
-            {{(myhelper)}}
-            {{component SomeComponent}}
-            <SomeComponent />
-            <NamedComponent />
-          
-      */
-      {
-        "id": "--id--",
-        "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[46,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[\\"component\\"]]",
-        "moduleName": "/rewritten-app/a.gts",
-        "scope": () => [template__imports__],
-        "isStrictMode": true
+      export default setComponentTemplate(precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      {{component template__imports__.SomeComponent}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
+        strictMode: true,
+        scope: () => ({
+          template__imports__
+        })
       }), templateOnly());
       if (import.meta.hot) {
         if (NamedComponent.prototype instanceof _ref20) {
           (async () => {
-            const c = await import('ember-vite-hmr/virtual/component:my-components:NamedComponent.gjs');
+            const c = await import('/ember-vite-hmr/virtual/component:my-components:NamedComponent.gjs');
             template__imports__.NamedComponent = c.default;
           })();
           import.meta.hot.accept('my-components');
         }
         if (Other.prototype instanceof _ref20) {
           (async () => {
-            const c = await import('ember-vite-hmr/virtual/component:my-components:Other.gjs');
+            const c = await import('/ember-vite-hmr/virtual/component:my-components:Other.gjs');
             template__imports__.Other = c.default;
           })();
           import.meta.hot.accept('my-components');
         }
         if (SomeComponent.prototype instanceof _ref20) {
           (async () => {
-            const c = await import('ember-vite-hmr/virtual/component:my-components:default.gjs');
+            const c = await import('/ember-vite-hmr/virtual/component:my-components:default.gjs');
             template__imports__.SomeComponent = c.default;
           })();
           import.meta.hot.accept('my-components');
         }
         if (myhelper.prototype instanceof _ref20) {
           (async () => {
-            const c = await import('ember-vite-hmr/virtual/component:my-helpers:default.gjs');
+            const c = await import('/ember-vite-hmr/virtual/component:my-helpers:default.gjs');
             template__imports__.myhelper = c.default;
           })();
           import.meta.hot.accept('my-helpers');
