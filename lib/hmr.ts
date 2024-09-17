@@ -34,7 +34,7 @@ export default class HotComponent extends Component {
 }
 `;
 
-const virtualPrefix = 'ember-vite-hmr/virtual/component:';
+const virtualPrefix = '/ember-vite-hmr/virtual/component:';
 
 export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
   let conf: any;
