@@ -13,9 +13,11 @@ import type * as Babel from '@babel/core';
 import * as glimmer from '@glimmer/syntax';
 import { ASTv1, NodeVisitor, WalkerPath } from '@glimmer/syntax';
 import { ImportUtil } from 'babel-import-util';
+import { join } from 'path';
 
 interface ASTPluginEnvironment {
   locals: string[];
+  filename: string;
 }
 
 const builtInComponents = ['LinkTo'];
@@ -100,6 +102,11 @@ class HotAstProcessor {
 
   transform(env: ASTPluginEnvironment): any {
     if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
+      return {
+        visitor: {},
+      };
+    }
+    if (env.filename?.includes('node_modules')) {
       return {
         visitor: {},
       };
@@ -272,6 +279,9 @@ export default function hotReplaceAst(babel: typeof Babel) {
         if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
           return;
         }
+        if (state.filename?.includes('node_modules')) {
+          return;
+        }
         const util = new ImportUtil(babel, path);
         const tracked = util.import(path, '@glimmer/tracking', 'tracked');
         const GlimmerComponent = util.import(
@@ -344,7 +354,7 @@ export default function hotReplaceAst(babel: typeof Babel) {
 
           const ast = parse(`
             (async () => {
-              const c = await import('ember-vite-hmr/virtual/component:${source}:${specifierName}.gjs');
+              const c = await import('/ember-vite-hmr/virtual/component:${source}:${specifierName}.gjs');
               ${hotAstProcessor.meta.importVar}.${imp} = c.default;
             })()
             import.meta.hot.accept('${source}');
