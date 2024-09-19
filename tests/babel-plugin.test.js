@@ -488,16 +488,17 @@ export { CarbonCodeSnippet as default };
         SomeComponent = _init_SomeComponent(this, SomeComponent);
         myhelper = _init_myhelper(this, myhelper);
       }()
+      let template__imports__0 = template__imports__;
       const T = setComponentTemplate(precompileTemplate("\\n            <template__imports__.Other />\\n        ", {
         strictMode: true,
         scope: () => ({
           template__imports__
         })
       }), templateOnly());
-      export default setComponentTemplate(precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      {{component template__imports__.SomeComponent}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
+      export default setComponentTemplate(precompileTemplate("\\n      {{(template__imports__0.myhelper)}}\\n      {{component template__imports__0.SomeComponent}}\\n      <template__imports__0.SomeComponent />\\n      <template__imports__0.NamedComponent />\\n    ", {
         strictMode: true,
         scope: () => ({
-          template__imports__
+          template__imports__0
         })
       }), templateOnly());
       if (import.meta.hot) {
@@ -576,6 +577,7 @@ export { CarbonCodeSnippet as default };
         SomeComponent = _init_SomeComponent(this, SomeComponent);
         myhelper = _init_myhelper(this, myhelper);
       }()
+      let template__imports__0 = template__imports__;
       const T = setComponentTemplate(createTemplateFactory(
       /*
         
@@ -602,7 +604,7 @@ export { CarbonCodeSnippet as default };
         "id": "--id--",
         "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[46,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[\\"component\\"]]",
         "moduleName": "/rewritten-app/a.gts",
-        "scope": () => [template__imports__],
+        "scope": () => [template__imports__0],
         "isStrictMode": true
       }), templateOnly());
       if (import.meta.hot) {
