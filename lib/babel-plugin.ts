@@ -115,7 +115,7 @@ class HotAstProcessor {
     const importVar =  (env as any).meta.jsutils.bindExpression(meta.importVar || 'null', null, {
         nameHint: 'template__imports__',
       });
-    meta.importVar = importVar;
+    meta.importVar = meta.importVar || importVar;
     const findImport = function findImport(specifier: string) {
       return meta.babelProgram.body.find(
         (b) =>

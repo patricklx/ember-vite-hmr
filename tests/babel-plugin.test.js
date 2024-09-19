@@ -324,8 +324,7 @@ export { CarbonCodeSnippet as default };
       import { precompileTemplate } from '@ember/template-compilation';
       import { setComponentTemplate } from '@ember/component';
       let template__imports__ = null;
-      let template__imports__0 = template__imports__;
-      template__imports__0 = new class _Imports {
+      template__imports__ = new class _Imports {
         static {
           [_init_concat, _init_didInsert, _init_eq, _init_fn, _init_htmlSafe, _init_not, _init_on] = _applyDecs2203R(this, [[tracked, 0, "concat"], [tracked, 0, "didInsert"], [tracked, 0, "eq"], [tracked, 0, "fn"], [tracked, 0, "htmlSafe"], [tracked, 0, "not"], [tracked, 0, "on"]], []).e;
         }
@@ -337,6 +336,7 @@ export { CarbonCodeSnippet as default };
         not = _init_not(this, not);
         on = _init_on(this, on);
       }()
+      let template__imports__0 = template__imports__;
       var _class, _descriptor, _descriptor2, _CarbonCodeSnippet;
       const noop = () => '';
       const PreCode = setComponentTemplate(precompileTemplate("\\n  <pre>\\n    {{~noop~}}\\n    <code ...attributes>\\n      {{~yield~}}\\n    </code>\\n    {{~noop~}}\\n  </pre>\\n", {
@@ -383,49 +383,49 @@ export { CarbonCodeSnippet as default };
         if (concat.prototype instanceof Component) {
           (async () => {
             const c = await import('/ember-vite-hmr/virtual/component:@ember/helper:concat.gjs');
-            template__imports__0.concat = c.default;
+            template__imports__.concat = c.default;
           })();
           import.meta.hot.accept('@ember/helper');
         }
         if (didInsert.prototype instanceof Component) {
           (async () => {
             const c = await import('/ember-vite-hmr/virtual/component:@ember/render-modifiers/modifiers/did-insert:default.gjs');
-            template__imports__0.didInsert = c.default;
+            template__imports__.didInsert = c.default;
           })();
           import.meta.hot.accept('@ember/render-modifiers/modifiers/did-insert');
         }
         if (eq.prototype instanceof Component) {
           (async () => {
             const c = await import('/ember-vite-hmr/virtual/component:ember-truth-helpers/helpers/eq:default.gjs');
-            template__imports__0.eq = c.default;
+            template__imports__.eq = c.default;
           })();
           import.meta.hot.accept('ember-truth-helpers/helpers/eq');
         }
         if (fn.prototype instanceof Component) {
           (async () => {
             const c = await import('/ember-vite-hmr/virtual/component:@ember/helper:fn.gjs');
-            template__imports__0.fn = c.default;
+            template__imports__.fn = c.default;
           })();
           import.meta.hot.accept('@ember/helper');
         }
         if (htmlSafe.prototype instanceof Component) {
           (async () => {
             const c = await import('/ember-vite-hmr/virtual/component:../helpers/html-safe.js:default.gjs');
-            template__imports__0.htmlSafe = c.default;
+            template__imports__.htmlSafe = c.default;
           })();
           import.meta.hot.accept('../helpers/html-safe.js');
         }
         if (not.prototype instanceof Component) {
           (async () => {
             const c = await import('/ember-vite-hmr/virtual/component:ember-truth-helpers/helpers/not:default.gjs');
-            template__imports__0.not = c.default;
+            template__imports__.not = c.default;
           })();
           import.meta.hot.accept('ember-truth-helpers/helpers/not');
         }
         if (on.prototype instanceof Component) {
           (async () => {
             const c = await import('/ember-vite-hmr/virtual/component:@ember/modifier:on.gjs');
-            template__imports__0.on = c.default;
+            template__imports__.on = c.default;
           })();
           import.meta.hot.accept('@ember/modifier');
         }
