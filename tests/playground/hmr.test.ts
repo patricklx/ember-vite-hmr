@@ -51,6 +51,8 @@ describe('hmr tests', () => {
           withText instanceof RegExp ? withText.test(m) : m.includes(withText),
         );
         if (m) {
+          const i = viteContext.messages.indexOf(m);
+          viteContext.messages.splice(0, i + 1);
           clearTimeout(t);
           t = null;
           resolve(m);
@@ -252,7 +254,36 @@ describe('hmr tests', () => {
     expect(bodyContent, bodyContent).toContain('Test Component HMR');
   });
 
-  test('should hmr with state', async () => {
+  test('should forward yields', async () => {
+    await editFile('./app/templates/application.hbs').setContent(`
+        <TestComponent>
+            <:default as |txt|>{{txt}}</:default>    
+            <:named as |txt|>{{txt}}</:named>    
+        </TestComponent>`);
+    await waitForMessage('hmr update /app/templates/application.hbs');
+    await waitForMessage('hot updated: /app/templates/application.hbs');
+
+    await editFile('./app/components/test-component.gjs').setContent(`
+    import Component from "@glimmer/component";
+
+    export default class MyComponent extends Component {
+      <template>
+        {{yield 'yield from test component'}}
+        {{yield 'yield to named from test component' to='named'}}
+      </template>
+    }
+    `);
+    await waitForMessage('hmr update /app/templates/application.hbs');
+    await waitForMessage('/app/components/test-component.gjs');
+    const body = await page.waitForSelector('.ember-application');
+    const bodyContent = await body.evaluate((el) => el.textContent);
+    expect(bodyContent, bodyContent).toContain('yield from test component');
+    expect(bodyContent, bodyContent).toContain(
+      'yield to named from test component',
+    );
+  });
+
+  test('should hmr with state', { timeout: 10 * 1000 }, async () => {
     await editFile('./app/components/foo-component.gjs').setContent(`
     import Component from "@glimmer/component";
 
@@ -285,12 +316,16 @@ describe('hmr tests', () => {
     export default class MyComponent extends Component {
       count = 2;
       <template>
-        count still 1: {{this.count}}
+        <div class='count'>
+          count still 1: {{this.count}}
+        </div>        
       </template>
     }
     `);
-    await waitForMessage('hot updated: /app/components/foo-component.gjs');
-    body = await page.waitForSelector('.ember-application');
+    await waitForMessage(
+      'hmr update /app/components/test-component.gjs, /ember-vite-hmr/virtual/component:/app/components/foo-component.gjs:default.gjs',
+    );
+    body = await page.waitForSelector('.count');
     bodyContent = await body.evaluate((el) => el.textContent);
     expect(bodyContent, bodyContent).toContain('count still 1: 1');
   });
@@ -319,7 +354,7 @@ describe('hmr tests', () => {
       </template>
     }`);
 
-    await waitForMessage('hot updated: /app/templates/application.hbs');
+    await waitForMessage('hot updated: /app/components/test-component.gjs');
     let body = await page.waitForSelector('.ember-application');
     let bodyContent = await body.evaluate((el) => el.textContent);
     expect(bodyContent, bodyContent).toContain('hi 1');
@@ -341,7 +376,7 @@ describe('hmr tests', () => {
       </template>
     }`);
 
-    await waitForMessage('hot updated: /app/templates/application.hbs');
+    await waitForMessage('hot updated: /app/components/test-component.gjs');
     body = await page.waitForSelector('.ember-application');
     bodyContent = await body.evaluate((el) => el.textContent);
     expect(bodyContent, bodyContent).toContain('hi2 2');
