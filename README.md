@@ -24,9 +24,7 @@ update your `vite.config.mjs` with
 ```js
 import { hmr } from 'ember-vite-hmr';
 
-plugins: [
-  hmr()
-]
+plugins: [hmr()];
 ```
 
 update you `babel.config.cjs`

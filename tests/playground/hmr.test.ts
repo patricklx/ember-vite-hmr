@@ -296,9 +296,8 @@ describe('hmr tests', () => {
   });
 
   test('should hmr with controller state', async () => {
-
     await editFile('./app/templates/application.hbs').setContent(
-        '<TestComponent @controller={{this}} />',
+      '<TestComponent @controller={{this}} />',
     );
     await waitForMessage('hmr update /app/templates/application.hbs');
     await waitForMessage('hot updated: /app/templates/application.hbs');
@@ -318,7 +317,7 @@ describe('hmr tests', () => {
         {{this.didInsert}}
         hi {{@controller.test}}
       </template>
-    }`)
+    }`);
 
     await waitForMessage('hot updated: /app/templates/application.hbs');
     let body = await page.waitForSelector('.ember-application');
@@ -340,11 +339,11 @@ describe('hmr tests', () => {
         {{this.didInsert}}
         hi2 {{@controller.test}}
       </template>
-    }`)
+    }`);
 
     await waitForMessage('hot updated: /app/templates/application.hbs');
     body = await page.waitForSelector('.ember-application');
     bodyContent = await body.evaluate((el) => el.textContent);
     expect(bodyContent, bodyContent).toContain('hi2 2');
-  })
+  });
 });

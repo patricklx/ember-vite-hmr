@@ -285,7 +285,7 @@ let CarbonCodeSnippet = (_class = (_CarbonCodeSnippet = class CarbonCodeSnippet 
 
 export { CarbonCodeSnippet as default };
 //# sourceMappingURL=code-snippet.js.map
-`
+`;
     const preTransformed = p.process(code);
     const result = babel.transform(preTransformed, {
       filename: '/rewritten-app/a.gts',
@@ -431,7 +431,7 @@ export { CarbonCodeSnippet as default };
         }
       }"
     `);
-  })
+  });
 
   it('should convert gts correctly', () => {
     const code = `
