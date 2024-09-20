@@ -112,9 +112,13 @@ class HotAstProcessor {
       };
     }
     const meta = this.meta as Required<typeof this.meta>;
-    const importVar =  (env as any).meta.jsutils.bindExpression(meta.importVar || 'null', null, {
+    const importVar = (env as any).meta.jsutils.bindExpression(
+      meta.importVar || 'null',
+      null,
+      {
         nameHint: 'template__imports__',
-      });
+      },
+    );
     meta.importVar = meta.importVar || importVar;
     const findImport = function findImport(specifier: string) {
       return meta.babelProgram.body.find(

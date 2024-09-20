@@ -48,7 +48,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         .toString();
     },
     resolveId(id, importer) {
-      if (importer.startsWith(virtualPrefix)) {
+      if (importer!.startsWith(virtualPrefix)) {
         importer = path.join(process.cwd(), 'package.json');
         return this.resolve(id, importer);
       }
@@ -79,7 +79,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         const [imp, specifier] = id
           .slice(virtualPrefix.length, -'.gts'.length)
           .split(':');
-        return getHotComponent(imp, specifier);
+        return getHotComponent(imp!, specifier!);
       }
     },
     transformIndexHtml(html) {
@@ -92,26 +92,26 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       );
     },
     handleHotUpdate(ctx) {
-      if (!ctx.file.split('?')[0].endsWith('.hbs')) {
+      if (!ctx.file.split('?')[0]!.endsWith('.hbs')) {
         return ctx.modules;
       }
       const otherModules = [];
       const pairedModule = ctx.modules.find((m) =>
         [...m.importers].find(
           (i) =>
-            i.id.startsWith('embroider_virtual') &&
-            i.id.endsWith('-embroider-pair-component'),
+            i.id!.startsWith('embroider_virtual') &&
+            i.id!.endsWith('-embroider-pair-component'),
         ),
       );
       if (pairedModule) {
         const pairComponent = [...pairedModule.importers].find(
           (i) =>
-            i.id.startsWith('embroider_virtual') &&
-            i.id.endsWith('-embroider-pair-component'),
+            i.id!.startsWith('embroider_virtual') &&
+            i.id!.endsWith('-embroider-pair-component'),
         );
         if (pairComponent) {
           const componentModule = [...pairComponent.clientImportedModules].find(
-            (cim) => cim.id.split('?')[0].match(/\/component\.(js|ts|gjs|gts)/),
+            (cim) => cim.id!.split('?')[0]!.match(/\/component\.(js|ts|gjs|gts)/),
           );
           if (componentModule) {
             otherModules.push(componentModule);
@@ -121,39 +121,25 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       return [...ctx.modules, ...otherModules];
     },
     async transform(source, id) {
-      const resourcePath = id.replace(/\\/g, '/').split('?')[0];
-      const supportedPaths = ['routers', 'controllers', 'routes', 'templates'];
-      const supportedFileNames = [
-        'route.js',
-        'route.ts',
-        'route.gts',
-        'route.gjs',
-        'controller.js',
-        'controller.ts',
-      ];
-      if (resourcePath.includes('/-components/')) {
-        return source;
-      }
+      const resourcePath = id.replace(/\\/g, '/').split('?')[0]!;
       let didReplaceSources = false;
       const name = require(`${process.cwd()}/package.json`).name;
-      if (resourcePath.includes(`/assets/${name}.js`)) {
+      if (resourcePath.includes(`${name}/app/-embroider-entrypoint.js`)) {
         const result = [...source.matchAll(/import \* as [^ ]+ from (.*);/g)];
         source += result
           .map((r) => {
-            if (r[1].includes('initializers')) {
+            if (r[1]!.includes('initializers')) {
               return `\nimport.meta.hot.accept(${r[1]}, () => window.location.reload());`;
             }
             return `\nimport.meta.hot.accept(${r[1]});`;
           })
           .join('');
       }
-      if (
-        resourcePath.endsWith('.hbs') ||
-        resourcePath.endsWith('.gjs') ||
-        resourcePath.endsWith('.gts') ||
-        resourcePath.includes(`/assets/${name}.js`)
-      ) {
-        const resolveDep = async (dep) => {
+      if (resourcePath.includes('ember-vite-hmr/virtual/components')) {
+        return source;
+      }
+      if (!resourcePath.includes(`node_modules`)) {
+        const resolveDep = async (dep: string) => {
           const resolved = await this.resolve(dep, resourcePath, {});
           let id = resolved?.id;
           if (!id) return;
@@ -180,10 +166,10 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         };
 
         const result = [
-          ...source.matchAll(/import.meta.hot.accept\(\'([^']+)\'/g),
+          ...source.matchAll(/import.meta.hot.accept\('([^']+)'/g),
         ];
         for (const resultElement of result) {
-          const dep = resultElement[1];
+          const dep = resultElement[1]!;
           const id = await resolveDep(dep);
           if (!id) continue;
           if (dep === id) continue;
@@ -195,14 +181,14 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         }
         const importMatches = [...source.matchAll(/import\('([^']+)'/g)];
         for (const resultElement of importMatches) {
-          const dep = resultElement[1];
+          const dep = resultElement[1]!;
           if (!dep.startsWith(virtualPrefix)) {
             continue;
           }
           const [imp, specifier] = dep
             .slice(virtualPrefix.length, -'.gts'.length)
             .split(':');
-          const id = await resolveDep(imp);
+          const id = await resolveDep(imp!);
           if (!id) continue;
           if (dep === id) continue;
           didReplaceSources = true;
@@ -233,7 +219,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
                   ) {
                     let IfStatement = path as NodePath;
                     while (IfStatement.type !== 'IfStatement') {
-                      IfStatement = IfStatement.parentPath;
+                      IfStatement = IfStatement.parentPath!;
                     }
                     IfStatement.remove();
                   }
@@ -241,7 +227,20 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
               },
             },
           ],
-        }).code;
+        })!.code!;
+      }
+
+      const supportedPaths = ['routers', 'controllers', 'routes', 'templates'];
+      const supportedFileNames = [
+        'route.js',
+        'route.ts',
+        'route.gts',
+        'route.gjs',
+        'controller.js',
+        'controller.ts',
+      ];
+      if (resourcePath.includes('/-components/')) {
+        return source;
       }
       if (
         !supportedPaths.some((s) => resourcePath.includes(`/${s}/`)) &&
