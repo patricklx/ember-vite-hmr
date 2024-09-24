@@ -7,7 +7,9 @@ this can hot reload
 - helpers
 - modifiers
 - components + templates, fcct components and its deps
-- routes/controllers/route-templates (although it refreshes the whole route and thus looses all state)
+- routes/controllers/route-templates
+
+this tries to keep the state of properties in components and controller
 
 it cannot hot reload local properties that turn out to be helpers/modifiers/components.
 
