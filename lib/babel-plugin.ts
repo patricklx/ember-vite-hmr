@@ -356,9 +356,12 @@ export default function hotReplaceAst(babel: typeof Babel) {
 
           const ast = parse(`
             (async () => {
-              const c = await import('/ember-vite-hmr/virtual/component:${source}:${specifierName}.gjs');
+              const c = await import('/ember-vite-hmr/virtual/component:${source}:${specifierName}.gjs?timestamp=${Date.now()}');
               ${hotAstProcessor.meta.importVar}.${imp} = c.default;
             })()
+            import.meta.hot.accept('/ember-vite-hmr/virtual/component:${source}:${specifierName}.gjs', (c) => {
+              ${hotAstProcessor.meta.importVar}.${imp} = c['${specifierName}'];
+            });
             import.meta.hot.accept('${source}');
           `);
 

@@ -1,14 +1,41 @@
 import path from 'path';
-import { Plugin } from 'vite';
-import { NodePath, transform, transformSync } from '@babel/core';
+import { Plugin, ViteDevServer } from 'vite';
+import { NodePath, transformSync } from '@babel/core';
+import { readFileSync } from 'fs';
 
-const getHotComponent = (imp: string, specifier: string) => `
+function generateContent(yields: string[]) {
+  if (!yields.includes('default')) {
+    yields.push('default');
+  }
+  let all = yields.map((y) => `(has-block '${y}')`).join(' ');
+  let str = '';
+  for (const y of yields) {
+    str += `
+        <:${y} as |a b c d e f g h i j k l|>{{yield a b c d e f g h i j k l to='${y}'}}</:${y}>
+    `;
+  }
+  return `
+    {{#if (notAny ${all})}}
+        <this.curried @__hot__={{this.hot}} />
+    {{else}}
+        <this.curried @__hot__={{this.hot}} >
+        ${str}
+        </this.curried>
+    {{/if}}
+  `;
+}
+
+const getHotComponent = (imp: string, specifier: string, yields: string[]) => `
 import { ${specifier} as TargetComponent } from "${imp}";
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { createComputeRef } from "@glimmer/reference";
 import { curry } from '@glimmer/runtime';
 import { CurriedTypes } from '@glimmer/vm';
+
+function notAny(...yields) {
+  return !yields.some((y) => !!y); 
+}
 
 export default class HotComponent extends Component {
   @tracked curried;
@@ -29,18 +56,61 @@ export default class HotComponent extends Component {
     }
   }
   <template>
-    <this.curried @__hot__={{this.hot}}></this.curried>
+    ${generateContent(yields)}
   </template>
 }
 `;
+
+const cachedYields: Record<
+  string,
+  {
+    yields: Set<string>;
+    modules: string[];
+  }
+> = {};
+
+function getYieldsFromFile(filename: string, noCache?: boolean) {
+  if (cachedYields[filename] && !noCache) {
+    return cachedYields[filename];
+  }
+  const content = readFileSync(filename).toString();
+  // very basic, todo: make this use AST
+  const matches = content.matchAll(/to=['"](\w+)['"]/g);
+  const yields = new Set([...matches].map((m) => m?.[1]).filter((m) => !!m) as string[]);
+  if (noCache) {
+    return {
+      yields,
+      modules: [],
+    };
+  }
+  cachedYields[filename] = {
+    yields,
+    modules: [],
+  };
+  return cachedYields[filename];
+}
+
+function difference(a: Set<any>, b: Set<any>) {
+  const diff = [];
+  for (const bElement of b) {
+    if (!a.has(bElement)) {
+      diff.push(bElement);
+    }
+  }
+  return diff;
+}
 
 const virtualPrefix = '/ember-vite-hmr/virtual/component:';
 
 export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
   let conf: any;
+  let server: ViteDevServer;
   return {
     name: 'hmr-plugin',
     enforce: 'post',
+    configureServer(s) {
+      server = s;
+    },
     configResolved(config) {
       conf = config;
       process.env['EMBER_VITE_HMR_ENABLED'] = enableViteHmrForModes
@@ -74,12 +144,42 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         );
       }
     },
-    load(id: string) {
+    async load(id: string) {
+      if (
+        cachedYields[id] &&
+        difference(cachedYields[id].yields, getYieldsFromFile(id, true).yields).length
+      ) {
+        for (const y of getYieldsFromFile(id, true).yields) {
+          cachedYields[id].yields.add(y);
+        }
+        const modules = cachedYields[id].modules;
+        delete cachedYields[id];
+        for (const module of modules) {
+          server.moduleGraph.onFileChange(module);
+          let m = server.moduleGraph.getModuleById(module);
+          if (m) {
+            await server.reloadModule(m);
+          }
+        }
+      }
       if (id.startsWith(virtualPrefix)) {
         const [imp, specifier] = id
+          .split('?')[0]
           .slice(virtualPrefix.length, -'.gts'.length)
           .split(':');
-        return getHotComponent(imp!, specifier!);
+        let filename = imp!;
+        if (filename.includes('__vpc__')) {
+          filename = filename.split('__vpc__')[0]!;
+        }
+        const resolved = await this.resolve(filename, id);
+        const cached = getYieldsFromFile(resolved.id);
+        const yields = cached.yields;
+        cached.modules.push(id);
+        return getHotComponent(
+          imp!,
+          specifier!,
+          [...yields]!.filter((y) => !!y),
+        );
       }
     },
     transformIndexHtml(html) {
@@ -111,7 +211,8 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         );
         if (pairComponent) {
           const componentModule = [...pairComponent.clientImportedModules].find(
-            (cim) => cim.id!.split('?')[0]!.match(/\/component\.(js|ts|gjs|gts)/),
+            (cim) =>
+              cim.id!.split('?')[0]!.match(/\/component\.(js|ts|gjs|gts)/),
           );
           if (componentModule) {
             otherModules.push(componentModule);
@@ -166,7 +267,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         };
 
         const result = [
-          ...source.matchAll(/import.meta.hot.accept\('([^']+)'/g),
+          ...source.matchAll(/import.meta.hot.accept\(['"]([^'"]+)['"]/g),
         ];
         for (const resultElement of result) {
           const dep = resultElement[1]!;
@@ -178,8 +279,12 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             `import.meta.hot.accept('${dep}'`,
             `import.meta.hot.accept('${id}'`,
           );
+          source = source.replace(
+              `import.meta.hot.accept("${dep}"`,
+              `import.meta.hot.accept("${id}"`,
+          );
         }
-        const importMatches = [...source.matchAll(/import\('([^']+)'/g)];
+        const importMatches = [...source.matchAll(/import\(['"]([^']+)['"]/g)];
         for (const resultElement of importMatches) {
           const dep = resultElement[1]!;
           if (!dep.startsWith(virtualPrefix)) {
@@ -195,6 +300,10 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           source = source.replace(
             `import('${virtualPrefix}${imp}`,
             `import('${virtualPrefix}${id}`,
+          );
+          source = source.replace(
+              `import("${virtualPrefix}${imp}`,
+              `import("${virtualPrefix}${id}`,
           );
         }
       }
