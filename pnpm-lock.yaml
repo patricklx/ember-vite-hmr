@@ -128,7 +128,7 @@ importers:
         version: 9.0.1
       content-tag:
         specifier: ^2.0.1
-        version: 2.0.1
+        version: 2.0.2
       ember-cli-htmlbars:
         specifier: ^6.3.0
         version: 6.3.0(supports-color@9.4.0)
@@ -2433,8 +2433,8 @@ packages:
   content-tag@1.2.2:
     resolution: {integrity: sha512-9guqKIx2H+78N17otBpl8yLZbQGL5q1vBO/jDb3gF2JjixtcVpC62jDUNxjVMNoaZ09oxRX84ZOD6VX02qkVvg==}
 
-  content-tag@2.0.1:
-    resolution: {integrity: sha512-jxsETSDs5NbNwyiDuIp672fUMhUyu8Qxc5MOBOJOcgW/fQESI6o5K1LBDrnEE7Bh810a685lWEZHTF4jQYGEEw==}
+  content-tag@2.0.2:
+    resolution: {integrity: sha512-qHRyTp02dgzRK2tsCFxZ1H289bZOuSLNpupr6prvnSFq4SFPmNlBKbbE5PCMb+8+Z1a1z+yCVtXvQIGUCCa3lQ==}
 
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
@@ -6336,7 +6336,7 @@ snapshots:
     dependencies:
       '@embroider/core': 3.4.15(@glint/template@1.4.0)(supports-color@9.4.0)
       '@rollup/pluginutils': 4.2.1
-      content-tag: 2.0.1
+      content-tag: 2.0.2
       fs-extra: 10.1.0
       minimatch: 3.1.2
       rollup-plugin-copy-assets: 2.0.3(rollup@4.22.4)
@@ -6814,7 +6814,7 @@ snapshots:
     dependencies:
       '@glint/environment-ember-loose': 1.4.0(@glimmer/component@1.1.2(@babel/core@7.25.2(supports-color@9.4.0))(supports-color@9.4.0))(@glint/template@1.4.0)(ember-cli-htmlbars@6.3.0(supports-color@9.4.0))
       '@glint/template': 1.4.0
-      content-tag: 2.0.1
+      content-tag: 2.0.2
 
   '@glint/template@1.4.0': {}
 
@@ -8446,7 +8446,7 @@ snapshots:
 
   content-tag@1.2.2: {}
 
-  content-tag@2.0.1: {}
+  content-tag@2.0.2: {}
 
   convert-source-map@2.0.0: {}
 
