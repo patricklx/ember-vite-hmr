@@ -20,6 +20,7 @@ if (import.meta.hot) {
   const ModuleMap = new Map();
 
   window.emberHotReloadPlugin = {
+    Resolver: null,
     _accepting: 0,
     changed: {},
     subscribers: [],
@@ -38,18 +39,15 @@ if (import.meta.hot) {
       this.moduleDepCallbacks[module.id]![dep]!.push(callback);
     },
     loadNew(oldModule: Module, newModule: Module) {
+      ModuleMap.set(newModule.id, newModule);
       this.versionMap[newModule.id] = newModule.version;
-      const entry = Object.values(
-        requirejs.entries as Record<string, ReqJSEntry>,
+      const entry = Object.entries(
+          this.Resolver.explicitModules as Record<string, any>,
       ).find(
-        (module) => module.module.exports.default === oldModule.exports.default,
+        ([name, module]) => module.default === oldModule.exports.default,
       );
       if (!entry) return;
-      entry.module = {
-        id: newModule.id,
-        exports: newModule.exports,
-        version: newModule.version,
-      };
+      this.Resolver.explicitModules[entry[0]] = newModule.exports;
     },
 
     __import(moduleUrl: string) {
@@ -88,9 +86,10 @@ if (import.meta.hot) {
           old: ModuleMap.get(module.id),
           new: module,
         };
+      } else {
+        ModuleMap.set(module.id, module);
       }
       module.version = this.version;
-      ModuleMap.set(module.id, module);
       return true;
     },
     notifyNew() {
@@ -121,6 +120,7 @@ export default class ViteHotReloadService extends Service {
     super.init(args);
     if (!window.emberHotReloadPlugin) return;
     const app = (getOwner(this) as ApplicationInstance)!.application as any;
+    window.emberHotReloadPlugin.Resolver = app.Resolver;
     modulePrefix = app.modulePrefix;
     podModulePrefix = app.podModulePrefix;
     this.router._router;

@@ -17,6 +17,7 @@ type Module = {
 interface Window {
   emberHotReloadPlugin: {
     subscribers: any;
+    Resolver: any;
     loadNew(old: any, _new: any): unknown;
     version: number;
     routerVersion: number;
