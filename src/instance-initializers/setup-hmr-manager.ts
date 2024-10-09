@@ -4,16 +4,6 @@ import Component from '@glimmer/component';
 // @ts-ignore
 import { getInternalComponentManager } from '@glimmer/manager';
 
-// vite dep optimizer is currently broken and cannot optimize new deps, need to include this ones from start
-import { tracked } from '@glimmer/tracking';
-// @ts-ignore
-import { createComputeRef } from '@glimmer/reference';
-// @ts-ignore
-import { curry } from '@glimmer/runtime';
-
-(function () {
-  console.log(tracked, createComputeRef, curry);
-})();
 
 interface HotComponent extends Component<{ __hot__?: any }> {
   __get_hot_state__?: () => Record<string, any>;

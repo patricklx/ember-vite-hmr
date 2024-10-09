@@ -76,7 +76,9 @@ function getYieldsFromFile(filename: string, noCache?: boolean) {
   const content = readFileSync(filename).toString();
   // very basic, todo: make this use AST
   const matches = content.matchAll(/to=['"](\w+)['"]/g);
-  const yields = new Set([...matches].map((m) => m?.[1]).filter((m) => !!m) as string[]);
+  const yields = new Set(
+    [...matches].map((m) => m?.[1]).filter((m) => !!m) as string[],
+  );
   if (noCache) {
     return {
       yields,
@@ -147,7 +149,8 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
     async load(id: string) {
       if (
         cachedYields[id] &&
-        difference(cachedYields[id].yields, getYieldsFromFile(id, true).yields).length
+        difference(cachedYields[id].yields, getYieldsFromFile(id, true).yields)
+          .length
       ) {
         for (const y of getYieldsFromFile(id, true).yields) {
           cachedYields[id].yields.add(y);
@@ -225,16 +228,17 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       const resourcePath = id.replace(/\\/g, '/').split('?')[0]!;
       let didReplaceSources = false;
       const name = require(`${process.cwd()}/package.json`).name;
-      if (resourcePath.includes(`${name}/app/-embroider-entrypoint.js`)) {
-        const result = [...source.matchAll(/import \* as [^ ]+ from (.*);/g)];
-        source += result
-          .map((r) => {
-            if (r[1]!.includes('initializers')) {
-              return `\nimport.meta.hot.accept(${r[1]}, () => window.location.reload());`;
-            }
-            return `\nimport.meta.hot.accept(${r[1]});`;
-          })
-          .join('');
+      if (resourcePath.includes(`${name}/app/app.js`)) {
+        source += `\n
+              let prevCompatModules = Object.assign({}, compatModules);
+              import.meta.hot.accept('@embroider/virtual/compat-modules', (m) => {
+                for (const [name, module] of Object.entries(m.default)) {
+                  if (name.includes('initializers') && prevCompatModules[name]?.default !== module.default) {
+                    window.location.reload();
+                  }
+                }
+                prevCompatModules = m.default;
+              })`;
       }
       if (resourcePath.includes('ember-vite-hmr/virtual/components')) {
         return source;
@@ -271,17 +275,28 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         ];
         for (const resultElement of result) {
           const dep = resultElement[1]!;
-          const id = await resolveDep(dep);
+          let possibleVirtual = { dep, specifier: null as any };
+          if (dep.includes(virtualPrefix)) {
+            const [imp, specifier] = dep
+              .slice(virtualPrefix.length)
+              .split(':');
+            possibleVirtual.dep = imp!;
+            possibleVirtual.specifier = specifier;
+          }
+          let id = await resolveDep(possibleVirtual.dep);
           if (!id) continue;
           if (dep === id) continue;
+          if (possibleVirtual.dep !== dep) {
+            id = virtualPrefix + id + ':' + possibleVirtual.specifier;
+          }
           didReplaceSources = true;
           source = source.replace(
             `import.meta.hot.accept('${dep}'`,
             `import.meta.hot.accept('${id}'`,
           );
           source = source.replace(
-              `import.meta.hot.accept("${dep}"`,
-              `import.meta.hot.accept("${id}"`,
+            `import.meta.hot.accept("${dep}"`,
+            `import.meta.hot.accept("${id}"`,
           );
         }
         const importMatches = [...source.matchAll(/import\(['"]([^']+)['"]/g)];
@@ -302,8 +317,8 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             `import('${virtualPrefix}${id}`,
           );
           source = source.replace(
-              `import("${virtualPrefix}${imp}`,
-              `import("${virtualPrefix}${id}`,
+            `import("${virtualPrefix}${imp}`,
+            `import("${virtualPrefix}${id}`,
           );
         }
       }
