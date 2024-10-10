@@ -191,7 +191,7 @@ importers:
         version: 9.4.0
       terser:
         specifier: ^5.7.0
-        version: 5.32.0
+        version: 5.34.1
       thread-loader:
         specifier: ^4.0.2
         version: 4.0.2(webpack@5.94.0)
@@ -200,10 +200,10 @@ importers:
         version: 5.6.2
       vite:
         specifier: ^5.2.11
-        version: 5.4.8(@types/node@22.7.5)(terser@5.32.0)
+        version: 5.4.8(@types/node@22.7.5)(terser@5.34.1)
       vitest:
         specifier: ^2.0.5
-        version: 2.1.2(@types/node@22.7.5)(jsdom@25.0.1(supports-color@9.4.0))(supports-color@9.4.0)(terser@5.32.0)
+        version: 2.1.2(@types/node@22.7.5)(jsdom@25.0.1(supports-color@9.4.0))(supports-color@9.4.0)(terser@5.34.1)
 
 packages:
 
@@ -4976,8 +4976,8 @@ packages:
       uglify-js:
         optional: true
 
-  terser@5.32.0:
-    resolution: {integrity: sha512-v3Gtw3IzpBJ0ugkxEX8U0W6+TnPKRRCWGh1jC/iM/e3Ki5+qvO1L1EAZ56bZasc64aXHwRHNIQEzm6//i5cemQ==}
+  terser@5.34.1:
+    resolution: {integrity: sha512-FsJZ7iZLd/BXkz+4xrRTGJ26o/6VTjQytUk8b8OxkwcD2I+79VPJlz7qss1+zE7h8GNIScFqXcDyJ/KqBYZFVA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -7284,13 +7284,13 @@ snapshots:
       chai: 5.1.1
       tinyrainbow: 1.2.0
 
-  '@vitest/mocker@2.1.2(@vitest/spy@2.1.2)(vite@5.4.8(@types/node@22.7.5)(terser@5.32.0))':
+  '@vitest/mocker@2.1.2(@vitest/spy@2.1.2)(vite@5.4.8(@types/node@22.7.5)(terser@5.34.1))':
     dependencies:
       '@vitest/spy': 2.1.2
       estree-walker: 3.0.3
       magic-string: 0.30.11
     optionalDependencies:
-      vite: 5.4.8(@types/node@22.7.5)(terser@5.32.0)
+      vite: 5.4.8(@types/node@22.7.5)(terser@5.34.1)
 
   '@vitest/pretty-format@2.1.2':
     dependencies:
@@ -11654,10 +11654,10 @@ snapshots:
       jest-worker: 27.5.1
       schema-utils: 3.3.0
       serialize-javascript: 6.0.2
-      terser: 5.32.0
+      terser: 5.34.1
       webpack: 5.94.0
 
-  terser@5.32.0:
+  terser@5.34.1:
     dependencies:
       '@jridgewell/source-map': 0.3.6
       acorn: 8.12.1
@@ -11925,12 +11925,12 @@ snapshots:
       resolve-package-path: 3.1.0
       semver: 7.6.3
 
-  vite-node@2.1.2(@types/node@22.7.5)(supports-color@9.4.0)(terser@5.32.0):
+  vite-node@2.1.2(@types/node@22.7.5)(supports-color@9.4.0)(terser@5.34.1):
     dependencies:
       cac: 6.7.14
       debug: 4.3.7(supports-color@9.4.0)
       pathe: 1.1.2
-      vite: 5.4.8(@types/node@22.7.5)(terser@5.32.0)
+      vite: 5.4.8(@types/node@22.7.5)(terser@5.34.1)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -11942,7 +11942,7 @@ snapshots:
       - supports-color
       - terser
 
-  vite@5.4.8(@types/node@22.7.5)(terser@5.32.0):
+  vite@5.4.8(@types/node@22.7.5)(terser@5.34.1):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.4.45
@@ -11950,12 +11950,12 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.7.5
       fsevents: 2.3.3
-      terser: 5.32.0
+      terser: 5.34.1
 
-  vitest@2.1.2(@types/node@22.7.5)(jsdom@25.0.1(supports-color@9.4.0))(supports-color@9.4.0)(terser@5.32.0):
+  vitest@2.1.2(@types/node@22.7.5)(jsdom@25.0.1(supports-color@9.4.0))(supports-color@9.4.0)(terser@5.34.1):
     dependencies:
       '@vitest/expect': 2.1.2
-      '@vitest/mocker': 2.1.2(@vitest/spy@2.1.2)(vite@5.4.8(@types/node@22.7.5)(terser@5.32.0))
+      '@vitest/mocker': 2.1.2(@vitest/spy@2.1.2)(vite@5.4.8(@types/node@22.7.5)(terser@5.34.1))
       '@vitest/pretty-format': 2.1.2
       '@vitest/runner': 2.1.2
       '@vitest/snapshot': 2.1.2
@@ -11970,8 +11970,8 @@ snapshots:
       tinyexec: 0.3.0
       tinypool: 1.0.1
       tinyrainbow: 1.2.0
-      vite: 5.4.8(@types/node@22.7.5)(terser@5.32.0)
-      vite-node: 2.1.2(@types/node@22.7.5)(supports-color@9.4.0)(terser@5.32.0)
+      vite: 5.4.8(@types/node@22.7.5)(terser@5.34.1)
+      vite-node: 2.1.2(@types/node@22.7.5)(supports-color@9.4.0)(terser@5.34.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.7.5
