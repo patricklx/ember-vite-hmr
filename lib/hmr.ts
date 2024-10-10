@@ -125,6 +125,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         return this.resolve(id, importer);
       }
       if (id.startsWith(virtualPrefix)) {
+        console.log('virtualPrefix id', id);
         return id;
       }
       if (id.startsWith('/@id/embroider_virtual:')) {

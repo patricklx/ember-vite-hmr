@@ -47,6 +47,10 @@ describe('hmr tests', () => {
       function check() {
         if (!t) return;
         console.log('check', viteContext.messages, withText);
+        const hasPageReload = viteContext.messages.find((m) => m.includes('page reload'));
+        if (hasPageReload) {
+          throw new Error('page reload detected');
+        }
         const m = viteContext.messages.find((m) =>
           withText instanceof RegExp ? withText.test(m) : m.includes(withText),
         );

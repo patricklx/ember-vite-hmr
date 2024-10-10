@@ -354,9 +354,10 @@ export default function hotReplaceAst(babel: typeof Babel) {
             ((specifier as ImportSpecifier).imported as StringLiteral)?.value ||
             'default';
 
+          // const timestamp = Date.now();
           const ast = parse(`
             (async () => {
-              const c = await import('/ember-vite-hmr/virtual/component:${source}:${specifierName}.gjs?timestamp=${Date.now()}');
+              const c = await import('/ember-vite-hmr/virtual/component:${source}:${specifierName}.gjs');
               ${hotAstProcessor.meta.importVar}.${imp} = c.default;
             })()
             import.meta.hot.accept('/ember-vite-hmr/virtual/component:${source}:${specifierName}.gjs', (c) => {
