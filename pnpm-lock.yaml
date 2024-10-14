@@ -62,10 +62,10 @@ importers:
         version: 6.0.1(@glint/template@1.4.0)(rollup@4.24.0)(supports-color@9.4.0)
       '@embroider/compat':
         specifier: ^3.4.6
-        version: 3.6.1(@embroider/core@3.4.16(@glint/template@1.4.0)(supports-color@9.4.0))(@glint/template@1.4.0)(supports-color@9.4.0)
+        version: 3.6.1(@embroider/core@3.4.19(@glint/template@1.4.0)(supports-color@9.4.0))(@glint/template@1.4.0)(supports-color@9.4.0)
       '@embroider/core':
         specifier: ^3.4.6
-        version: 3.4.16(@glint/template@1.4.0)(supports-color@9.4.0)
+        version: 3.4.19(@glint/template@1.4.0)(supports-color@9.4.0)
       '@glimmer/component':
         specifier: ^1.1.2
         version: 1.1.2(@babel/core@7.25.8(supports-color@9.4.0))(supports-color@9.4.0)
@@ -961,10 +961,6 @@ packages:
     hasBin: true
     peerDependencies:
       '@embroider/core': ^3.4.15
-
-  '@embroider/core@3.4.16':
-    resolution: {integrity: sha512-M/Kk5PSi9GcdCFYFNiQLXY4Wz2Lw2nFe78lbfta0ntsM7xp/lig/mBRYAAwu/Vj4SgP3vUV8P2EFMBvGaE7qzg==}
-    engines: {node: 12.* || 14.* || >= 16}
 
   '@embroider/core@3.4.19':
     resolution: {integrity: sha512-nnjQzXa+LkbqcSl7+a5sX6UKzeyHaiKrYCi/Wg5EG5OzyukiFmX2ZNI44fJ/U69htIphCZXAvLsMsEsUPm94ZA==}
@@ -6615,7 +6611,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@embroider/compat@3.6.1(@embroider/core@3.4.16(@glint/template@1.4.0)(supports-color@9.4.0))(@glint/template@1.4.0)(supports-color@9.4.0)':
+  '@embroider/compat@3.6.1(@embroider/core@3.4.19(@glint/template@1.4.0)(supports-color@9.4.0))(@glint/template@1.4.0)(supports-color@9.4.0)':
     dependencies:
       '@babel/code-frame': 7.24.7
       '@babel/core': 7.25.8(supports-color@9.4.0)
@@ -6625,7 +6621,7 @@ snapshots:
       '@babel/preset-env': 7.25.4(@babel/core@7.25.8(supports-color@9.4.0))(supports-color@9.4.0)
       '@babel/runtime': 7.25.6
       '@babel/traverse': 7.25.6(supports-color@9.4.0)
-      '@embroider/core': 3.4.16(@glint/template@1.4.0)(supports-color@9.4.0)
+      '@embroider/core': 3.4.19(@glint/template@1.4.0)(supports-color@9.4.0)
       '@embroider/macros': 1.16.6(@glint/template@1.4.0)(supports-color@9.4.0)
       '@types/babel__code-frame': 7.0.6
       '@types/yargs': 17.0.33
@@ -6660,40 +6656,6 @@ snapshots:
       typescript-memoize: 1.1.1
       walk-sync: 3.0.0
       yargs: 17.7.2
-    transitivePeerDependencies:
-      - '@glint/template'
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
-
-  '@embroider/core@3.4.16(@glint/template@1.4.0)(supports-color@9.4.0)':
-    dependencies:
-      '@babel/core': 7.25.8(supports-color@9.4.0)
-      '@babel/parser': 7.25.6
-      '@babel/traverse': 7.25.6(supports-color@9.4.0)
-      '@embroider/macros': 1.16.6(@glint/template@1.4.0)(supports-color@9.4.0)
-      '@embroider/shared-internals': 2.6.3(supports-color@9.4.0)
-      assert-never: 1.3.0
-      babel-plugin-ember-template-compilation: 2.3.0
-      broccoli-node-api: 1.7.0
-      broccoli-persistent-filter: 3.1.3(supports-color@9.4.0)
-      broccoli-plugin: 4.0.7(supports-color@9.4.0)
-      broccoli-source: 3.0.1
-      debug: 4.3.7(supports-color@9.4.0)
-      fast-sourcemap-concat: 2.1.1(supports-color@9.4.0)
-      filesize: 10.1.6
-      fs-extra: 9.1.0
-      fs-tree-diff: 2.0.1(supports-color@9.4.0)
-      handlebars: 4.7.8
-      js-string-escape: 1.0.1
-      jsdom: 16.7.0(supports-color@9.4.0)
-      lodash: 4.17.21
-      resolve: 1.22.8
-      resolve-package-path: 4.0.3
-      semver: 7.6.3
-      typescript-memoize: 1.1.1
-      walk-sync: 3.0.0
     transitivePeerDependencies:
       - '@glint/template'
       - bufferutil
