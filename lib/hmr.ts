@@ -75,7 +75,7 @@ function getYieldsFromFile(filename: string, noCache?: boolean) {
   }
   const content = readFileSync(filename).toString();
   // very basic, todo: make this use AST
-  const matches = content.matchAll(/to=['"](\w+)['"]/g);
+  const matches = content.matchAll(/to=['"\\]+(\w+)['"\\]+/g);
   const yields = new Set(
     [...matches].map((m) => m?.[1]).filter((m) => !!m) as string[],
   );
