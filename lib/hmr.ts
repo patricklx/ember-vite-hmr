@@ -120,7 +120,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         .toString();
     },
     resolveId(id, importer) {
-      if (importer!.startsWith(virtualPrefix)) {
+      if (importer?.startsWith(virtualPrefix)) {
         importer = path.join(process.cwd(), 'package.json');
         return this.resolve(id, importer);
       }
@@ -226,6 +226,9 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       return [...ctx.modules, ...otherModules];
     },
     async transform(source, id) {
+      if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
+        return source;
+      }
       const resourcePath = id.replace(/\\/g, '/').split('?')[0]!;
       let didReplaceSources = false;
       const name = require(`${process.cwd()}/package.json`).name;
