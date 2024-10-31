@@ -149,7 +149,7 @@ importers:
         version: 9.1.0(eslint@9.13.0(supports-color@9.4.0))
       eslint-plugin-ember:
         specifier: ^12.2.0
-        version: 12.2.1(@babel/core@7.25.8(supports-color@9.4.0))(eslint@9.13.0(supports-color@9.4.0))
+        version: 12.3.1(@babel/core@7.25.8(supports-color@9.4.0))(eslint@9.13.0(supports-color@9.4.0))
       eslint-plugin-n:
         specifier: ^17.9.0
         version: 17.11.1(eslint@9.13.0(supports-color@9.4.0))
@@ -2752,8 +2752,8 @@ packages:
     resolution: {integrity: sha512-BtkjulweiXo9c3yVWrtexw2dTmBrvavD/xixNC6TKOBdrixUwU+6nuOO9dufDWsMxoid7MvtmDpzc9+mE8PdaA==}
     engines: {node: 10.* || >= 12.*}
 
-  ember-eslint-parser@0.5.2:
-    resolution: {integrity: sha512-289KjJ08QxK1Ytf+aq04QMoQ8WvhXCInJixcGuS5SWBFNlVuEs9yAZ06VXzVSuZ9zMAqX24MTMvD7ICVFN7QSg==}
+  ember-eslint-parser@0.5.3:
+    resolution: {integrity: sha512-FYsoiVcGUGDAybPq8X551hcs9NA0SDx77kfU1sHCTLYqfG4zQ0Rcy+lGxoaXaskH7sTf+Up3/oVyjx/+nJ3joA==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
       '@babel/core': ^7.23.6
@@ -2897,8 +2897,8 @@ packages:
   eslint-formatter-kakoune@1.0.0:
     resolution: {integrity: sha512-Uk/TVLt6Nf6Xoz7C1iYuZjOSdJxe5aaauGRke8JhKeJwD66Y61/pY2FjtLP04Ooq9PwV34bzrkKkU2UZ5FtDRA==}
 
-  eslint-plugin-ember@12.2.1:
-    resolution: {integrity: sha512-HZZueTKXmQRDVxREiMLdh87sLFmmkjH3z37gsS0pLWtnZECJiG447GCd+odVgWpSKoDpB4Hce0BtoJeY2HGSlg==}
+  eslint-plugin-ember@12.3.1:
+    resolution: {integrity: sha512-Ew8E7R0inU7HSQZ7ChixLvv4y3wtyC++9DYBmAYyjtRoM+p/PwP2kUkyKYJTLi5v5IuSR+fS3IWtbswoq9bPyQ==}
     engines: {node: 18.* || 20.* || >= 21}
     peerDependencies:
       '@typescript-eslint/parser': '*'
@@ -8994,7 +8994,7 @@ snapshots:
       - '@babel/core'
       - supports-color
 
-  ember-eslint-parser@0.5.2(@babel/core@7.25.8(supports-color@9.4.0))(eslint@9.13.0(supports-color@9.4.0)):
+  ember-eslint-parser@0.5.3(@babel/core@7.25.8(supports-color@9.4.0))(eslint@9.13.0(supports-color@9.4.0)):
     dependencies:
       '@babel/core': 7.25.8(supports-color@9.4.0)
       '@babel/eslint-parser': 7.25.8(@babel/core@7.25.8(supports-color@9.4.0))(eslint@9.13.0(supports-color@9.4.0))
@@ -9275,11 +9275,11 @@ snapshots:
 
   eslint-formatter-kakoune@1.0.0: {}
 
-  eslint-plugin-ember@12.2.1(@babel/core@7.25.8(supports-color@9.4.0))(eslint@9.13.0(supports-color@9.4.0)):
+  eslint-plugin-ember@12.3.1(@babel/core@7.25.8(supports-color@9.4.0))(eslint@9.13.0(supports-color@9.4.0)):
     dependencies:
       '@ember-data/rfc395-data': 0.0.4
       css-tree: 2.3.1
-      ember-eslint-parser: 0.5.2(@babel/core@7.25.8(supports-color@9.4.0))(eslint@9.13.0(supports-color@9.4.0))
+      ember-eslint-parser: 0.5.3(@babel/core@7.25.8(supports-color@9.4.0))(eslint@9.13.0(supports-color@9.4.0))
       ember-rfc176-data: 0.3.18
       eslint: 9.13.0(supports-color@9.4.0)
       eslint-utils: 3.0.0(eslint@9.13.0(supports-color@9.4.0))
