@@ -56,7 +56,7 @@ importers:
         version: 7.25.8(@babel/core@7.25.8(supports-color@9.4.0))(supports-color@9.4.0)
       '@babel/runtime':
         specifier: ^7.17.0
-        version: 7.25.7
+        version: 7.26.0
       '@embroider/addon-dev':
         specifier: ^6.0.1
         version: 6.0.1(@glint/template@1.5.0)(rollup@4.24.0)(supports-color@9.4.0)
@@ -837,8 +837,8 @@ packages:
   '@babel/runtime@7.12.18':
     resolution: {integrity: sha512-BogPQ7ciE6SYAUPtlm9tWbgI9+2AgqSam6QivMgXgAT+fKbgppaj4ZX15MHeLC1PVF5sNk70huBu20XxWOs8Cg==}
 
-  '@babel/runtime@7.25.7':
-    resolution: {integrity: sha512-FjoyLe754PMiYsFaN5C94ttGiOmBNYTf6pLr4xXHAT5uctHb092PBszndLDR5XA/jghQvn4n7JMHl7dmTgbm9w==}
+  '@babel/runtime@7.26.0':
+    resolution: {integrity: sha512-FDSOghenHTiToteC/QRlv2q3DhPZ/oOXTBoirfWNx1Cx3TMVcGWQtMMmQcSvb/JjpNeGzx8Pq/b4fKEJuWm1sw==}
     engines: {node: '>=6.9.0'}
 
   '@babel/template@7.25.9':
@@ -6207,7 +6207,7 @@ snapshots:
     dependencies:
       regenerator-runtime: 0.13.11
 
-  '@babel/runtime@7.25.7':
+  '@babel/runtime@7.26.0':
     dependencies:
       regenerator-runtime: 0.14.1
 
@@ -6280,7 +6280,7 @@ snapshots:
       '@babel/plugin-syntax-typescript': 7.25.9(@babel/core@7.25.8(supports-color@9.4.0))
       '@babel/plugin-transform-runtime': 7.25.4(@babel/core@7.25.8(supports-color@9.4.0))(supports-color@9.4.0)
       '@babel/preset-env': 7.25.4(@babel/core@7.25.8(supports-color@9.4.0))(supports-color@9.4.0)
-      '@babel/runtime': 7.25.7
+      '@babel/runtime': 7.26.0
       '@babel/traverse': 7.25.9(supports-color@9.4.0)
       '@embroider/core': 3.4.19(@glint/template@1.5.0)(supports-color@9.4.0)
       '@embroider/macros': 1.16.9(@glint/template@1.5.0)(supports-color@9.4.0)
@@ -10745,7 +10745,7 @@ snapshots:
 
   regenerator-transform@0.15.2:
     dependencies:
-      '@babel/runtime': 7.25.7
+      '@babel/runtime': 7.26.0
 
   regex-not@1.0.2:
     dependencies:
