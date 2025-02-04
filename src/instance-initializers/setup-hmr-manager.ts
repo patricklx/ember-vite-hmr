@@ -4,7 +4,6 @@ import Component from '@glimmer/component';
 // @ts-ignore
 import { getInternalComponentManager } from '@glimmer/manager';
 
-
 interface HotComponent extends Component<{ __hot__?: any }> {
   __get_hot_state__?: () => Record<string, any>;
 }

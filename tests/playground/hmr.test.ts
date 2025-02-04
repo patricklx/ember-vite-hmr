@@ -7,7 +7,7 @@ import {
   writeFile,
   emptyDir,
 } from 'fs-extra';
-import { join, dirname, resolve } from 'path';
+import { dirname, resolve } from 'path';
 import * as process from 'node:process';
 import { startVite } from '../utils';
 
@@ -47,7 +47,9 @@ describe('hmr tests', () => {
       function check() {
         if (!t) return;
         console.log('check', viteContext.messages, withText);
-        const hasPageReload = viteContext.messages.find((m) => m.includes('page reload'));
+        const hasPageReload = viteContext.messages.find((m) =>
+          m.includes('page reload'),
+        );
         if (hasPageReload) {
           throw new Error('page reload detected');
         }
@@ -150,13 +152,26 @@ describe('hmr tests', () => {
         await ensureDir(tmpDir);
         await emptyDir(tmpDir);
         console.log('install to', tmpDir);
-        await execa(
-          `npx ember-cli@latest new ${appName} -b @embroider/app-blueprint --pnpm`,
-          {
-            cwd: tmpDir,
-            stdio: 'inherit',
-          },
-        );
+        try {
+          await execa(
+            `npx ember-cli@latest new ${appName} -b @embroider/app-blueprint --pnpm`,
+            {
+              cwd: tmpDir,
+              stdio: 'inherit',
+            },
+          );
+        } catch (e) {
+          console.error(e);
+        }
+
+        await execa(`pnpm i --save-dev vite@6`, {
+          cwd: appDir,
+          stdio: 'inherit',
+        });
+
+        await editFile(
+          './node_modules/@embroider/vite/dist/src/resolver.js',
+        ).replaceCode(' : _a.depScan', ' : _a.depScan || options.scan');
 
         await editFile('./babel.config.cjs')
           .insert(
@@ -179,7 +194,7 @@ describe('hmr tests', () => {
 
         await editFile('./vite.config.mjs')
           .insert("\nimport { hmr } from 'ember-vite-hmr';\n")
-          .replaceCode('contentFor(),', 'contentFor(),\n    hmr(),\n');
+          .replaceCode('plugins: [', 'plugins: [\n    hmr(),\n');
       }
 
       await execa('pnpm build', {
@@ -325,16 +340,22 @@ describe('hmr tests', () => {
       count = 2;
       <template>
         <div class='count'>
+          version 2
           count still 1: {{this.count}}
         </div>        
       </template>
     }
     `);
     await waitForMessage(
-      'hmr update /app/components/test-component.gjs, /ember-vite-hmr/virtual/component:/app/components/foo-component.gjs:default.gjs',
+      'hot updated: /app/components/foo-component.gjs via /app/components/test-component.gjs',
     );
+    const test = await page.waitForSelector('body');
+    console.log('wait', await test.evaluate((el) => el.textContent));
     body = await page.waitForSelector('.count');
+    console.log('.count');
     bodyContent = await body.evaluate((el) => el.textContent);
+    console.log('content');
+    expect(bodyContent, bodyContent).toContain('version 2');
     expect(bodyContent, bodyContent).toContain('count still 1: 1');
   });
 

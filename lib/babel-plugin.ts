@@ -13,7 +13,6 @@ import type * as Babel from '@babel/core';
 import * as glimmer from '@glimmer/syntax';
 import { ASTv1, NodeVisitor, WalkerPath } from '@glimmer/syntax';
 import { ImportUtil } from 'babel-import-util';
-import { join } from 'path';
 
 interface ASTPluginEnvironment {
   locals: string[];
@@ -354,13 +353,16 @@ export default function hotReplaceAst(babel: typeof Babel) {
             ((specifier as ImportSpecifier).imported as StringLiteral)?.value ||
             'default';
 
-          // const timestamp = Date.now();
+          const sourceId = source.replace(
+            /@embroider\/virtual/g,
+            'embroider_virtual',
+          );
           const ast = parse(`
             (async () => {
-              const c = await import('/ember-vite-hmr/virtual/component:${source}:${specifierName}.gjs');
+              const c = await import('/ember-vite-hmr/virtual/component:${sourceId}:${specifierName}.gjs');
               ${hotAstProcessor.meta.importVar}.${imp} = c.default;
             })()
-            import.meta.hot.accept('/ember-vite-hmr/virtual/component:${source}:${specifierName}.gjs', (c) => {
+            import.meta.hot.accept('/ember-vite-hmr/virtual/component:${sourceId}:${specifierName}.gjs', (c) => {
               ${hotAstProcessor.meta.importVar}.${imp} = c['${specifierName}'];
             });
             import.meta.hot.accept('${source}');

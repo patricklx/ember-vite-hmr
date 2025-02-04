@@ -21,6 +21,7 @@
     "build": "concurrently 'pnpm:build:*'",
     "build:js": "rollup --config",
     "build:lib": "tsc --p tsconfig.lib.json",
+    "watch:lib": "tsc --p tsconfig.lib.json --watch",
     "build:types": "glint --declaration",
     "lint": "concurrently 'npm:lint:*(!fix)' --names 'lint:'",
     "lint:fix": "concurrently 'npm:lint:*:fix' --names 'fix:'",
@@ -104,7 +105,7 @@
     "terser": "^5.7.0",
     "thread-loader": "^4.0.2",
     "typescript": "^5.1.6",
-    "vite": "^5.2.11",
+    "vite": "^6.1.0",
     "vitest": "^2.0.5"
   },
   "peerDependencies": {
