@@ -42,10 +42,8 @@ if (import.meta.hot) {
       ModuleMap.set(newModule.id, newModule);
       this.versionMap[newModule.id] = newModule.version;
       const entry = Object.entries(
-          this.Resolver.explicitModules as Record<string, any>,
-      ).find(
-        ([name, module]) => module.default === oldModule.exports.default,
-      );
+        this.Resolver.explicitModules as Record<string, any>,
+      ).find(([name, module]) => module.default === oldModule.exports.default);
       if (!entry) return;
       this.Resolver.explicitModules[entry[0]] = newModule.exports;
     },

@@ -69,11 +69,14 @@ const cachedYields: Record<
   }
 > = {};
 
-function getYieldsFromFile(filename: string, noCache?: boolean) {
+function getYieldsFromFile(
+  filename: string,
+  content: string,
+  noCache?: boolean,
+) {
   if (cachedYields[filename] && !noCache) {
     return cachedYields[filename];
   }
-  const content = readFileSync(filename).toString();
   // very basic, todo: make this use AST
   const matches = content.matchAll(/to=['"\\]+(\w+)['"\\]+/g);
   const yields = new Set(
@@ -119,63 +122,41 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         .includes(config.mode)
         .toString();
     },
-    resolveId(id, importer) {
+    resolveId(id, importer, meta) {
       if (importer?.startsWith(virtualPrefix)) {
         importer = path.join(process.cwd(), 'package.json');
-        return this.resolve(id, importer);
+        return this.resolve(id, importer, meta);
       }
       if (id.startsWith(virtualPrefix)) {
         return id;
-      }
-      if (id.startsWith('/@id/embroider_virtual:')) {
-        return this.resolve(
-          id.replace('/@id/', ''),
-          path.join(process.cwd(), 'package.json'),
-        );
-      }
-      if (id.startsWith(`/@id/${virtualPrefix}`)) {
-        return this.resolve(
-          id.replace('/@id/', ''),
-          path.join(process.cwd(), 'package.json'),
-        );
       }
       if (id === '/ember-vite-hmr/services/vite-hot-reload') {
         return this.resolve(
           'ember-vite-hmr/services/vite-hot-reload',
           path.join(process.cwd(), 'package.json'),
+          meta,
         );
       }
     },
     async load(id: string) {
-      if (
-        cachedYields[id] &&
-        difference(cachedYields[id].yields, getYieldsFromFile(id, true).yields)
-          .length
-      ) {
-        for (const y of getYieldsFromFile(id, true).yields) {
-          cachedYields[id].yields.add(y);
-        }
-        const modules = cachedYields[id].modules;
-        delete cachedYields[id];
-        for (const module of modules) {
-          server.moduleGraph.onFileChange(module);
-          let m = server.moduleGraph.getModuleById(module);
-          if (m) {
-            await server.reloadModule(m);
-          }
-        }
-      }
       if (id.startsWith(virtualPrefix)) {
-        const [imp, specifier] = id
-          .split('?')[0]
+        let [imp, specifier] = id
+          .split('?')[0]!
           .slice(virtualPrefix.length, -'.gts'.length)
           .split(':');
+        imp = imp!.replace('embroider_virtual', '@embroider/virtual');
         let filename = imp!;
         if (filename.includes('__vpc__')) {
           filename = filename.split('__vpc__')[0]!;
         }
-        const resolved = await this.resolve(filename, id);
-        const cached = getYieldsFromFile(resolved.id);
+        // @ts-ignore
+        const res = await server.transformRequest(filename);
+        const content = res?.code;
+        const resId = await this.resolve(
+          filename,
+          path.resolve(process.cwd(), 'package.json'),
+        );
+        const cached = getYieldsFromFile(resId!.id, content!);
         const yields = cached.yields;
         cached.modules.push(id);
         return getHotComponent(
@@ -224,6 +205,32 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       }
       return [...ctx.modules, ...otherModules];
     },
+    async hotUpdate(options) {
+      if (options.type === 'update' || options.type === 'create') {
+        const id = options.file;
+        const source = readFileSync(id).toString();
+        if (
+          cachedYields[id] &&
+          difference(
+            cachedYields[id].yields,
+            getYieldsFromFile(id, source, true).yields,
+          ).length
+        ) {
+          for (const y of getYieldsFromFile(id, source).yields) {
+            cachedYields[id].yields.add(y);
+          }
+          const modules = cachedYields[id].modules;
+          delete cachedYields[id];
+          for (const module of modules) {
+            server.moduleGraph.onFileChange(module);
+            let m = server.moduleGraph.getModuleById(module);
+            if (m) {
+              await server.reloadModule(m);
+            }
+          }
+        }
+      }
+    },
     async transform(source, id) {
       if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
         return source;
@@ -246,6 +253,8 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (resourcePath.includes('ember-vite-hmr/virtual/components')) {
         return source;
       }
+
+      const map: Record<string, string> = {};
       if (!resourcePath.includes(`node_modules`)) {
         const resolveDep = async (dep: string) => {
           const resolved = await this.resolve(dep, resourcePath, {});
@@ -280,9 +289,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           const dep = resultElement[1]!;
           let possibleVirtual = { dep, specifier: null as any };
           if (dep.includes(virtualPrefix)) {
-            const [imp, specifier] = dep
-              .slice(virtualPrefix.length)
-              .split(':');
+            const [imp, specifier] = dep.slice(virtualPrefix.length).split(':');
             possibleVirtual.dep = imp!;
             possibleVirtual.specifier = specifier;
           }
@@ -293,38 +300,31 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             id = virtualPrefix + id + ':' + possibleVirtual.specifier;
           }
           didReplaceSources = true;
-          source = source.replace(
-            `import.meta.hot.accept('${dep}'`,
-            `import.meta.hot.accept('${id}'`,
-          );
-          source = source.replace(
-            `import.meta.hot.accept("${dep}"`,
-            `import.meta.hot.accept("${id}"`,
-          );
-        }
-        const importMatches = [...source.matchAll(/import\(['"]([^']+)['"]/g)];
-        for (const resultElement of importMatches) {
-          const dep = resultElement[1]!;
-          if (!dep.startsWith(virtualPrefix)) {
-            continue;
-          }
-          const [imp, specifier] = dep
-            .slice(virtualPrefix.length, -'.gts'.length)
-            .split(':');
-          const id = await resolveDep(imp!);
-          if (!id) continue;
-          if (dep === id) continue;
-          didReplaceSources = true;
-          source = source.replace(
-            `import('${virtualPrefix}${imp}`,
-            `import('${virtualPrefix}${id}`,
-          );
-          source = source.replace(
-            `import("${virtualPrefix}${imp}`,
-            `import("${virtualPrefix}${id}`,
-          );
+          map[dep] = id;
         }
       }
+
+      source = source.replace(
+        /import.meta.hot.accept\(['"]([^'"]+)['"]/g,
+        function (str, group) {
+          if (group.startsWith(virtualPrefix) && map[group]) {
+            const id = map[group];
+            return `import.meta.hot.accept("${id}"`;
+          }
+          return str;
+        },
+      );
+
+      source = source.replace(
+        /import\(['"]([^'"]+)['"]/g,
+        function (str, group) {
+          if (group.startsWith(virtualPrefix) && map[group]) {
+            const id = map[group];
+            return `import("${id}"`;
+          }
+          return str;
+        },
+      );
 
       if (didReplaceSources) {
         source = transformSync(source, {
@@ -342,7 +342,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
                     node.arguments[0].value.includes(
                       'ember-vite-hmr/virtual/component',
                     ) &&
-                    node.arguments[0].value.includes('node_modules')
+                    map[node.arguments[0].value]?.includes('node_modules')
                   ) {
                     let IfStatement = path as NodePath;
                     while (IfStatement.type !== 'IfStatement') {
