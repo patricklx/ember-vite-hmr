@@ -130,7 +130,7 @@ export default class ViteHotReloadService extends Service {
             this,
             `${name}--hot-version--${window.emberHotReloadPlugin.routerVersion}`,
           );
-          route.fullRouteName = `route:${name}`.replace(
+          route.fullRouteName = `${name}`.replace(
             /--hot-version--.*$/,
             '',
           );
