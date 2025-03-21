@@ -206,14 +206,6 @@ describe('hmr tests', () => {
         stdio: 'inherit',
       });
 
-      await execa(
-        `pnpm i --save-dev decorator-transforms @babel/plugin-transform-runtime babel-plugin-ember-template-compilation`,
-        {
-          cwd: appDir,
-          stdio: 'inherit',
-        },
-      );
-
       await editFile('./app/templates/application.hbs').setContent(
         '<WelcomePage /><TestComponent />',
       );
