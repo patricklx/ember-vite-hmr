@@ -343,6 +343,10 @@ export default function hotReplaceAst(babel: typeof Babel) {
           const importDeclaration = findImport(
             imp,
           ) as BabelTypesNamespace.ImportDeclaration;
+          if (!importDeclaration) {
+            console.error(`could not find import specifier for ${imp}`);
+            continue;
+          }
           const source = importDeclaration.source.value;
           const specifier = importDeclaration.specifiers.find(
             (s) => s.local.name === imp,
