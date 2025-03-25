@@ -31,7 +31,7 @@ importers:
         version: 8.1.3
       babel-import-util:
         specifier: ^3.0.0
-        version: 3.0.0
+        version: 3.0.1
       babel-loader:
         specifier: ^9.1.3
         version: 9.2.1(@babel/core@7.26.8(supports-color@9.4.0))(webpack@5.94.0)
@@ -2084,8 +2084,8 @@ packages:
     resolution: {integrity: sha512-3qBQWRjzP9NreSH/YrOEU1Lj5F60+pWSLP0kIdCWxjFHH7pX2YPHIxQ67el4gnMNfYoDxSDGcT0zpVlZ+gVtQA==}
     engines: {node: '>= 12.*'}
 
-  babel-import-util@3.0.0:
-    resolution: {integrity: sha512-4YNPkuVsxAW5lnSTa6cn4Wk49RX6GAB6vX+M6LqEtN0YePqoFczv1/x0EyLK/o+4E1j9jEuYj5Su7IEPab5JHQ==}
+  babel-import-util@3.0.1:
+    resolution: {integrity: sha512-2copPaWQFUrzooJVIVZA/Oppx/S/KOoZ4Uhr+XWEQDMZ8Rvq/0SNQpbdIyMBJ8IELWt10dewuJw+tX4XjOo7Rg==}
     engines: {node: '>= 12.*'}
 
   babel-loader@8.3.0:
@@ -7952,7 +7952,7 @@ snapshots:
 
   babel-import-util@2.1.1: {}
 
-  babel-import-util@3.0.0: {}
+  babel-import-util@3.0.1: {}
 
   babel-loader@8.3.0(@babel/core@7.26.8(supports-color@9.4.0))(webpack@5.94.0):
     dependencies:
@@ -7999,7 +7999,7 @@ snapshots:
   babel-plugin-ember-template-compilation@2.3.0:
     dependencies:
       '@glimmer/syntax': 0.84.3
-      babel-import-util: 3.0.0
+      babel-import-util: 3.0.1
 
   babel-plugin-htmlbars-inline-precompile@5.3.1:
     dependencies:
