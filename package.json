@@ -83,7 +83,7 @@
     "content-tag": "^2.0.1",
     "ember-cli-htmlbars": "^6.3.0",
     "ember-resolver": "^13.0.1",
-    "ember-source": "^5.10.1",
+    "ember-source": "^6.4.0",
     "@glimmer/component": "^1.1.2",
     "ember-template-lint": "^6.0.0",
     "eslint": "^9.12.0",
