@@ -370,7 +370,10 @@ export default function hotReplaceAst(babel: typeof Babel) {
               ${hotAstProcessor.meta.importVar}.${imp} = c['${specifierName}'];
             });
             import.meta.hot.accept('${source}');
-          `);
+          `, {
+            babelrc: false,
+            configFile: false,
+          });
 
           const importVirtual = ast!.program.body;
 

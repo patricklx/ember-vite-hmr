@@ -330,6 +330,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         source = transformSync(source, {
           filename: id,
           babelrc: false,
+          configFile: false,
           plugins: [
             {
               name: 'cleanup',
