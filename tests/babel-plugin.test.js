@@ -147,7 +147,7 @@ describe('convert template with hot reload helpers', () => {
           {
             transforms: [transform, hotAstProcessor.transform],
             //targetFormat: 'hbs',
-            compiler: require('ember-source/dist/ember-template-compiler'),
+            compiler: require('ember-source/dist/ember-template-compiler.js'),
             enableLegacyModules: [
               'ember-cli-htmlbars',
               'ember-cli-htmlbars-inline-precompile',
