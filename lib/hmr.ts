@@ -31,7 +31,6 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { createComputeRef } from "@glimmer/reference";
 import { curry } from '@glimmer/runtime';
-import { CurriedTypes } from '@glimmer/vm';
 
 function notAny(...yields) {
   return !yields.some((y) => !!y); 
@@ -47,11 +46,12 @@ export default class HotComponent extends Component {
     for (const name of Object.keys(args)) {
       named[name] = createComputeRef(() => args[name]);
     }
-    this.curried = curry(CurriedTypes.Component, TargetComponent, owner, { positional, named});
+    const CurriedComponent = 0;
+    this.curried = curry(CurriedComponent, TargetComponent, owner, { positional, named});
     if (import.meta.hot) {
       // Rehydrate any saved state
       import.meta.hot.accept('${imp}', (module) => {
-        this.curried = curry(CurriedTypes.Component, module.default, owner, { positional, named});
+        this.curried = curry(CurriedComponent, module.default, owner, { positional, named});
       })
     }
   }
