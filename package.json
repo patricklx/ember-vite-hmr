@@ -57,7 +57,7 @@
     "@babel/plugin-proposal-decorators": "^7.23.2",
     "@babel/plugin-transform-class-static-block": "^7.20.0",
     "@babel/runtime": "^7.27.6",
-    "@embroider/addon-dev": "^7.1.1",
+    "@embroider/addon-dev": "^8.1.0",
     "@embroider/compat": "^3.4.6",
     "@embroider/core": "^3.4.6",
     "@glint/core": "^1.2.0",
