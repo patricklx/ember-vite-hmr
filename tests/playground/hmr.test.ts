@@ -139,8 +139,9 @@ describe('hmr tests', () => {
   }
 
   function deleteFile(path: string) {
-    if(existsSync(path)) {
-      unlinkSync(path);
+    const location = resolve(appDir, path);
+    if(existsSync(location)) {
+      unlinkSync(location);
     }
   }
 
