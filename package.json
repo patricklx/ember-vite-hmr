@@ -71,7 +71,7 @@
     "@types/csso": "^5.0.4",
     "@types/debug": "^4.1.5",
     "@types/fs-extra": "^11.0.4",
-    "@types/lodash": "^4.14.170",
+    "@types/lodash": "^4.17.20",
     "@types/mini-css-extract-plugin": "^2.5.1",
     "@types/node": "^22.5.5",
     "@types/rsvp": "^4.0.9",
