@@ -198,7 +198,7 @@ describe('convert template with hot reload helpers', () => {
         */
         {
           "id": "--id--",
-          "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[8,[30,0,[\\"X\\"]],null,null,null],[1,\\"\\\\n      \\"],[46,[30,0,[\\"X\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[\\"component\\"]]",
+          "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[8,[30,0,[\\"X\\"]],null,null,null],[1,\\"\\\\n      \\"],[46,[30,0,[\\"X\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],[\\"component\\"]]",
           "moduleName": "a.hbs",
           "scope": () => [template__imports__],
           "isStrictMode": false
@@ -642,7 +642,7 @@ export { CarbonCodeSnippet as default };
         */
         {
           "id": "--id--",
-          "block": "[[[1,\\"\\\\n            \\"],[8,[32,0,[\\"Other\\"]],null,null,null],[1,\\"\\\\n        \\"]],[],false,[]]",
+          "block": "[[[1,\\"\\\\n            \\"],[8,[32,0,[\\"Other\\"]],null,null,null],[1,\\"\\\\n        \\"]],[],[]]",
           "moduleName": "/rewritten-app/a.gts",
           "scope": () => [template__imports__],
           "isStrictMode": true
@@ -658,7 +658,7 @@ export { CarbonCodeSnippet as default };
         */
         {
           "id": "--id--",
-          "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[46,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],false,[\\"component\\"]]",
+          "block": "[[[1,\\"\\\\n      \\"],[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n      \\"],[46,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n      \\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null],[1,\\"\\\\n    \\"]],[],[\\"component\\"]]",
           "moduleName": "/rewritten-app/a.gts",
           "scope": () => [template__imports__0],
           "isStrictMode": true
