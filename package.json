@@ -76,7 +76,7 @@
     "@types/node": "^22.5.5",
     "@types/rsvp": "^4.0.9",
     "@types/semver": "^7.7.0",
-    "assert-never": "^1.2.1",
+    "assert-never": "^1.4.0",
     "babel-import-util": "^3.0.0",
     "babel-plugin-ember-template-compilation": "^2.3.0",
     "concurrently": "^9.0.1",
