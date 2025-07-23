@@ -597,7 +597,7 @@ export { CarbonCodeSnippet as default };
           emberBabel,
           {
             transforms: [hotAstProcessor.transform],
-            compiler: require('ember-source/dist/ember-template-compiler'),
+            compiler: require('ember-source/dist/ember-template-compiler.js'),
           },
         ],
       ],
