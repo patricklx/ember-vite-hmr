@@ -10,6 +10,7 @@ import {
 import { dirname, resolve } from 'path';
 import * as process from 'node:process';
 import { startVite } from '../utils';
+import { existsSync, unlinkSync } from "node:fs";
 
 const execAsync = util.promisify(require('child_process').exec);
 const execa = (...args) => {
@@ -137,6 +138,13 @@ describe('hmr tests', () => {
     }
   }
 
+  function deleteFile(path: string) {
+    const location = resolve(appDir, path);
+    if(existsSync(location)) {
+      unlinkSync(location);
+    }
+  }
+
   function editFile(path: string) {
     const location = resolve(appDir, path);
     return new EditFile(location);
@@ -154,7 +162,7 @@ describe('hmr tests', () => {
         console.log('install to', tmpDir);
         try {
           await execa(
-            `npx ember-cli@latest new ${appName} -b @embroider/app-blueprint --pnpm`,
+            `npx ember-cli@latest new ${appName} -b @ember/app-blueprint --pnpm`,
             {
               cwd: tmpDir,
               stdio: 'inherit',
@@ -168,10 +176,6 @@ describe('hmr tests', () => {
           cwd: appDir,
           stdio: 'inherit',
         });
-
-        await editFile(
-          './node_modules/@embroider/vite/dist/src/resolver.js',
-        ).replaceCode(' : _a.depScan', ' : _a.depScan || options.scan');
 
         await editFile('./babel.config.cjs')
           .insert(
@@ -201,10 +205,16 @@ describe('hmr tests', () => {
         stdio: 'inherit',
       });
 
+      await execa('pnpm build:lib', {
+        stdio: 'inherit',
+      });
+
       await execa(`pnpm i --save-dev ../../`, {
         cwd: appDir,
         stdio: 'inherit',
       });
+
+      deleteFile('./app/templates/application.gjs');
 
       await editFile('./app/templates/application.hbs').setContent(
         '<WelcomePage /><TestComponent />',

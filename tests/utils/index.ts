@@ -61,6 +61,7 @@ export async function startVite({ cwd }) {
 
   try {
     const page = await browser.newPage();
+    console.log('load page');
     await page.goto('http://localhost:60173');
     page.on('console', (msg) => {
       console.log(msg.text());
