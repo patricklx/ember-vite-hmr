@@ -55,6 +55,8 @@ describe('convert template with hot reload helpers', () => {
 
     const result = babel.transform(imports + preTransformed, {
       filename: '/rewritten-app/a.hbs',
+      babelrc: false,
+      configFile: false,
       plugins: [
         plugin,
         ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
@@ -139,6 +141,8 @@ describe('convert template with hot reload helpers', () => {
 
     const resultWired = babel.transform(imports + preTransformed, {
       filename: '/rewritten-app/a.hbs',
+      babelrc: false,
+      configFile: false,
       plugins: [
         plugin,
         ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
@@ -309,6 +313,8 @@ export { CarbonCodeSnippet as default };
     const preTransformed = p.process(code);
     const result = babel.transform(preTransformed, {
       filename: '/rewritten-app/a.gts',
+      babelrc: false,
+      configFile: false,
       plugins: [
         ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
         plugin,
@@ -494,6 +500,8 @@ export { CarbonCodeSnippet as default };
     const preTransformed = p.process(code);
     const result = babel.transform(preTransformed, {
       filename: '/rewritten-app/a.gts',
+      babelrc: false,
+      configFile: false,
       plugins: [
         ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
         plugin,
@@ -590,6 +598,8 @@ export { CarbonCodeSnippet as default };
 
     const resultWired = babel.transform(preTransformed, {
       filename: '/rewritten-app/a.gts',
+      babelrc: false,
+      configFile: false,
       plugins: [
         ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
         plugin,
