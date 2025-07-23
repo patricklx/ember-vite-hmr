@@ -55,7 +55,7 @@
     "@babel/eslint-parser": "^7.19.1",
     "@babel/plugin-proposal-class-properties": "^7.16.7",
     "@babel/plugin-proposal-decorators": "^7.23.2",
-    "@babel/plugin-transform-class-static-block": "^7.20.0",
+    "@babel/plugin-transform-class-static-block": "^7.27.1",
     "@babel/runtime": "^7.27.6",
     "@embroider/addon-dev": "^8.1.0",
     "@embroider/compat": "^3.4.6",
