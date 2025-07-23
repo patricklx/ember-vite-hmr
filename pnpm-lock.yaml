@@ -118,8 +118,8 @@ importers:
         specifier: ^7.7.0
         version: 7.7.0
       assert-never:
-        specifier: ^1.2.1
-        version: 1.3.0
+        specifier: ^1.4.0
+        version: 1.4.0
       babel-plugin-ember-template-compilation:
         specifier: ^2.3.0
         version: 2.3.0
@@ -2625,8 +2625,8 @@ packages:
     resolution: {integrity: sha512-bMxMKAjg13EBSVscxTaYA4mRc5t1UAXa2kXiGTNfZ079HIWXEkKmkgFrh/nJqamaLSrXO5H4WFFkPEaLJWbs3A==}
     engines: {node: '>= 0.4'}
 
-  assert-never@1.3.0:
-    resolution: {integrity: sha512-9Z3vxQ+berkL/JJo0dK+EY3Lp0s3NtSnP3VCLsh5HDcZPrh0M+KQRK5sWhUeyPPH+/RCxZqOxLMR+YC6vlviEQ==}
+  assert-never@1.4.0:
+    resolution: {integrity: sha512-5oJg84os6NMQNl27T9LnZkvvqzvAnHu03ShCnoj6bsJwS7L8AO4lf+C/XjK/nvzEqQB744moC6V128RucQd1jA==}
 
   assertion-error@2.0.1:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
@@ -7822,7 +7822,7 @@ snapshots:
       '@embroider/macros': 1.16.9(@glint/template@1.5.2)(supports-color@9.4.0)
       '@types/babel__code-frame': 7.0.6
       '@types/yargs': 17.0.33
-      assert-never: 1.3.0
+      assert-never: 1.4.0
       babel-import-util: 2.1.1
       babel-plugin-ember-template-compilation: 2.3.0
       babel-plugin-syntax-dynamic-import: 6.18.0
@@ -7867,7 +7867,7 @@ snapshots:
       '@babel/traverse': 7.26.8(supports-color@9.4.0)
       '@embroider/macros': 1.16.13(@glint/template@1.5.2)(supports-color@9.4.0)
       '@embroider/shared-internals': 2.9.1(supports-color@9.4.0)
-      assert-never: 1.3.0
+      assert-never: 1.4.0
       babel-plugin-ember-template-compilation: 2.3.0
       broccoli-node-api: 1.7.0
       broccoli-persistent-filter: 3.1.3(supports-color@9.4.0)
@@ -7902,7 +7902,7 @@ snapshots:
       '@embroider/macros': 1.18.1(@glint/template@1.5.2)(supports-color@9.4.0)
       '@embroider/reverse-exports': 0.1.2
       '@embroider/shared-internals': 3.0.0(supports-color@9.4.0)
-      assert-never: 1.3.0
+      assert-never: 1.4.0
       babel-plugin-ember-template-compilation: 3.0.0
       broccoli-node-api: 1.7.0
       broccoli-persistent-filter: 3.1.3(supports-color@9.4.0)
@@ -7933,7 +7933,7 @@ snapshots:
   '@embroider/macros@1.16.13(@glint/template@1.5.2)(supports-color@9.4.0)':
     dependencies:
       '@embroider/shared-internals': 2.9.0(supports-color@9.4.0)
-      assert-never: 1.3.0
+      assert-never: 1.4.0
       babel-import-util: 2.1.1
       ember-cli-babel: 7.26.11(supports-color@9.4.0)
       find-up: 5.0.0
@@ -7948,7 +7948,7 @@ snapshots:
   '@embroider/macros@1.16.9(@glint/template@1.5.2)(supports-color@9.4.0)':
     dependencies:
       '@embroider/shared-internals': 2.8.1(supports-color@9.4.0)
-      assert-never: 1.3.0
+      assert-never: 1.4.0
       babel-import-util: 2.1.1
       ember-cli-babel: 7.26.11(supports-color@9.4.0)
       find-up: 5.0.0
@@ -7963,7 +7963,7 @@ snapshots:
   '@embroider/macros@1.18.1(@glint/template@1.5.2)(supports-color@9.4.0)':
     dependencies:
       '@embroider/shared-internals': 3.0.0(supports-color@9.4.0)
-      assert-never: 1.3.0
+      assert-never: 1.4.0
       babel-import-util: 3.0.1
       ember-cli-babel: 7.26.11(supports-color@9.4.0)
       find-up: 5.0.0
@@ -9107,7 +9107,7 @@ snapshots:
       is-array-buffer: 3.0.4
       is-shared-array-buffer: 1.0.3
 
-  assert-never@1.3.0: {}
+  assert-never@1.4.0: {}
 
   assertion-error@2.0.1: {}
 
