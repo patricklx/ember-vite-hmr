@@ -102,7 +102,7 @@
     "strip-ansi": "^7.1.0",
     "style-loader": "^4.0.0",
     "supports-color": "^9.4.0",
-    "terser": "^5.7.0",
+    "terser": "^5.43.1",
     "thread-loader": "^4.0.2",
     "typescript": "^5.1.6",
     "vite": "^7.0.5",
