@@ -90,7 +90,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-ember": "^12.6.0",
     "eslint-plugin-n": "^17.21.0",
-    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-prettier": "^5.5.3",
     "execa": "^9.3.1",
     "fs-extra": "^11.2.0",
     "playwright-chromium": "^1.54.1",
