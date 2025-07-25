@@ -157,8 +157,8 @@ importers:
         specifier: ^5.5.3
         version: 5.5.3(@types/eslint@8.56.12)(eslint-config-prettier@10.1.8(eslint@9.22.0(supports-color@10.0.0)))(eslint@9.22.0(supports-color@10.0.0))(prettier@3.5.3)
       execa:
-        specifier: ^9.3.1
-        version: 9.5.1
+        specifier: ^9.6.0
+        version: 9.6.0
       fs-extra:
         specifier: ^11.2.0
         version: 11.3.0
@@ -3626,8 +3626,8 @@ packages:
     resolution: {integrity: sha512-8uSpZZocAZRBAPIEINJj3Lo9HyGitllczc27Eh5YYojjMFMn8yHMDMaUHE2Jqfq05D/wucwI4JGURyXt1vchyg==}
     engines: {node: '>=10'}
 
-  execa@9.5.1:
-    resolution: {integrity: sha512-QY5PPtSonnGwhhHDNI7+3RvY285c7iuJFFB+lU+oEzMY/gEGJ808owqJsrr8Otd1E/x07po1LkUBmdAc5duPAg==}
+  execa@9.6.0:
+    resolution: {integrity: sha512-jpWzZ1ZhwUmeWRhS7Qv3mhpOhLfwI+uAX4e5fOcXqwMR7EcJ0pj2kV1CVzHVMX/LphnKWD3LObjZCoJ71lKpHw==}
     engines: {node: ^18.19.0 || >=20.5.0}
 
   expand-brackets@2.1.4:
@@ -4064,8 +4064,8 @@ packages:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
     engines: {node: '>=10.17.0'}
 
-  human-signals@8.0.0:
-    resolution: {integrity: sha512-/1/GPCpDUCCYwlERiYjxoczfP0zfvZMU/OWgQPMya9AbAE24vseigFdhAMObpc8Q4lc/kjutPfUddDYyAmejnA==}
+  human-signals@8.0.1:
+    resolution: {integrity: sha512-eKCa6bwnJhvxj14kZk5NCPc6Hb6BdsU9DZcOnmQKSnO1VKrfV0zCvtttPZUsBvjmNDn8rpcJfpwSYnHBjc95MQ==}
     engines: {node: '>=18.18.0'}
 
   iconv-lite@0.4.24:
@@ -4931,8 +4931,8 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
-  pretty-ms@9.1.0:
-    resolution: {integrity: sha512-o1piW0n3tgKIKCwk2vpM/vOV13zjJzvP37Ioze54YlTHE06m4tjEbzg9WsKkvTuyYln2DHjo5pY4qrZGI0otpw==}
+  pretty-ms@9.2.0:
+    resolution: {integrity: sha512-4yf0QO/sllf/1zbZWYnvWw3NxCQwLXKzIj0G849LSufP15BXKM0rbD2Z3wVnkMfjdn/CB0Dpp444gYAACdsplg==}
     engines: {node: '>=18'}
 
   private@0.1.8:
@@ -10692,17 +10692,17 @@ snapshots:
       signal-exit: 3.0.7
       strip-final-newline: 2.0.0
 
-  execa@9.5.1:
+  execa@9.6.0:
     dependencies:
       '@sindresorhus/merge-streams': 4.0.0
       cross-spawn: 7.0.6
       figures: 6.1.0
       get-stream: 9.0.1
-      human-signals: 8.0.0
+      human-signals: 8.0.1
       is-plain-obj: 4.1.0
       is-stream: 4.0.1
       npm-run-path: 6.0.0
-      pretty-ms: 9.1.0
+      pretty-ms: 9.2.0
       signal-exit: 4.1.0
       strip-final-newline: 4.0.0
       yoctocolors: 2.1.1
@@ -11271,7 +11271,7 @@ snapshots:
 
   human-signals@2.1.0: {}
 
-  human-signals@8.0.0: {}
+  human-signals@8.0.1: {}
 
   iconv-lite@0.4.24:
     dependencies:
@@ -12086,7 +12086,7 @@ snapshots:
 
   prettier@3.5.3: {}
 
-  pretty-ms@9.1.0:
+  pretty-ms@9.2.0:
     dependencies:
       parse-ms: 4.0.0
 
