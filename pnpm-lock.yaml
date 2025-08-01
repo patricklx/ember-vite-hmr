@@ -71,7 +71,7 @@ importers:
         version: 1.1.2(@babel/core@7.26.8(supports-color@10.0.0))(supports-color@10.0.0)
       '@glint/core':
         specifier: ^1.2.0
-        version: 1.5.2(supports-color@10.0.0)(typescript@5.6.3)
+        version: 1.5.2(supports-color@10.0.0)(typescript@5.9.2)
       '@glint/environment-ember-loose':
         specifier: ^1.2.0
         version: 1.5.0(@glimmer/component@1.1.2(@babel/core@7.26.8(supports-color@10.0.0))(supports-color@10.0.0))(@glint/template@1.5.2)(ember-cli-htmlbars@6.3.0(supports-color@10.0.0))
@@ -152,7 +152,7 @@ importers:
         version: 12.6.0(@babel/core@7.26.8(supports-color@10.0.0))(eslint@9.22.0(supports-color@10.0.0))
       eslint-plugin-n:
         specifier: ^17.21.0
-        version: 17.21.0(eslint@9.22.0(supports-color@10.0.0))(typescript@5.6.3)
+        version: 17.21.0(eslint@9.22.0(supports-color@10.0.0))(typescript@5.9.2)
       eslint-plugin-prettier:
         specifier: ^5.5.3
         version: 5.5.3(@types/eslint@8.56.12)(eslint-config-prettier@10.1.8(eslint@9.22.0(supports-color@10.0.0)))(eslint@9.22.0(supports-color@10.0.0))(prettier@3.5.3)
@@ -196,8 +196,8 @@ importers:
         specifier: ^4.0.2
         version: 4.0.4(webpack@5.94.0)
       typescript:
-        specifier: ^5.1.6
-        version: 5.6.3
+        specifier: ^5.9.2
+        version: 5.9.2
       vite:
         specifier: ^7.0.6
         version: 7.0.6(@types/node@22.13.13)(terser@5.43.1)
@@ -2232,6 +2232,9 @@ packages:
 
   '@types/node@22.16.5':
     resolution: {integrity: sha512-bJFoMATwIGaxxx8VJPeM8TonI8t579oRvgAuT8zFugJsJZgzqv0Fu8Mhp68iecjzG7cnN3mO2dJQ5uUM2EFrgQ==}
+
+  '@types/node@22.17.0':
+    resolution: {integrity: sha512-bbAKTCqX5aNVryi7qXVMi+OkB3w/OyblodicMbvE38blyAz7GxXf6XYhklokijuPwwVg9sDLKRxt0ZHXQwZVfQ==}
 
   '@types/qs@6.9.15':
     resolution: {integrity: sha512-uXHQKES6DQKKCLh441Xv/dwxOq1TVS3JPUMlEqoEglvlhR6Mxnlew/Xq/LRVHpLyk7iK3zODe1qYHIMltO7XGg==}
@@ -5705,8 +5708,8 @@ packages:
   typescript-memoize@1.1.1:
     resolution: {integrity: sha512-GQ90TcKpIH4XxYTI2F98yEQYZgjNMOGPpOgdjIBhaLaWji5HPWlRnZ4AeA1hfBxtY7bCGDJsqDDHk/KaHOl5bA==}
 
-  typescript@5.6.3:
-    resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
+  typescript@5.9.2:
+    resolution: {integrity: sha512-CWBzXQrc/qOkhidw1OzBTQuYRbfyxDXJMVJ1XNwUHGROVmuaeiEm3OslpZ1RV96d7SKKjZKrSJu3+t/xlw3R9A==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -8229,13 +8232,13 @@ snapshots:
     dependencies:
       '@glimmer/interfaces': 0.94.6
 
-  '@glint/core@1.5.2(supports-color@10.0.0)(typescript@5.6.3)':
+  '@glint/core@1.5.2(supports-color@10.0.0)(typescript@5.9.2)':
     dependencies:
       '@glimmer/syntax': 0.84.3
       escape-string-regexp: 4.0.0
       semver: 7.7.2
       silent-error: 1.1.1(supports-color@10.0.0)
-      typescript: 5.6.3
+      typescript: 5.9.2
       uuid: 8.3.2
       vscode-languageserver: 8.1.0
       vscode-languageserver-textdocument: 1.0.12
@@ -8629,6 +8632,10 @@ snapshots:
       undici-types: 6.20.0
 
   '@types/node@22.16.5':
+    dependencies:
+      undici-types: 6.21.0
+
+  '@types/node@22.17.0':
     dependencies:
       undici-types: 6.21.0
 
@@ -10533,7 +10540,7 @@ snapshots:
       eslint: 9.22.0(supports-color@10.0.0)
       eslint-compat-utils: 0.5.1(eslint@9.22.0(supports-color@10.0.0))
 
-  eslint-plugin-n@17.21.0(eslint@9.22.0(supports-color@10.0.0))(typescript@5.6.3):
+  eslint-plugin-n@17.21.0(eslint@9.22.0(supports-color@10.0.0))(typescript@5.9.2):
     dependencies:
       '@eslint-community/eslint-utils': 4.7.0(eslint@9.22.0(supports-color@10.0.0))
       enhanced-resolve: 5.18.2
@@ -10544,7 +10551,7 @@ snapshots:
       ignore: 5.3.2
       minimatch: 9.0.5
       semver: 7.7.2
-      ts-declaration-location: 1.0.7(typescript@5.6.3)
+      ts-declaration-location: 1.0.7(typescript@5.9.2)
     transitivePeerDependencies:
       - typescript
 
@@ -11491,7 +11498,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 22.16.5
+      '@types/node': 22.17.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
@@ -12950,10 +12957,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  ts-declaration-location@1.0.7(typescript@5.6.3):
+  ts-declaration-location@1.0.7(typescript@5.9.2):
     dependencies:
       picomatch: 4.0.3
-      typescript: 5.6.3
+      typescript: 5.9.2
 
   tslib@1.14.1: {}
 
@@ -13001,7 +13008,7 @@ snapshots:
 
   typescript-memoize@1.1.1: {}
 
-  typescript@5.6.3: {}
+  typescript@5.9.2: {}
 
   uglify-js@3.19.3:
     optional: true
