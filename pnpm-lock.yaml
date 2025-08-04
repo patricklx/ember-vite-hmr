@@ -151,8 +151,8 @@ importers:
         specifier: ^12.6.0
         version: 12.6.0(@babel/core@7.28.0(supports-color@10.0.0))(eslint@9.22.0(supports-color@10.0.0))
       eslint-plugin-n:
-        specifier: ^17.21.0
-        version: 17.21.0(eslint@9.22.0(supports-color@10.0.0))(typescript@5.9.2)
+        specifier: ^17.21.3
+        version: 17.21.3(eslint@9.22.0(supports-color@10.0.0))(typescript@5.9.2)
       eslint-plugin-prettier:
         specifier: ^5.5.3
         version: 5.5.3(@types/eslint@8.56.12)(eslint-config-prettier@10.1.8(eslint@9.22.0(supports-color@10.0.0)))(eslint@9.22.0(supports-color@10.0.0))(prettier@3.6.2)
@@ -2785,8 +2785,8 @@ packages:
     peerDependencies:
       eslint: '>=8'
 
-  eslint-plugin-n@17.21.0:
-    resolution: {integrity: sha512-1+iZ8We4ZlwVMtb/DcHG3y5/bZOdazIpa/4TySo22MLKdwrLcfrX0hbadnCvykSQCCmkAnWmIP8jZVb2AAq29A==}
+  eslint-plugin-n@17.21.3:
+    resolution: {integrity: sha512-MtxYjDZhMQgsWRm/4xYLL0i2EhusWT7itDxlJ80l1NND2AL2Vi5Mvneqv/ikG9+zpran0VsVRXTEHrpLmUZRNw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: '>=8.23.0'
@@ -3224,6 +3224,9 @@ packages:
   globalthis@1.0.4:
     resolution: {integrity: sha512-DpLKbNU4WylpxJykQujfCcwYWiV/Jhm50Goo0wrVILAv5jOr9d+H+UR3PhSCD2rCCEIg0uc+G+muBTwD54JhDQ==}
     engines: {node: '>= 0.4'}
+
+  globrex@0.1.2:
+    resolution: {integrity: sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==}
 
   gopd@1.0.1:
     resolution: {integrity: sha512-d65bNlIadxvpb/A2abVdlqKqV563juRnZ1Wtk6s1sIR8uNsXR70xqIzVqxVf1eTqDunwT2MkczEeaezCKTZhwA==}
@@ -3841,10 +3844,6 @@ packages:
 
   minimatch@8.0.4:
     resolution: {integrity: sha512-W0Wvr9HyFXZRGIDgCicunpQ299OKXs9RgZfaukz4qAW/pJhcpUfupc9c+OObPOFueNy8VSrZgEmDtk6Kh4WzDA==}
-    engines: {node: '>=16 || 14 >=14.17'}
-
-  minimatch@9.0.5:
-    resolution: {integrity: sha512-G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow==}
     engines: {node: '>=16 || 14 >=14.17'}
 
   minimist@1.2.8:
@@ -8846,7 +8845,7 @@ snapshots:
       eslint: 9.22.0(supports-color@10.0.0)
       eslint-compat-utils: 0.5.1(eslint@9.22.0(supports-color@10.0.0))
 
-  eslint-plugin-n@17.21.0(eslint@9.22.0(supports-color@10.0.0))(typescript@5.9.2):
+  eslint-plugin-n@17.21.3(eslint@9.22.0(supports-color@10.0.0))(typescript@5.9.2):
     dependencies:
       '@eslint-community/eslint-utils': 4.7.0(eslint@9.22.0(supports-color@10.0.0))
       enhanced-resolve: 5.18.2
@@ -8854,8 +8853,8 @@ snapshots:
       eslint-plugin-es-x: 7.8.0(eslint@9.22.0(supports-color@10.0.0))
       get-tsconfig: 4.10.1
       globals: 15.15.0
+      globrex: 0.1.2
       ignore: 5.3.2
-      minimatch: 9.0.5
       semver: 7.7.2
       ts-declaration-location: 1.0.7(typescript@5.9.2)
     transitivePeerDependencies:
@@ -9458,6 +9457,8 @@ snapshots:
     dependencies:
       define-properties: 1.2.1
       gopd: 1.0.1
+
+  globrex@0.1.2: {}
 
   gopd@1.0.1:
     dependencies:
@@ -10075,10 +10076,6 @@ snapshots:
       brace-expansion: 1.1.12
 
   minimatch@8.0.4:
-    dependencies:
-      brace-expansion: 2.0.2
-
-  minimatch@9.0.5:
     dependencies:
       brace-expansion: 2.0.2
 
