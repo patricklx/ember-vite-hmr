@@ -44,7 +44,7 @@
     "@babel/traverse": "^7.23.2",
     "@babel/types": "^7.24.0",
     "@embroider/addon-shim": "^1.10.0",
-    "@glimmer/syntax": "^0.94.9",
+    "@glimmer/syntax": "^0.95.0",
     "@types/supports-color": "^10.0.0",
     "babel-import-util": "^3.0.0",
     "babel-loader": "^10.0.0",
