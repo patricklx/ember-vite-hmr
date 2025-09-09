@@ -56,7 +56,7 @@
     "@babel/plugin-proposal-class-properties": "^7.16.7",
     "@babel/plugin-proposal-decorators": "^7.23.2",
     "@babel/plugin-transform-class-static-block": "^7.27.1",
-    "@babel/runtime": "^7.28.2",
+    "@babel/runtime": "^7.28.3",
     "@embroider/addon-dev": "^8.1.0",
     "@embroider/compat": "^3.9.1",
     "@embroider/core": "^3.4.6",
@@ -105,7 +105,7 @@
     "terser": "^5.43.1",
     "thread-loader": "^4.0.2",
     "typescript": "^5.9.2",
-    "vite": "^7.0.6",
+    "vite": "^7.0.7",
     "vitest": "^3.2.4"
   },
   "peerDependencies": {
