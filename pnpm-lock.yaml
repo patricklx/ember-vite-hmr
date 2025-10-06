@@ -49,8 +49,8 @@ importers:
         specifier: ^7.16.7
         version: 7.18.6(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
       '@babel/plugin-proposal-decorators':
-        specifier: ^7.23.2
-        version: 7.25.9(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
+        specifier: ^7.28.0
+        version: 7.28.0(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
       '@babel/plugin-transform-class-static-block':
         specifier: ^7.28.3
         version: 7.28.3(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
@@ -381,8 +381,8 @@ packages:
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
-  '@babel/plugin-proposal-decorators@7.25.9':
-    resolution: {integrity: sha512-smkNLL/O1ezy9Nhy4CNosc4Va+1wo5w4gzSZeLe6y6dM4mmHfYOCPolXQPHQxonZCF+ZyebxN9vqOolkYrSn5g==}
+  '@babel/plugin-proposal-decorators@7.28.0':
+    resolution: {integrity: sha512-zOiZqvANjWDUaUS9xMxbMcK/Zccztbe/6ikvUXaG9nsPH3w6qh5UaPGAnirI/WhIbZ8m3OHU0ReyPrknG+ZKeg==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
@@ -5437,7 +5437,7 @@ snapshots:
   '@babel/generator@7.28.3':
     dependencies:
       '@babel/parser': 7.28.4
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.2
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
       jsesc: 3.1.0
@@ -5534,7 +5534,7 @@ snapshots:
       '@babel/core': 7.28.0(supports-color@10.0.0)
       '@babel/helper-annotate-as-pure': 7.27.3
       '@babel/helper-wrap-function': 7.27.1(supports-color@10.0.0)
-      '@babel/traverse': 7.28.4(supports-color@10.0.0)
+      '@babel/traverse': 7.28.0(supports-color@10.0.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -5563,8 +5563,8 @@ snapshots:
   '@babel/helper-wrap-function@7.27.1(supports-color@10.0.0)':
     dependencies:
       '@babel/template': 7.27.2
-      '@babel/traverse': 7.28.4(supports-color@10.0.0)
-      '@babel/types': 7.28.4
+      '@babel/traverse': 7.28.0(supports-color@10.0.0)
+      '@babel/types': 7.28.2
     transitivePeerDependencies:
       - supports-color
 
@@ -5624,10 +5624,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/plugin-proposal-decorators@7.25.9(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)':
+  '@babel/plugin-proposal-decorators@7.28.0(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)':
     dependencies:
       '@babel/core': 7.28.0(supports-color@10.0.0)
-      '@babel/helper-create-class-features-plugin': 7.27.1(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
+      '@babel/helper-create-class-features-plugin': 7.28.3(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
       '@babel/helper-plugin-utils': 7.27.1
       '@babel/plugin-syntax-decorators': 7.27.1(@babel/core@7.28.0(supports-color@10.0.0))
     transitivePeerDependencies:
@@ -8556,7 +8556,7 @@ snapshots:
       '@babel/core': 7.28.0(supports-color@10.0.0)
       '@babel/helper-compilation-targets': 7.27.2
       '@babel/plugin-proposal-class-properties': 7.18.6(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
-      '@babel/plugin-proposal-decorators': 7.25.9(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
+      '@babel/plugin-proposal-decorators': 7.28.0(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
       '@babel/plugin-proposal-private-methods': 7.18.6(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
       '@babel/plugin-proposal-private-property-in-object': 7.21.11(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
       '@babel/plugin-transform-modules-amd': 7.27.1(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
@@ -8591,7 +8591,7 @@ snapshots:
       '@babel/core': 7.28.0(supports-color@10.0.0)
       '@babel/helper-compilation-targets': 7.27.2
       '@babel/plugin-proposal-class-properties': 7.18.6(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
-      '@babel/plugin-proposal-decorators': 7.25.9(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
+      '@babel/plugin-proposal-decorators': 7.28.0(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
       '@babel/plugin-proposal-private-methods': 7.18.6(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
       '@babel/plugin-proposal-private-property-in-object': 7.21.11(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
       '@babel/plugin-transform-class-static-block': 7.28.3(@babel/core@7.28.0(supports-color@10.0.0))(supports-color@10.0.0)
