@@ -151,8 +151,8 @@ importers:
         specifier: ^12.7.4
         version: 12.7.4(@babel/core@7.28.0(supports-color@10.0.0))(eslint@9.37.0(supports-color@10.0.0))(typescript@5.9.2)
       eslint-plugin-n:
-        specifier: ^17.21.0
-        version: 17.21.0(eslint@9.37.0(supports-color@10.0.0))(typescript@5.9.2)
+        specifier: ^17.23.1
+        version: 17.23.1(eslint@9.37.0(supports-color@10.0.0))(typescript@5.9.2)
       eslint-plugin-prettier:
         specifier: ^5.5.3
         version: 5.5.3(@types/eslint@8.56.12)(eslint-config-prettier@10.1.8(eslint@9.37.0(supports-color@10.0.0)))(eslint@9.37.0(supports-color@10.0.0))(prettier@3.6.2)
@@ -1069,12 +1069,6 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
-
-  '@eslint-community/eslint-utils@4.7.0':
-    resolution: {integrity: sha512-dyybb3AcajC7uha6CvhdVRJqaKyn7w2YKqKyAN37NKYgZT36w+iRb0Dymmc5qEJ549c/S31cMMSFd75bteCpCw==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-    peerDependencies:
-      eslint: ^6.0.0 || ^7.0.0 || >=8.0.0
 
   '@eslint-community/eslint-utils@4.9.0':
     resolution: {integrity: sha512-ayVFHdtZ+hsq1t2Dy24wCmGXGe4q9Gu3smhLYALJrr473ZH27MsnSL+LKUlimp4BWJqMDMLmPpx/Q9R3OAlL4g==}
@@ -2732,10 +2726,6 @@ packages:
   end-of-stream@1.4.5:
     resolution: {integrity: sha512-ooEGc6HP26xXq/N+GCGOT0JKCLDGrq2bQUZrQ7gyrJiZANJ/8YDTxTpQBXGMn+WbIQXNVpyWymm7KYVICQnyOg==}
 
-  enhanced-resolve@5.18.2:
-    resolution: {integrity: sha512-6Jw4sE1maoRJo3q8MsSIn2onJFbLTOjY9hlx4DZXmOKvLRd1Ok2kXmAGXaafL2+ijsJZ1ClYbl/pmqr9+k4iUQ==}
-    engines: {node: '>=10.13.0'}
-
   enhanced-resolve@5.18.3:
     resolution: {integrity: sha512-d4lC8xfavMeBjzGr2vECC3fsGXziXZQyJxD868h2M/mBI3PwAuODxAkLkq5HYuvrPYcUtiLzsTo8U3PgX3Ocww==}
     engines: {node: '>=10.13.0'}
@@ -2842,8 +2832,8 @@ packages:
     peerDependencies:
       eslint: '>=8'
 
-  eslint-plugin-n@17.21.0:
-    resolution: {integrity: sha512-1+iZ8We4ZlwVMtb/DcHG3y5/bZOdazIpa/4TySo22MLKdwrLcfrX0hbadnCvykSQCCmkAnWmIP8jZVb2AAq29A==}
+  eslint-plugin-n@17.23.1:
+    resolution: {integrity: sha512-68PealUpYoHOBh332JLLD9Sj7OQUDkFpmcfqt8R9sySfFSeuGJjMTJQvCRRB96zO3A/PELRLkPrzsHmzEFQQ5A==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: '>=8.23.0'
@@ -3281,6 +3271,9 @@ packages:
   globalthis@1.0.4:
     resolution: {integrity: sha512-DpLKbNU4WylpxJykQujfCcwYWiV/Jhm50Goo0wrVILAv5jOr9d+H+UR3PhSCD2rCCEIg0uc+G+muBTwD54JhDQ==}
     engines: {node: '>= 0.4'}
+
+  globrex@0.1.2:
+    resolution: {integrity: sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==}
 
   gopd@1.0.1:
     resolution: {integrity: sha512-d65bNlIadxvpb/A2abVdlqKqV563juRnZ1Wtk6s1sIR8uNsXR70xqIzVqxVf1eTqDunwT2MkczEeaezCKTZhwA==}
@@ -3898,10 +3891,6 @@ packages:
 
   minimatch@8.0.4:
     resolution: {integrity: sha512-W0Wvr9HyFXZRGIDgCicunpQ299OKXs9RgZfaukz4qAW/pJhcpUfupc9c+OObPOFueNy8VSrZgEmDtk6Kh4WzDA==}
-    engines: {node: '>=16 || 14 >=14.17'}
-
-  minimatch@9.0.5:
-    resolution: {integrity: sha512-G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow==}
     engines: {node: '>=16 || 14 >=14.17'}
 
   minimist@1.2.8:
@@ -4842,10 +4831,6 @@ packages:
 
   tapable@2.2.1:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
-    engines: {node: '>=6'}
-
-  tapable@2.2.2:
-    resolution: {integrity: sha512-Re10+NauLTMCudc7T5WLFLAwDhQ0JWdrMK+9B2M8zR5hRExKmsRDCBA7/aV/pNJFltmBFO5BAMlQFi/vq3nKOg==}
     engines: {node: '>=6'}
 
   tapable@2.3.0:
@@ -6535,11 +6520,6 @@ snapshots:
 
   '@esbuild/win32-x64@0.25.8':
     optional: true
-
-  '@eslint-community/eslint-utils@4.7.0(eslint@9.37.0(supports-color@10.0.0))':
-    dependencies:
-      eslint: 9.37.0(supports-color@10.0.0)
-      eslint-visitor-keys: 3.4.3
 
   '@eslint-community/eslint-utils@4.9.0(eslint@9.37.0(supports-color@10.0.0))':
     dependencies:
@@ -8801,11 +8781,6 @@ snapshots:
     dependencies:
       once: 1.4.0
 
-  enhanced-resolve@5.18.2:
-    dependencies:
-      graceful-fs: 4.2.11
-      tapable: 2.2.2
-
   enhanced-resolve@5.18.3:
     dependencies:
       graceful-fs: 4.2.11
@@ -8977,16 +8952,16 @@ snapshots:
       eslint: 9.37.0(supports-color@10.0.0)
       eslint-compat-utils: 0.5.1(eslint@9.37.0(supports-color@10.0.0))
 
-  eslint-plugin-n@17.21.0(eslint@9.37.0(supports-color@10.0.0))(typescript@5.9.2):
+  eslint-plugin-n@17.23.1(eslint@9.37.0(supports-color@10.0.0))(typescript@5.9.2):
     dependencies:
-      '@eslint-community/eslint-utils': 4.7.0(eslint@9.37.0(supports-color@10.0.0))
-      enhanced-resolve: 5.18.2
+      '@eslint-community/eslint-utils': 4.9.0(eslint@9.37.0(supports-color@10.0.0))
+      enhanced-resolve: 5.18.3
       eslint: 9.37.0(supports-color@10.0.0)
       eslint-plugin-es-x: 7.8.0(eslint@9.37.0(supports-color@10.0.0))
       get-tsconfig: 4.10.1
       globals: 15.15.0
+      globrex: 0.1.2
       ignore: 5.3.2
-      minimatch: 9.0.5
       semver: 7.7.2
       ts-declaration-location: 1.0.7(typescript@5.9.2)
     transitivePeerDependencies:
@@ -9589,6 +9564,8 @@ snapshots:
     dependencies:
       define-properties: 1.2.1
       gopd: 1.0.1
+
+  globrex@0.1.2: {}
 
   gopd@1.0.1:
     dependencies:
@@ -10206,10 +10183,6 @@ snapshots:
       brace-expansion: 1.1.12
 
   minimatch@8.0.4:
-    dependencies:
-      brace-expansion: 2.0.2
-
-  minimatch@9.0.5:
     dependencies:
       brace-expansion: 2.0.2
 
@@ -11203,8 +11176,6 @@ snapshots:
       '@pkgr/core': 0.2.9
 
   tapable@2.2.1: {}
-
-  tapable@2.2.2: {}
 
   tapable@2.3.0: {}
 
