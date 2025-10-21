@@ -104,7 +104,7 @@
     "supports-color": "^10.2.2",
     "terser": "^5.43.1",
     "thread-loader": "^4.0.2",
-    "typescript": "^5.9.2",
+    "typescript": "^5.9.3",
     "vite": "^7.1.11",
     "vitest": "^3.2.4"
   },
