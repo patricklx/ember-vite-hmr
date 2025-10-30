@@ -105,6 +105,12 @@ function difference(a: Set<any>, b: Set<any>) {
   return diff;
 }
 
+// Helper function to normalize paths consistently across platforms
+function normalizePath(inputPath: string): string {
+  // Always convert backslashes to forward slashes
+  return inputPath.replace(/\\/g, '/');
+}
+
 const virtualPrefix = '/ember-vite-hmr/virtual/component:';
 
 export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
@@ -235,7 +241,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
         return source;
       }
-      const resourcePath = id.replace(/\\/g, '/').split('?')[0]!;
+      const resourcePath = normalizePath(id.split('?')[0]!);
       let didReplaceSources = false;
       const name = require(`${process.cwd()}/package.json`).name;
       if (resourcePath.includes(`${name}/app/app.js`)) {
@@ -257,40 +263,49 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       const map: Record<string, string> = {};
       if (!resourcePath.includes(`node_modules`)) {
         const resolveDep = async (dep: string) => {
+          console.log(`[DEBUG] Resolving dependency: ${dep} from ${resourcePath}`);
           const resolved = await this.resolve(dep, resourcePath, {});
           let id = resolved?.id;
-          if (!id) return;
-          let appRoot = conf.root + '/app/';
-          if (id.startsWith(appRoot) && !id.startsWith('embroider_virtual:')) {
-            id = 'app/' + id.split(appRoot)[1];
+          if (!id) {
+            console.log(`[DEBUG] Could not resolve: ${dep}`);
+            return;
+          }
+          
+          console.log(`[DEBUG] Resolved ${dep} to ${id}`);
+          
+          let appRoot = normalizePath(conf.root + '/app/');
+          if (normalizePath(id).startsWith(appRoot) && !id.startsWith('embroider_virtual:')) {
+            id = 'app/' + normalizePath(id).split(appRoot)[1];
+            console.log(`[DEBUG] Converted to app path: ${id}`);
           }
           if (id.startsWith('embroider_virtual:')) {
             id = '@id/' + id;
+            console.log(`[DEBUG] Converted embroider virtual path: ${id}`);
           }
           
-          // Fix for Windows: Always normalize paths for comparison
-          const resolvedId = path.resolve(id);
-          // Always normalize paths to forward slashes for comparison
-          const normalizedId = resolvedId.replace(/\\/g, '/');
+          // Always normalize paths to forward slashes for consistency
+          id = normalizePath(id);
           
           // Check if the path is absolute
           if (path.isAbsolute(id)) {
-            // Use normalized path for consistency
-            let formattedPath = normalizedId;
-            // Ensure path starts with / for proper /@fs prefix
-            if (!formattedPath.startsWith('/')) {
-              // On Windows, paths like C:/path need to be properly formatted
-              formattedPath = '/' + formattedPath;
+            // For Windows absolute paths (C:\path\to\file), ensure proper formatting
+            if (process.platform === 'win32' && /^[a-zA-Z]:/.test(id)) {
+              // Convert Windows drive letter path to proper format for /@fs prefix
+              // Remove drive letter colon and ensure path starts with /
+              id = '/@fs/' + id.replace(/^([a-zA-Z]):/, '$1');
+              console.log(`[DEBUG] Formatted Windows absolute path: ${id}`);
+            } else {
+              // For Unix absolute paths or already properly formatted Windows paths
+              id = '/@fs' + id;
+              console.log(`[DEBUG] Formatted absolute path: ${id}`);
             }
-            id = '/@fs' + formattedPath;
-          } else {
-            // For non-absolute paths, ensure consistent forward slashes
-            id = id.replace(/\\/g, '/');
           }
           
           if (!id.startsWith('/') && !id.startsWith('.')) {
             id = '/' + id;
+            console.log(`[DEBUG] Added leading slash: ${id}`);
           }
+          
           return id;
         };
 
@@ -313,6 +328,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           }
           didReplaceSources = true;
           map[dep] = id;
+          console.log(`[DEBUG] Mapped ${dep} to ${id}`);
         }
       }
 
@@ -321,6 +337,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         function (str, group) {
           if (group.startsWith(virtualPrefix) && map[group]) {
             const id = map[group];
+            console.log(`[DEBUG] Replacing import.meta.hot.accept: ${group} -> ${id}`);
             return `import.meta.hot.accept("${id}"`;
           }
           return str;
@@ -332,6 +349,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         function (str, group) {
           if (group.startsWith(virtualPrefix) && map[group]) {
             const id = map[group];
+            console.log(`[DEBUG] Replacing import: ${group} -> ${id}`);
             return `import("${id}"`;
           }
           return str;
