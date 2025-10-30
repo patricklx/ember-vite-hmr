@@ -4,8 +4,7 @@ import { expect, test, describe, beforeAll, beforeEach, vi } from 'vitest';
 // Increase global timeout for all tests
 vi.setConfig({ hookTimeout: 180000, testTimeout: 180000 });
 
-// Skip tests on Windows platform
-const conditionalTest = process.platform === 'win32' ? test.skip : test;
+
 import {
   ensureDir,
   readFile,
@@ -269,13 +268,13 @@ describe('hmr tests', () => {
     2 * 60 * 1000,
   );
 
-  conditionalTest('should render', { timeout: 60 * 1000 }, async () => {
+  test('should render', async () => {
     const body = await page.waitForSelector('#ember-welcome-page-id-selector');
     const bodyContent = await body.evaluate((el) => el.textContent);
     expect(bodyContent, bodyContent).toContain('Congratulations, you made it!');
   });
 
-  conditionalTest('should update routes', { timeout: 60 * 1000 }, async () => {
+  test('should update routes', async () => {
     await editFile('./app/templates/application.hbs').setContent(
       '<TestComponent />',
     );
@@ -286,7 +285,7 @@ describe('hmr tests', () => {
     expect(bodyContent, bodyContent).toContain('Test Component');
   });
 
-  conditionalTest('should hmr', { timeout: 60000 }, async () => {
+  test('should hmr', { timeout: 10000 }, async () => {
     await editFile('./app/components/test-component.gjs').setContent(`
     import Component from "@glimmer/component";
 
@@ -303,7 +302,7 @@ describe('hmr tests', () => {
     expect(bodyContent, bodyContent).toContain('Test Component HMR');
   });
 
-  conditionalTest('should forward yields', { timeout: 60 * 1000 }, async () => {
+  test('should forward yields', async () => {
     await editFile('./app/templates/application.hbs').setContent(`
         <TestComponent>
             <:default as |txt|>{{txt}}</:default>    
@@ -333,7 +332,7 @@ describe('hmr tests', () => {
     );
   });
 
-  conditionalTest('should hmr with state', { timeout: 60 * 1000 }, async () => {
+  test('should hmr with state', { timeout: 10 * 1000 }, async () => {
     await editFile('./app/components/foo-component.gjs').setContent(`
     import Component from "@glimmer/component";
 
@@ -388,7 +387,7 @@ describe('hmr tests', () => {
     expect(bodyContent, bodyContent).toContain('count still 1: 1');
   });
 
-  conditionalTest('should hmr with controller state', { timeout: 60 * 1000 }, async () => {
+  test('should hmr with controller state', async () => {
     await editFile('./app/templates/application.hbs').setContent(
       '<TestComponent @controller={{this}} />',
     );
