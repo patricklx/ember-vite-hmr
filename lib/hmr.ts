@@ -263,47 +263,36 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       const map: Record<string, string> = {};
       if (!resourcePath.includes(`node_modules`)) {
         const resolveDep = async (dep: string) => {
-          console.log(`[DEBUG] Resolving dependency: ${dep} from ${resourcePath}`);
           const resolved = await this.resolve(dep, resourcePath, {});
           let id = resolved?.id;
-          if (!id) {
-            console.log(`[DEBUG] Could not resolve: ${dep}`);
-            return;
-          }
+          if (!id) return;
           
-          console.log(`[DEBUG] Resolved ${dep} to ${id}`);
+          // Normalize the ID path for consistent handling
+          id = normalizePath(id);
           
           let appRoot = normalizePath(conf.root + '/app/');
-          if (normalizePath(id).startsWith(appRoot) && !id.startsWith('embroider_virtual:')) {
-            id = 'app/' + normalizePath(id).split(appRoot)[1];
-            console.log(`[DEBUG] Converted to app path: ${id}`);
+          if (id.startsWith(appRoot) && !id.startsWith('embroider_virtual:')) {
+            id = 'app/' + id.split(appRoot)[1];
           }
           if (id.startsWith('embroider_virtual:')) {
             id = '@id/' + id;
-            console.log(`[DEBUG] Converted embroider virtual path: ${id}`);
           }
           
-          // Always normalize paths to forward slashes for consistency
-          id = normalizePath(id);
-          
-          // Check if the path is absolute
+          // Handle Windows absolute paths specially
           if (path.isAbsolute(id)) {
-            // For Windows absolute paths (C:\path\to\file), ensure proper formatting
             if (process.platform === 'win32' && /^[a-zA-Z]:/.test(id)) {
-              // Convert Windows drive letter path to proper format for /@fs prefix
+              // For Windows paths like C:/path or C:\path
               // Remove drive letter colon and ensure path starts with /
               id = '/@fs/' + id.replace(/^([a-zA-Z]):/, '$1');
-              console.log(`[DEBUG] Formatted Windows absolute path: ${id}`);
             } else {
-              // For Unix absolute paths or already properly formatted Windows paths
+              // For Unix absolute paths
               id = '/@fs' + id;
-              console.log(`[DEBUG] Formatted absolute path: ${id}`);
             }
           }
           
+          // Ensure path starts with / for proper URL format
           if (!id.startsWith('/') && !id.startsWith('.')) {
             id = '/' + id;
-            console.log(`[DEBUG] Added leading slash: ${id}`);
           }
           
           return id;
@@ -328,7 +317,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           }
           didReplaceSources = true;
           map[dep] = id;
-          console.log(`[DEBUG] Mapped ${dep} to ${id}`);
         }
       }
 
@@ -337,7 +325,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         function (str, group) {
           if (group.startsWith(virtualPrefix) && map[group]) {
             const id = map[group];
-            console.log(`[DEBUG] Replacing import.meta.hot.accept: ${group} -> ${id}`);
             return `import.meta.hot.accept("${id}"`;
           }
           return str;
@@ -349,7 +336,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         function (str, group) {
           if (group.startsWith(virtualPrefix) && map[group]) {
             const id = map[group];
-            console.log(`[DEBUG] Replacing import: ${group} -> ${id}`);
             return `import("${id}"`;
           }
           return str;
