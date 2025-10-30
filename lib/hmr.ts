@@ -267,15 +267,27 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           if (id.startsWith('embroider_virtual:')) {
             id = '@id/' + id;
           }
-          if (
-            path.resolve(id).replace(/\\/g, '/') === id &&
-            path.isAbsolute(id)
-          ) {
-            if (!id.startsWith('/')) {
-              id = '/' + id;
+          
+          // Fix for Windows: Always normalize paths for comparison
+          const resolvedId = path.resolve(id);
+          // Always normalize paths to forward slashes for comparison
+          const normalizedId = resolvedId.replace(/\\/g, '/');
+          
+          // Check if the path is absolute
+          if (path.isAbsolute(id)) {
+            // Use normalized path for consistency
+            let formattedPath = normalizedId;
+            // Ensure path starts with / for proper /@fs prefix
+            if (!formattedPath.startsWith('/')) {
+              // On Windows, paths like C:/path need to be properly formatted
+              formattedPath = '/' + formattedPath;
             }
-            id = '/@fs' + id;
+            id = '/@fs' + formattedPath;
+          } else {
+            // For non-absolute paths, ensure consistent forward slashes
+            id = id.replace(/\\/g, '/');
           }
+          
           if (!id.startsWith('/') && !id.startsWith('.')) {
             id = '/' + id;
           }
