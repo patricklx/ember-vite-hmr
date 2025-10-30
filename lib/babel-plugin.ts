@@ -361,12 +361,14 @@ export default function hotReplaceAst(babel: typeof Babel) {
             /@embroider\/virtual/g,
             'embroider_virtual',
           );
+          // Use forward slashes for paths to ensure cross-platform compatibility
+          const virtualPath = `/ember-vite-hmr/virtual/component:${sourceId}::${specifierName}.gjs`;
           const ast = parse(`
             (async () => {
-              const c = await import('/ember-vite-hmr/virtual/component:${sourceId}::${specifierName}.gjs');
+              const c = await import('${virtualPath}');
               ${hotAstProcessor.meta.importVar}.${imp} = c.default;
             })()
-            import.meta.hot.accept('/ember-vite-hmr/virtual/component:${sourceId}::${specifierName}.gjs', (c) => {
+            import.meta.hot.accept('${virtualPath}', (c) => {
               ${hotAstProcessor.meta.importVar}.${imp} = c['${specifierName}'];
             });
             import.meta.hot.accept('${source}');
