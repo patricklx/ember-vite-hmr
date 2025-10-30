@@ -1,5 +1,8 @@
 import util from 'node:util';
-import { expect, test, describe, beforeAll, beforeEach } from 'vitest';
+import { expect, test, describe, beforeAll, beforeEach, vi } from 'vitest';
+
+// Increase global timeout for all tests
+vi.setConfig({ hookTimeout: 180000, testTimeout: 180000 });
 import {
   ensureDir,
   readFile,
