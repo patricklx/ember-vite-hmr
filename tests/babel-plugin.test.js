@@ -616,6 +616,9 @@ export { CarbonCodeSnippet as default };
     const resultCode = resultWired.code.replace(
         /"id": ".*",\n.*"block":/g,
         '"id": "--id--",\n  "block":',
+    ).replace(
+        /"moduleName": ".*rewritten-app.*a\.gts"/g,
+        '"moduleName": "/rewritten-app/a.gts"',
     );
 
     expect(resultCode.replace(/\?timestamp=[^']+/g, '?timestamp=1'))
