@@ -143,7 +143,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         let [imp, specifier] = id
           .split('?')[0]!
           .slice(virtualPrefix.length, -'.gts'.length)
-          .split(':');
+          .split('::');
         imp = imp!.replace('embroider_virtual', '@embroider/virtual');
         let filename = imp!;
         if (filename.includes('__vpc__')) {
@@ -289,7 +289,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           const dep = resultElement[1]!;
           let possibleVirtual = { dep, specifier: null as any };
           if (dep.includes(virtualPrefix)) {
-            const [imp, specifier] = dep.slice(virtualPrefix.length).split(':');
+            const [imp, specifier] = dep.slice(virtualPrefix.length).split('::');
             possibleVirtual.dep = imp!;
             possibleVirtual.specifier = specifier;
           }
@@ -297,7 +297,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           if (!id) continue;
           if (dep === id) continue;
           if (possibleVirtual.dep !== dep) {
-            id = virtualPrefix + id + ':' + possibleVirtual.specifier;
+            id = virtualPrefix + id + '::' + possibleVirtual.specifier;
           }
           didReplaceSources = true;
           map[dep] = id;
