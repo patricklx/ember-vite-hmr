@@ -105,6 +105,12 @@ function difference(a: Set<any>, b: Set<any>) {
   return diff;
 }
 
+// Helper function to normalize paths consistently across platforms
+function normalizePath(inputPath: string): string {
+  // Always convert backslashes to forward slashes
+  return inputPath.replace(/\\/g, '/');
+}
+
 const virtualPrefix = '/ember-vite-hmr/virtual/component:';
 
 export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
@@ -143,7 +149,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         let [imp, specifier] = id
           .split('?')[0]!
           .slice(virtualPrefix.length, -'.gts'.length)
-          .split(':');
+          .split('::');
         imp = imp!.replace('embroider_virtual', '@embroider/virtual');
         let filename = imp!;
         if (filename.includes('__vpc__')) {
@@ -235,7 +241,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
         return source;
       }
-      const resourcePath = id.replace(/\\/g, '/').split('?')[0]!;
+      const resourcePath = normalizePath(id.split('?')[0]!);
       let didReplaceSources = false;
       const name = require(`${process.cwd()}/package.json`).name;
       if (resourcePath.includes(`${name}/app/app.js`)) {
@@ -260,21 +266,27 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           const resolved = await this.resolve(dep, resourcePath, {});
           let id = resolved?.id;
           if (!id) return;
-          let appRoot = conf.root + '/app/';
+
+          id = normalizePath(id);
+
+          let appRoot = normalizePath(conf.root + '/app/');
           if (id.startsWith(appRoot) && !id.startsWith('embroider_virtual:')) {
             id = 'app/' + id.split(appRoot)[1];
           }
           if (id.startsWith('embroider_virtual:')) {
             id = '@id/' + id;
           }
-          if (
-            path.resolve(id).replace(/\\/g, '/') === id &&
-            path.isAbsolute(id)
-          ) {
-            if (!id.startsWith('/')) {
-              id = '/' + id;
+
+          // Handle Windows absolute paths specially
+          if (path.isAbsolute(id)) {
+            if (process.platform === 'win32' && /^[a-zA-Z]:/.test(id)) {
+              // For Windows paths like C:/path or C:\path
+              // Remove drive letter colon and ensure path starts with /
+              id = '/@fs/' + id.replace(/^([a-zA-Z]):/, '$1');
+            } else {
+              // For Unix absolute paths
+              id = '/@fs' + id;
             }
-            id = '/@fs' + id;
           }
           if (!id.startsWith('/') && !id.startsWith('.')) {
             id = '/' + id;
@@ -289,7 +301,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           const dep = resultElement[1]!;
           let possibleVirtual = { dep, specifier: null as any };
           if (dep.includes(virtualPrefix)) {
-            const [imp, specifier] = dep.slice(virtualPrefix.length).split(':');
+            const [imp, specifier] = dep.slice(virtualPrefix.length).split('::');
             possibleVirtual.dep = imp!;
             possibleVirtual.specifier = specifier;
           }
@@ -297,7 +309,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           if (!id) continue;
           if (dep === id) continue;
           if (possibleVirtual.dep !== dep) {
-            id = virtualPrefix + id + ':' + possibleVirtual.specifier;
+            id = virtualPrefix + id + '::' + possibleVirtual.specifier;
           }
           didReplaceSources = true;
           map[dep] = id;

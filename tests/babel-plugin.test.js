@@ -108,30 +108,30 @@ describe('convert template with hot reload helpers', () => {
           if (import.meta.hot) {
             if (NamedComponent.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/components/named-component:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/components/named-component::default.gjs');
                 template__imports__.NamedComponent = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:embroider_compat/components/named-component:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:embroider_compat/components/named-component::default.gjs', c => {
                 template__imports__.NamedComponent = c['default'];
               });
               import.meta.hot.accept('embroider_compat/components/named-component');
             }
             if (SomeComponent.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/components/some-component:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/components/some-component::default.gjs');
                 template__imports__.SomeComponent = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:embroider_compat/components/some-component:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:embroider_compat/components/some-component::default.gjs', c => {
                 template__imports__.SomeComponent = c['default'];
               });
               import.meta.hot.accept('embroider_compat/components/some-component');
             }
             if (myhelper.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/helpers/my-helper:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/helpers/my-helper::default.gjs');
                 template__imports__.myhelper = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:embroider_compat/helpers/my-helper:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:embroider_compat/helpers/my-helper::default.gjs', c => {
                 template__imports__.myhelper = c['default'];
               });
               import.meta.hot.accept('embroider_compat/helpers/my-helper');
@@ -210,30 +210,30 @@ describe('convert template with hot reload helpers', () => {
           if (import.meta.hot) {
             if (NamedComponent.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/components/named-component:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/components/named-component::default.gjs');
                 template__imports__.NamedComponent = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:embroider_compat/components/named-component:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:embroider_compat/components/named-component::default.gjs', c => {
                 template__imports__.NamedComponent = c['default'];
               });
               import.meta.hot.accept('embroider_compat/components/named-component');
             }
             if (SomeComponent.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/components/some-component:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/components/some-component::default.gjs');
                 template__imports__.SomeComponent = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:embroider_compat/components/some-component:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:embroider_compat/components/some-component::default.gjs', c => {
                 template__imports__.SomeComponent = c['default'];
               });
               import.meta.hot.accept('embroider_compat/components/some-component');
             }
             if (myhelper.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/helpers/my-helper:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:embroider_compat/helpers/my-helper::default.gjs');
                 template__imports__.myhelper = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:embroider_compat/helpers/my-helper:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:embroider_compat/helpers/my-helper::default.gjs', c => {
                 template__imports__.myhelper = c['default'];
               });
               import.meta.hot.accept('embroider_compat/helpers/my-helper');
@@ -409,70 +409,70 @@ export { CarbonCodeSnippet as default };
           if (import.meta.hot) {
             if (concat.prototype instanceof Component) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:@ember/helper:concat.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:@ember/helper::concat.gjs');
                 template__imports__.concat = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:@ember/helper:concat.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:@ember/helper::concat.gjs', c => {
                 template__imports__.concat = c['concat'];
               });
               import.meta.hot.accept('@ember/helper');
             }
             if (didInsert.prototype instanceof Component) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:@ember/render-modifiers/modifiers/did-insert:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:@ember/render-modifiers/modifiers/did-insert::default.gjs');
                 template__imports__.didInsert = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:@ember/render-modifiers/modifiers/did-insert:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:@ember/render-modifiers/modifiers/did-insert::default.gjs', c => {
                 template__imports__.didInsert = c['default'];
               });
               import.meta.hot.accept('@ember/render-modifiers/modifiers/did-insert');
             }
             if (eq.prototype instanceof Component) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:ember-truth-helpers/helpers/eq:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:ember-truth-helpers/helpers/eq::default.gjs');
                 template__imports__.eq = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:ember-truth-helpers/helpers/eq:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:ember-truth-helpers/helpers/eq::default.gjs', c => {
                 template__imports__.eq = c['default'];
               });
               import.meta.hot.accept('ember-truth-helpers/helpers/eq');
             }
             if (fn.prototype instanceof Component) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:@ember/helper:fn.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:@ember/helper::fn.gjs');
                 template__imports__.fn = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:@ember/helper:fn.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:@ember/helper::fn.gjs', c => {
                 template__imports__.fn = c['fn'];
               });
               import.meta.hot.accept('@ember/helper');
             }
             if (htmlSafe.prototype instanceof Component) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:../helpers/html-safe.js:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:../helpers/html-safe.js::default.gjs');
                 template__imports__.htmlSafe = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:../helpers/html-safe.js:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:../helpers/html-safe.js::default.gjs', c => {
                 template__imports__.htmlSafe = c['default'];
               });
               import.meta.hot.accept('../helpers/html-safe.js');
             }
             if (not.prototype instanceof Component) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:ember-truth-helpers/helpers/not:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:ember-truth-helpers/helpers/not::default.gjs');
                 template__imports__.not = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:ember-truth-helpers/helpers/not:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:ember-truth-helpers/helpers/not::default.gjs', c => {
                 template__imports__.not = c['default'];
               });
               import.meta.hot.accept('ember-truth-helpers/helpers/not');
             }
             if (on.prototype instanceof Component) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:@ember/modifier:on.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:@ember/modifier::on.gjs');
                 template__imports__.on = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:@ember/modifier:on.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:@ember/modifier::on.gjs', c => {
                 template__imports__.on = c['on'];
               });
               import.meta.hot.accept('@ember/modifier');
@@ -555,40 +555,40 @@ export { CarbonCodeSnippet as default };
           if (import.meta.hot) {
             if (NamedComponent.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:my-components:NamedComponent.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:my-components::NamedComponent.gjs');
                 template__imports__.NamedComponent = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components:NamedComponent.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components::NamedComponent.gjs', c => {
                 template__imports__.NamedComponent = c['NamedComponent'];
               });
               import.meta.hot.accept('my-components');
             }
             if (Other.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:my-components:Other.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:my-components::Other.gjs');
                 template__imports__.Other = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components:Other.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components::Other.gjs', c => {
                 template__imports__.Other = c['Other'];
               });
               import.meta.hot.accept('my-components');
             }
             if (SomeComponent.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:my-components:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:my-components::default.gjs');
                 template__imports__.SomeComponent = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components::default.gjs', c => {
                 template__imports__.SomeComponent = c['default'];
               });
               import.meta.hot.accept('my-components');
             }
             if (myhelper.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:my-helpers:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:my-helpers::default.gjs');
                 template__imports__.myhelper = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-helpers:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-helpers::default.gjs', c => {
                 template__imports__.myhelper = c['default'];
               });
               import.meta.hot.accept('my-helpers');
@@ -679,40 +679,40 @@ export { CarbonCodeSnippet as default };
           if (import.meta.hot) {
             if (NamedComponent.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:my-components:NamedComponent.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:my-components::NamedComponent.gjs');
                 template__imports__.NamedComponent = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components:NamedComponent.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components::NamedComponent.gjs', c => {
                 template__imports__.NamedComponent = c['NamedComponent'];
               });
               import.meta.hot.accept('my-components');
             }
             if (Other.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:my-components:Other.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:my-components::Other.gjs');
                 template__imports__.Other = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components:Other.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components::Other.gjs', c => {
                 template__imports__.Other = c['Other'];
               });
               import.meta.hot.accept('my-components');
             }
             if (SomeComponent.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:my-components:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:my-components::default.gjs');
                 template__imports__.SomeComponent = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components::default.gjs', c => {
                 template__imports__.SomeComponent = c['default'];
               });
               import.meta.hot.accept('my-components');
             }
             if (myhelper.prototype instanceof _ref20) {
               (async () => {
-                const c = await import('/ember-vite-hmr/virtual/component:my-helpers:default.gjs');
+                const c = await import('/ember-vite-hmr/virtual/component:my-helpers::default.gjs');
                 template__imports__.myhelper = c.default;
               })();
-              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-helpers:default.gjs', c => {
+              import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-helpers::default.gjs', c => {
                 template__imports__.myhelper = c['default'];
               });
               import.meta.hot.accept('my-helpers');
