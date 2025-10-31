@@ -41,7 +41,7 @@
   "dependencies": {
     "@babel/core": "^7.28.0",
     "@babel/plugin-transform-typescript": "^7.28.5",
-    "@babel/traverse": "^7.23.2",
+    "@babel/traverse": "^7.28.5",
     "@babel/types": "^7.24.0",
     "@embroider/addon-shim": "^1.10.0",
     "@glimmer/syntax": "^0.95.0",
