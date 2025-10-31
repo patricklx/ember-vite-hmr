@@ -181,28 +181,35 @@ describe('hmr tests', () => {
     async () => {
       // Log platform information to help with debugging
       console.log('Running tests on platform:', process.platform);
+      console.log('[beforeAll] Starting test environment setup');
       
       if (!pathExistsSync(tmpDir) || !process.env.REUSE) {
+        console.log('[beforeAll] Creating new Ember app');
         await ensureDir(tmpDir);
         await emptyDir(tmpDir);
         console.log('install to', tmpDir);
         try {
+          console.log('[beforeAll] Running ember-cli new command');
           await execa(
             `npx ember-cli@latest new ${appName} -b @ember/app-blueprint --pnpm`,
             {
               cwd: tmpDir,
-              stdio: 'inherit',
+              stdio: 'pipe',
             },
           );
+          console.log('[beforeAll] Ember app created successfully');
         } catch (e) {
-          console.error(e);
+          console.error('[beforeAll] Error creating Ember app:', e);
         }
 
+        console.log('[beforeAll] Installing vite@6');
         await execa(`pnpm i --save-dev vite@6`, {
           cwd: appDir,
-          stdio: 'inherit',
+          stdio: 'pipe',
         });
+        console.log('[beforeAll] vite@6 installed');
 
+        console.log('[beforeAll] Editing babel.config.cjs');
         await editFile('./babel.config.cjs')
           .insert(
             "\nconst { hotAstProcessor } = require('ember-vite-hmr/lib/babel-plugin');\n",
@@ -221,25 +228,37 @@ describe('hmr tests', () => {
             "require.resolve('decorator-transforms/runtime')",
             "'decorator-transforms/runtime'",
           );
+        console.log('[beforeAll] babel.config.cjs edited');
 
+        console.log('[beforeAll] Editing vite.config.mjs');
         await editFile('./vite.config.mjs')
           .insert("\nimport { hmr } from 'ember-vite-hmr';\n")
           .replaceCode('plugins: [', 'plugins: [\n    hmr(),\n');
+        console.log('[beforeAll] vite.config.mjs edited');
+      } else {
+        console.log('[beforeAll] Reusing existing app directory');
       }
 
+      console.log('[beforeAll] Building ember-vite-hmr');
       await execa('pnpm build', {
-        stdio: 'inherit',
+        stdio: 'pipe',
       });
+      console.log('[beforeAll] Build completed');
 
+      console.log('[beforeAll] Building lib');
       await execa('pnpm build:lib', {
-        stdio: 'inherit',
+        stdio: 'pipe',
       });
+      console.log('[beforeAll] Lib build completed');
 
+      console.log('[beforeAll] Installing ember-vite-hmr in test app');
       await execa(`pnpm i --save-dev ../../`, {
         cwd: appDir,
-        stdio: 'inherit',
+        stdio: 'pipe',
       });
+      console.log('[beforeAll] ember-vite-hmr installed');
 
+      console.log('[beforeAll] Setting up test files');
       deleteFile('./app/templates/application.gjs');
 
       await editFile('./app/templates/application.hbs').setContent(
@@ -258,12 +277,16 @@ describe('hmr tests', () => {
       </template>
     }
     `);
+      console.log('[beforeAll] Test files created');
 
+      console.log('[beforeAll] Starting Vite server');
       viteContext = await startVite({
         cwd: appDir,
       });
       endpoint = viteContext.baseUri;
       page = viteContext.page;
+      console.log('[beforeAll] Vite server started successfully');
+      console.log('[beforeAll] Test environment setup complete');
     },
     2 * 60 * 1000,
   );
