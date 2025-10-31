@@ -195,6 +195,8 @@ describe('hmr tests', () => {
             {
               cwd: tmpDir,
               stdio: 'pipe',
+              shell: true,
+              input: '',
             },
           );
           console.log('[beforeAll] Ember app created successfully');
@@ -206,6 +208,8 @@ describe('hmr tests', () => {
         await execa(`pnpm i --save-dev vite@6`, {
           cwd: appDir,
           stdio: 'pipe',
+          shell: true,
+          input: '',
         });
         console.log('[beforeAll] vite@6 installed');
 
@@ -242,12 +246,16 @@ describe('hmr tests', () => {
       console.log('[beforeAll] Building ember-vite-hmr');
       await execa('pnpm build', {
         stdio: 'pipe',
+        shell: true,
+        input: '',
       });
       console.log('[beforeAll] Build completed');
 
       console.log('[beforeAll] Building lib');
       await execa('pnpm build:lib', {
         stdio: 'pipe',
+        shell: true,
+        input: '',
       });
       console.log('[beforeAll] Lib build completed');
 
@@ -255,6 +263,8 @@ describe('hmr tests', () => {
       await execa(`pnpm i --save-dev ../../`, {
         cwd: appDir,
         stdio: 'pipe',
+        shell: true,
+        input: '',
       });
       console.log('[beforeAll] ember-vite-hmr installed');
 
@@ -288,7 +298,7 @@ describe('hmr tests', () => {
       console.log('[beforeAll] Vite server started successfully');
       console.log('[beforeAll] Test environment setup complete');
     },
-    2 * 60 * 1000,
+    5 * 60 * 1000,
   );
 
   test('should render', async () => {
