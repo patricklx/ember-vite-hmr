@@ -43,8 +43,8 @@ importers:
         version: 7.7.2
     devDependencies:
       '@babel/eslint-parser':
-        specifier: ^7.28.4
-        version: 7.28.4(@babel/core@7.28.0(supports-color@10.2.2))(eslint@9.38.0(supports-color@10.2.2))
+        specifier: ^7.28.5
+        version: 7.28.5(@babel/core@7.28.0(supports-color@10.2.2))(eslint@9.38.0(supports-color@10.2.2))
       '@babel/plugin-proposal-class-properties':
         specifier: ^7.16.7
         version: 7.18.6(@babel/core@7.28.0(supports-color@10.2.2))(supports-color@10.2.2)
@@ -230,8 +230,8 @@ packages:
     resolution: {integrity: sha512-UlLAnTPrFdNGoFtbSXwcGFQBtQZJCNjaN6hQNP3UPvuNXT1i82N26KL3dZeIpNalWywr9IuQuncaAfUaS1g6sQ==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/eslint-parser@7.28.4':
-    resolution: {integrity: sha512-Aa+yDiH87980jR6zvRfFuCR1+dLb00vBydhTL+zI992Rz/wQhSvuxjmOOuJOgO3XmakO6RykRGD2S1mq1AtgHA==}
+  '@babel/eslint-parser@7.28.5':
+    resolution: {integrity: sha512-fcdRcWahONYo+JRnJg1/AekOacGvKx12Gu0qXJXFi2WBqQA1i7+O5PaxRB7kxE/Op94dExnCiiar6T09pvdHpA==}
     engines: {node: ^10.13.0 || ^12.13.0 || >=14.0.0}
     peerDependencies:
       '@babel/core': ^7.11.0
@@ -5363,7 +5363,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/eslint-parser@7.28.4(@babel/core@7.28.0(supports-color@10.2.2))(eslint@9.38.0(supports-color@10.2.2))':
+  '@babel/eslint-parser@7.28.5(@babel/core@7.28.0(supports-color@10.2.2))(eslint@9.38.0(supports-color@10.2.2))':
     dependencies:
       '@babel/core': 7.28.0(supports-color@10.2.2)
       '@nicolo-ribaudo/eslint-scope-5-internals': 5.1.1-v1
@@ -8532,7 +8532,7 @@ snapshots:
   ember-eslint-parser@0.5.11(@babel/core@7.28.0(supports-color@10.2.2))(eslint@9.38.0(supports-color@10.2.2))(typescript@5.9.3):
     dependencies:
       '@babel/core': 7.28.0(supports-color@10.2.2)
-      '@babel/eslint-parser': 7.28.4(@babel/core@7.28.0(supports-color@10.2.2))(eslint@9.38.0(supports-color@10.2.2))
+      '@babel/eslint-parser': 7.28.5(@babel/core@7.28.0(supports-color@10.2.2))(eslint@9.38.0(supports-color@10.2.2))
       '@glimmer/syntax': 0.95.0
       '@typescript-eslint/tsconfig-utils': 8.43.0(typescript@5.9.3)
       content-tag: 2.0.2
