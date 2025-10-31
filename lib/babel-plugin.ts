@@ -348,6 +348,12 @@ export default function hotReplaceAst(babel: typeof Babel) {
             continue;
           }
           const source = importDeclaration.source.value;
+          
+          // Skip if import is from node_modules
+          if (source.includes('node_modules')) {
+            continue;
+          }
+          
           const specifier = importDeclaration.specifiers.find(
             (s) => s.local.name === imp,
           );
