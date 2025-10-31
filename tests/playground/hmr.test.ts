@@ -165,7 +165,8 @@ describe('hmr tests', () => {
             `npx ember-cli@latest new ${appName} -b @ember/app-blueprint --pnpm`,
             {
               cwd: tmpDir,
-              stdio: 'inherit',
+              stdio: 'pipe',
+              shell: true
             },
           );
         } catch (e) {
@@ -174,7 +175,8 @@ describe('hmr tests', () => {
 
         await execa(`pnpm i --save-dev vite@6`, {
           cwd: appDir,
-          stdio: 'inherit',
+          stdio: 'pipe',
+          shell: true
         });
 
         await editFile('./babel.config.cjs')
@@ -202,16 +204,19 @@ describe('hmr tests', () => {
       }
 
       await execa('pnpm build', {
-        stdio: 'inherit',
+        stdio: 'pipe',
+        shell: true
       });
 
       await execa('pnpm build:lib', {
-        stdio: 'inherit',
+        stdio: 'pipe',
+        shell: true
       });
 
       await execa(`pnpm i --save-dev ../../`, {
         cwd: appDir,
-        stdio: 'inherit',
+        stdio: 'pipe',
+        shell: true
       });
 
       deleteFile('./app/templates/application.gjs');
@@ -239,7 +244,7 @@ describe('hmr tests', () => {
       endpoint = viteContext.baseUri;
       page = viteContext.page;
     },
-    2 * 60 * 1000,
+    5 * 60 * 1000,
   );
 
   test('should render', async () => {

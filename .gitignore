@@ -29,3 +29,5 @@
 !webpack.js
 !babel.config.lib.json
 !babel.config.ember.json
+!.github
+!.github/**/*
