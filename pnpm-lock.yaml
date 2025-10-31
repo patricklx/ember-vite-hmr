@@ -139,8 +139,8 @@ importers:
         specifier: ^6.6.0
         version: 6.6.0(@glimmer/component@2.0.0(supports-color@10.2.2))(rsvp@4.8.5)(supports-color@10.2.2)
       ember-template-lint:
-        specifier: ^7.9.1
-        version: 7.9.1
+        specifier: ^7.9.3
+        version: 7.9.3
       eslint:
         specifier: ^9.38.0
         version: 9.38.0(supports-color@10.2.2)
@@ -2691,8 +2691,8 @@ packages:
     peerDependencies:
       '@glimmer/component': '>= 1.1.2'
 
-  ember-template-lint@7.9.1:
-    resolution: {integrity: sha512-uh5WU2sJKkQgDgIQovwv1D0fw2/RJnmyAHqIhaTYk68CfKQ/O5v31c1iXNu71qv3xeONi3QPl/rBW0EMdIFXWA==}
+  ember-template-lint@7.9.3:
+    resolution: {integrity: sha512-iqC4rv/oVlXViGuf7hlOA/bC550ZqacZKAc8WvQV0ueeCtIYPkYYK+Tc7FwpM8qGx3jiwu/ZsTuNfPInI5pL7Q==}
     engines: {node: ^18.18.0 || >= 20.9.0}
     hasBin: true
 
@@ -8635,7 +8635,7 @@ snapshots:
       - rsvp
       - supports-color
 
-  ember-template-lint@7.9.1:
+  ember-template-lint@7.9.3:
     dependencies:
       '@lint-todo/utils': 13.1.1
       content-tag: 3.1.3
