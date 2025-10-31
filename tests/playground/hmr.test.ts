@@ -46,34 +46,20 @@ describe('hmr tests', () => {
     const isWindows = process.platform === 'win32';
     const timeoutDuration = isWindows ? 120 * 1000 : 30 * 1000;
     
-    console.log(`Waiting for message '${withText}' with ${timeoutDuration}ms timeout on ${process.platform}`);
-    
     return new Promise((resolve) => {
       let t = setTimeout(() => {
-        console.log(
-          `waitForMessage '${withText}' time out, messages:`,
-          viteContext.messages.map((m) => m),
-        );
         // Always resolve on timeout to prevent test hanging
-        console.log('Timeout waiting for message, continuing test execution');
         resolve('timeout-but-continuing');
       }, timeoutDuration);
       function check() {
         if (!t) return;
-        
-        // Log current platform and messages for debugging
-        console.log(`[${process.platform}] check for:`, withText);
-        console.log(`[${process.platform}] messages:`, viteContext.messages);
         
         // On Windows, we'll be more lenient with page reloads
         const hasPageReload = viteContext.messages.find((m) =>
           m.includes('page reload'),
         );
         if (hasPageReload && process.platform !== 'win32') {
-          console.log('Page reload detected, but continuing on Windows');
-          if (process.platform !== 'win32') {
-            throw new Error('page reload detected');
-          }
+          throw new Error('page reload detected');
         }
         
         const m = viteContext.messages.find((m) =>
@@ -84,7 +70,6 @@ describe('hmr tests', () => {
           viteContext.messages.splice(0, i + 1);
           clearTimeout(t);
           t = null;
-          console.log(`[${process.platform}] Found message:`, m);
           resolve(m);
         }
       }
@@ -116,8 +101,6 @@ describe('hmr tests', () => {
         for (const task of this.tasks) {
           await task();
         }
-        console.log(this.location);
-        console.log((await readFile(this.location)).toString());
         this.tasks = [];
         // wait a bit
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -179,17 +162,10 @@ describe('hmr tests', () => {
 
   beforeAll(
     async () => {
-      // Log platform information to help with debugging
-      console.log('Running tests on platform:', process.platform);
-      console.log('[beforeAll] Starting test environment setup');
-      
       if (!pathExistsSync(tmpDir) || !process.env.REUSE) {
-        console.log('[beforeAll] Creating new Ember app');
         await ensureDir(tmpDir);
         await emptyDir(tmpDir);
-        console.log('install to', tmpDir);
         try {
-          console.log('[beforeAll] Running ember-cli new command');
           await execa(
             `npx ember-cli@latest new ${appName} -b @ember/app-blueprint --pnpm`,
             {
@@ -198,20 +174,16 @@ describe('hmr tests', () => {
               shell: true
             },
           );
-          console.log('[beforeAll] Ember app created successfully');
         } catch (e) {
-          console.error('[beforeAll] Error creating Ember app:', e);
+          console.error('Error creating Ember app:', e);
         }
 
-        console.log('[beforeAll] Installing vite@6');
         await execa(`pnpm i --save-dev vite@6`, {
           cwd: appDir,
           stdio: 'pipe',
           shell: true
         });
-        console.log('[beforeAll] vite@6 installed');
 
-        console.log('[beforeAll] Editing babel.config.cjs');
         await editFile('./babel.config.cjs')
           .insert(
             "\nconst { hotAstProcessor } = require('ember-vite-hmr/lib/babel-plugin');\n",
@@ -230,40 +202,28 @@ describe('hmr tests', () => {
             "require.resolve('decorator-transforms/runtime')",
             "'decorator-transforms/runtime'",
           );
-        console.log('[beforeAll] babel.config.cjs edited');
 
-        console.log('[beforeAll] Editing vite.config.mjs');
         await editFile('./vite.config.mjs')
           .insert("\nimport { hmr } from 'ember-vite-hmr';\n")
           .replaceCode('plugins: [', 'plugins: [\n    hmr(),\n');
-        console.log('[beforeAll] vite.config.mjs edited');
-      } else {
-        console.log('[beforeAll] Reusing existing app directory');
       }
 
-      console.log('[beforeAll] Building ember-vite-hmr');
       await execa('pnpm build', {
         stdio: 'pipe',
         shell: true
       });
-      console.log('[beforeAll] Build completed');
 
-      console.log('[beforeAll] Building lib');
       await execa('pnpm build:lib', {
         stdio: 'pipe',
         shell: true
       });
-      console.log('[beforeAll] Lib build completed');
 
-      console.log('[beforeAll] Installing ember-vite-hmr in test app');
       await execa(`pnpm i --save-dev ../../`, {
         cwd: appDir,
         stdio: 'pipe',
         shell: true
       });
-      console.log('[beforeAll] ember-vite-hmr installed');
 
-      console.log('[beforeAll] Setting up test files');
       deleteFile('./app/templates/application.gjs');
 
       await editFile('./app/templates/application.hbs').setContent(
@@ -282,16 +242,12 @@ describe('hmr tests', () => {
       </template>
     }
     `);
-      console.log('[beforeAll] Test files created');
 
-      console.log('[beforeAll] Starting Vite server');
       viteContext = await startVite({
         cwd: appDir,
       });
       endpoint = viteContext.baseUri;
       page = viteContext.page;
-      console.log('[beforeAll] Vite server started successfully');
-      console.log('[beforeAll] Test environment setup complete');
     },
     5 * 60 * 1000,
   );
@@ -405,12 +361,8 @@ describe('hmr tests', () => {
     await waitForMessage(
       'hot updated: /app/components/foo-component.gjs via /app/components/test-component.gjs',
     );
-    const test = await page.waitForSelector('body');
-    console.log('wait', await test.evaluate((el) => el.textContent));
     body = await page.waitForSelector('.count');
-    console.log('.count');
     bodyContent = await body.evaluate((el) => el.textContent);
-    console.log('content');
     expect(bodyContent, bodyContent).toContain('version 2');
     expect(bodyContent, bodyContent).toContain('count still 1: 1');
   });
