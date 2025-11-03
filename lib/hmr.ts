@@ -128,12 +128,20 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         .includes(config.mode)
         .toString();
     },
-    resolveId(id, importer, meta) {
+    async resolveId(id, importer, meta) {
       if (importer?.startsWith(virtualPrefix)) {
         importer = path.join(process.cwd(), 'package.json');
         return this.resolve(id, importer, meta);
       }
       if (id.startsWith(virtualPrefix)) {
+          let [imp, specifier] = id
+              .split('?')[0]!
+              .slice(virtualPrefix.length)
+              .split('::');
+          if (imp?.startsWith('.')) {
+              const r = await this.resolve(imp, importer);
+              return id.replace(`${imp}::${specifier}`,`${r!.id}::${specifier}`);
+          }
         return id;
       }
       if (id === '/ember-vite-hmr/services/vite-hot-reload') {
@@ -146,6 +154,10 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
     },
     async load(id: string) {
       if (id.startsWith(virtualPrefix)) {
+        if (!server) {
+          // During build, server is not available
+          return null;
+        }
         let [imp, specifier] = id
           .split('?')[0]!
           .slice(virtualPrefix.length, -'.gts'.length)
@@ -368,6 +380,86 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             },
           ],
         })!.code!;
+      }
+
+      // Add hot reload statements for tracked imports (only non-node_modules)
+      const metadataMatch = source.match(/export const __hmr_import_metadata__ = \{[^}]+\}/);
+      if (metadataMatch) {
+        const importVarMatch = source.match(/importVar:\s*["']([^"']+)["']/);
+        const bindingsMatch = source.match(/bindings:\s*\[([^\]]+)\]/);
+        
+        if (importVarMatch && bindingsMatch) {
+          const importVar = importVarMatch[1];
+          const bindings = bindingsMatch[1]
+            .split(',')
+            .map(b => b.trim().replace(/["']/g, ''))
+            .filter(b => b);
+          
+          // Extract import declarations to get source paths
+          const importStatements: Array<{local: string, source: string, specifier: string}> = [];
+          const importRegex = /import\s+(?:{[^}]*\b(\w+)\b[^}]*}|(\w+))\s+from\s+["']([^"']+)["']/g;
+          let match;
+          while ((match = importRegex.exec(source)) !== null) {
+            const local = match[1] || match[2];
+            const importSource = match[3];
+            if (local && bindings.includes(local)) {
+              // Determine specifier name
+              const namedImportMatch = source.match(new RegExp(`import\\s+{[^}]*\\b(\\w+)\\s+as\\s+${local}\\b[^}]*}\\s+from\\s+["']${importSource.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`));
+              const defaultImportMatch = source.match(new RegExp(`import\\s+${local}\\s+from\\s+["']${importSource.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`));
+              
+              let specifier = 'default';
+              if (namedImportMatch) {
+                specifier = namedImportMatch[1] || local;
+              } else if (!defaultImportMatch) {
+                // Named import without alias
+                const simpleNamedMatch = source.match(new RegExp(`import\\s+{[^}]*\\b${local}\\b[^}]*}\\s+from\\s+["']${importSource.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`));
+                if (simpleNamedMatch) {
+                  specifier = local;
+                }
+              }
+              
+              importStatements.push({ local, source: importSource, specifier });
+            }
+          }
+          
+          // Generate hot reload code for each import
+          const hotReloadStatements: string[] = [];
+          for (const imp of importStatements) {
+            // Resolve the import to check if it's from node_modules
+            const resolved = await this.resolve(imp.source, resourcePath, {});
+            if (resolved?.id && normalizePath(resolved.id).includes('node_modules')) {
+              // Skip node_modules imports
+              continue;
+            }
+            
+            const sourceId = imp.source.replace(/@embroider\/virtual/g, 'embroider_virtual');
+            const virtualPath = `/ember-vite-hmr/virtual/component:${sourceId}::${imp.specifier}.gjs`;
+            
+            hotReloadStatements.push(`
+  (async () => {
+    const GlimmerComponent = (await import('@glimmer/component')).default;
+    if (${imp.local}.prototype instanceof GlimmerComponent) {
+      const c = await import('${virtualPath}');
+      ${importVar}.${imp.local} = c.default;
+      import.meta.hot.accept('${virtualPath}', (c) => {
+        ${importVar}.${imp.local} = c['${imp.specifier}'];
+      });
+      import.meta.hot.accept('${imp.source}');
+    }
+  })();`);
+          }
+          
+          if (hotReloadStatements.length > 0) {
+            const hotReloadCode = `
+if (import.meta.hot) {
+${hotReloadStatements.join('\n')}
+}`;
+            source = source.replace(/export const __hmr_import_metadata__[^;]+;/, '') + hotReloadCode;
+          } else {
+            // Remove metadata export if no hot reload statements added
+            source = source.replace(/export const __hmr_import_metadata__[^;]+;/, '');
+          }
+        }
       }
 
       const supportedPaths = ['routers', 'controllers', 'routes', 'templates'];
