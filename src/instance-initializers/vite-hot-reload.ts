@@ -35,7 +35,7 @@ function supportErrorRecovery(appInstance: ApplicationInstance) {
     ) as any;
     applicationRouter._router._toplevelView.destroy();
     applicationRouter._router._toplevelView = null;
-    renderer._clearAllRoots();
+    (renderer as any)._clearAllRoots();
     window.document.body = bodyHtml.cloneNode(true) as any;
     next(() => {
       const transition = router.refresh();
