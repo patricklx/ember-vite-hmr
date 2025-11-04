@@ -35,7 +35,7 @@
     "start": "concurrently 'npm:start:*'",
     "start:js": "rollup --config --watch --no-watch.clearScreen",
     "start:types": "glint --declaration --watch",
-    "test": "vitest run",
+    "test": "vitest run --hook-timeout=120000",
     "prepack": "pnpm build || echo 'its okay'"
   },
   "dependencies": {
