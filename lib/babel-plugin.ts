@@ -274,13 +274,13 @@ export default function hotReplaceAst(babel: typeof Babel) {
     },
     visitor: {
       Program(path, state) {
-        if (!hotAstProcessor.meta.importVar) {
-          return;
-        }
         if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
           return;
         }
         if (state.filename?.includes('node_modules')) {
+          return;
+        }
+        if (!hotAstProcessor.meta.importVar || hotAstProcessor.meta.importBindings.size === 0) {
           return;
         }
         const util = new ImportUtil(babel, path);
@@ -330,73 +330,27 @@ export default function hotReplaceAst(babel: typeof Babel) {
           assign as unknown as Statement,
         );
 
-        const findImport = function findImport(specifier: string) {
-          return path.node.body.find(
-            (b) =>
-              b.type === 'ImportDeclaration' &&
-              b.specifiers.some((s) => s.local.name === specifier),
-          );
-        };
-
-        const ifHotStatements = [];
-        for (const imp of bindings) {
-          const importDeclaration = findImport(
-            imp,
-          ) as BabelTypesNamespace.ImportDeclaration;
-          if (!importDeclaration) {
-            console.error(`could not find import specifier for ${imp}`);
-            continue;
-          }
-          const source = importDeclaration.source.value;
-          const specifier = importDeclaration.specifiers.find(
-            (s) => s.local.name === imp,
-          );
-
-          const specifierName =
-            ((specifier as ImportSpecifier).imported as Identifier)?.name ||
-            ((specifier as ImportSpecifier).imported as StringLiteral)?.value ||
-            'default';
-
-          const sourceId = source.replace(
-            /@embroider\/virtual/g,
-            'embroider_virtual',
-          );
-          const virtualPath = `/ember-vite-hmr/virtual/component:${sourceId}::${specifierName}.gjs`;
-          const ast = parse(`
-            (async () => {
-              const c = await import('${virtualPath}');
-              ${hotAstProcessor.meta.importVar}.${imp} = c.default;
-            })()
-            import.meta.hot.accept('${virtualPath}', (c) => {
-              ${hotAstProcessor.meta.importVar}.${imp} = c['${specifierName}'];
-            });
-            import.meta.hot.accept('${source}');
-          `, {
-            babelrc: false,
-            configFile: false,
-          });
-
-          const importVirtual = ast!.program.body;
-
-          const ifInstanceOfComponent = t.ifStatement(
-            t.binaryExpression(
-              'instanceof',
-              t.memberExpression(t.identifier(imp), t.identifier('prototype')),
-              GlimmerComponent,
-            ),
-            t.blockStatement([...importVirtual]),
-          );
-
-          ifHotStatements.push(ifInstanceOfComponent);
-        }
-        const ifHot = t.ifStatement(
-          t.memberExpression(
-            t.metaProperty(t.identifier('import'), t.identifier('meta')),
-            t.identifier('hot'),
+        // Export metadata about tracked imports for hmr.ts to use
+        const importMetadata = t.variableDeclaration('const', [
+          t.variableDeclarator(
+            t.identifier('__hmr_import_metadata__'),
+            t.objectExpression([
+              t.objectProperty(
+                t.identifier('importVar'),
+                t.stringLiteral(hotAstProcessor.meta.importVar),
+              ),
+              t.objectProperty(
+                t.identifier('bindings'),
+                t.arrayExpression(
+                  bindings.map((b) => t.stringLiteral(b)),
+                ),
+              ),
+            ]),
           ),
-          t.blockStatement([...ifHotStatements]),
-        );
-        path.node.body.push(ifHot);
+        ]);
+        
+        const exportMetadata = t.exportNamedDeclaration(importMetadata, []);
+        path.node.body.push(exportMetadata);
         path.scope.crawl();
       },
     },

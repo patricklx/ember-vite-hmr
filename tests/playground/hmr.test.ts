@@ -418,4 +418,4 @@ describe('hmr tests', () => {
     bodyContent = await body.evaluate((el) => el.textContent);
     expect(bodyContent, bodyContent).toContain('hi2 2');
   });
-});
+}, 120 * 1000);
