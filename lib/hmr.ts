@@ -1,6 +1,6 @@
 import path from 'path';
 import {Plugin, ViteDevServer} from 'vite';
-import {NodePath, transformSync} from '@babel/core';
+import {NodePath, parseSync } from '@babel/core';
 import {readFileSync} from 'fs';
 
 function generateContent(yields: string[]) {
@@ -277,10 +277,12 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
 
             // Add hot reload statements for tracked imports (only non-node_modules)
             // Use babel visitor to extract __hmr_import_metadata__
-            const result = transformSync(source, {
+            const result = parseSync(source, {
                 filename: resourcePath,
                 ast: true,
                 code: false,
+                configFile: false,
+                babelrc: false,
                 plugins: [
                     ['@babel/plugin-syntax-typescript', { isTSX: true }],
                     ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
