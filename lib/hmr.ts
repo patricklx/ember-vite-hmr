@@ -259,7 +259,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
                 source += `\n
               let prevCompatModules = Object.assign({}, compatModules);
               import.meta.hot.accept('@embroider/virtual/compat-modules', (m) => {
-                for (const [name, module] of Object.entries(m.default)) {
+                for (const x[name, module] of Object.entries(m.default)) {
                   if (name.includes('initializers') && prevCompatModules[name]?.default !== module.default) {
                     window.location.reload();
                   }
@@ -289,7 +289,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
                 ],
             });
 
-            if (result?.ast) {
+            if (result) {
                 let importVar: string | null = null;
                 let bindings: string[] = [];
                 const importStatements: Array<{ local: string, source: string, specifier: string }> = [];
@@ -297,7 +297,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
                 const traverse = require('@babel/traverse').default;
                 
                 // First pass: Extract metadata
-                traverse(result.ast, {
+                traverse(result, {
                     ExportNamedDeclaration(path: NodePath<any>) {
                         const declaration = path.node.declaration;
                         
@@ -328,7 +328,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
 
                 // Second pass: Find matching imports (only if we have bindings to match)
                 if (importVar && bindings.length > 0) {
-                    traverse(result.ast, {
+                    traverse(result, {
                         ImportDeclaration(path: NodePath<any>) {
                             const importSource = path.node.source.value;
                             
@@ -357,13 +357,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
                         },
                     });
                 }
-
-                console.log('[HMR Transform Debug]', {
-                    resourcePath,
-                    importVar,
-                    bindings,
-                    importStatementsCount: importStatements.length
-                });
 
                 // Process metadata if we found importVar (even with empty bindings)
                 if (importVar) {
