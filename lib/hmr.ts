@@ -146,10 +146,9 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
     },
     async load(id: string) {
       if (id.startsWith(virtualPrefix)) {
-        let [imp, specifier] = id
-          .split('?')[0]!
-          .slice(virtualPrefix.length, -'.gts'.length)
-          .split('::');
+        let [id2, specifier] = id.slice(virtualPrefix.length, -'.gts'.length).split('::');
+        let imp = id2!.split('?')[0];
+
         imp = imp!.replace('embroider_virtual', '@embroider/virtual');
         let filename = imp!;
         if (filename.includes('__vpc__')) {
