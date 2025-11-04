@@ -259,7 +259,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
                 source += `\n
               let prevCompatModules = Object.assign({}, compatModules);
               import.meta.hot.accept('@embroider/virtual/compat-modules', (m) => {
-                for (const x[name, module] of Object.entries(m.default)) {
+                for (const [name, module] of Object.entries(m.default)) {
                   if (name.includes('initializers') && prevCompatModules[name]?.default !== module.default) {
                     window.location.reload();
                   }
