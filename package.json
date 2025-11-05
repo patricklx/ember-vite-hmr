@@ -62,7 +62,7 @@
     "@embroider/core": "^4.2.5",
     "@glint/core": "^1.2.0",
     "@glint/environment-ember-loose": "^1.5.2",
-    "@glint/environment-ember-template-imports": "^1.2.0",
+    "@glint/environment-ember-template-imports": "^1.5.2",
     "@glint/template": "^1.7.0",
     "@rollup/plugin-babel": "^6.1.0",
     "@tsconfig/ember": "^3.0.11",
