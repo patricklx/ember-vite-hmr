@@ -254,6 +254,10 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
                 return source;
             }
             const resourcePath = normalizePath(id.split('?')[0]!);
+            const supportedExt = ['.hbs', '.gjs', 'gts', '.js', '.ts'];
+            if (!supportedExt.some(x => resourcePath.endsWith(x))) {
+                return source;
+            }
             const name = require(`${process.cwd()}/package.json`).name;
             if (resourcePath.includes(`${name}/app/app.js`)) {
                 source += `\n
