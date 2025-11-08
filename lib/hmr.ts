@@ -1,7 +1,7 @@
 import path from 'path';
 import { Plugin, ViteDevServer } from 'vite';
 import { NodePath, parseSync } from '@babel/core';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync } from 'fs';
 
 function generateContent(yields: string[]) {
     if (!yields.includes('default')) {
