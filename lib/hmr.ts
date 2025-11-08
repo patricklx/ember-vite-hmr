@@ -375,6 +375,12 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
                             continue;
                         }
 
+                        // filter out virtual modules
+                        if (resolved?.id && existsSync(normalizePath(resolved.id))) {
+                            // Skip node_modules imports
+                            continue;
+                        }
+
                         const sourceId = imp.source.replace(/@embroider\/virtual/g, 'embroider_virtual');
                         const virtualPath = `/ember-vite-hmr/virtual/component:${sourceId}::${imp.specifier}.gjs`;
 
