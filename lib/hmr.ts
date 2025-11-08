@@ -258,6 +258,9 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             if (!supportedExt.some(x => resourcePath.endsWith(x))) {
                 return source;
             }
+            if (resourcePath.includes('node_modules')) {
+                return source;
+            }
             const name = require(`${process.cwd()}/package.json`).name;
             if (resourcePath.includes(`${name}/app/app.js`)) {
                 source += `\n
