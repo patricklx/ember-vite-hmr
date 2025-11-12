@@ -43,7 +43,7 @@
     "@babel/plugin-transform-typescript": "^7.28.5",
     "@babel/traverse": "^7.28.5",
     "@babel/types": "^7.28.5",
-    "@embroider/addon-shim": "^1.10.0",
+    "@embroider/addon-shim": "^1.10.2",
     "@glimmer/syntax": "^0.95.0",
     "@types/supports-color": "^10.0.0",
     "babel-import-util": "^3.0.0",
