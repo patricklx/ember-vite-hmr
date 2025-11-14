@@ -188,7 +188,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
                 return html;
             }
-            const fullPath = path.join(__dirname, '..', 'setup-ember-hmr.js');
+            const fullPath = path.resolve(__dirname, '..', 'setup-ember-hmr.js');
             return (
                 `<script type="module" src="${fullPath}" />${html}`
             );
