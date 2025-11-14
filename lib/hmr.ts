@@ -188,9 +188,9 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
                 return html;
             }
+            const fullPath = path.join(__dirname, '..', 'setup-ember-hmr.js');
             return (
-                `<script type="module" src="/ember-vite-hmr/services/vite-hot-reload" />` +
-                html
+                `<script type="module" src="${fullPath}" />${html}`
             );
         },
         handleHotUpdate(ctx) {
