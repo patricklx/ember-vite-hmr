@@ -188,10 +188,8 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
                 return html;
             }
-            const fullPath = path.resolve(__dirname, '..', 'setup-ember-hmr.js');
-            return (
-                `<script type="module" src="${fullPath}" />${html}`
-            );
+            const fullPath = path.join('@fs', process.cwd(), 'node_modules', 'ember-vite-hmr', 'dist', 'setup-ember-hmr.js');
+            return (`<script type="module">import "/${fullPath}"</script>${html}`);
         },
         handleHotUpdate(ctx) {
             if (!ctx.file.split('?')[0]!.endsWith('.hbs')) {
