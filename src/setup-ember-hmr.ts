@@ -6,7 +6,7 @@ if (import.meta.hot) {
         podModulePrefix: '',
         Resolver: null,
         _accepting: 0,
-        changed: {},
+        changed: {} as Record<string, any>,
         subscribers: [],
         version: 1,
         routerVersion: 1,

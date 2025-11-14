@@ -157,7 +157,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
     },
     async load(id: string) {
       if (id.includes('@ember-vite-hmr/setup-ember-hmr.js')) {
-        return await readFile(path.join(__dirname, 'setup-ember-hmr.js'), 'utf8');
+        return await readFile(path.resolve(__dirname, '..', 'dist', 'setup-ember-hmr.js'), 'utf8');
       }
       if (id.startsWith(virtualPrefix)) {
         if (!server) {
