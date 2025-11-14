@@ -327,7 +327,7 @@ export default function hotReplaceAst(babel: typeof Babel) {
         path.node.body.splice(
           Math.max(varDeclaration, lastImportIndex),
           0,
-          assign as unknown as Statement,
+          t.expressionStatement(assign),
         );
 
         // Export metadata about tracked imports for hmr.ts to use

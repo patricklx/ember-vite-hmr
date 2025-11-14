@@ -98,7 +98,7 @@ describe('convert template with hot reload helpers', () => {
             NamedComponent = _init_NamedComponent(this, NamedComponent);
             SomeComponent = _init_SomeComponent(this, SomeComponent);
             myhelper = _init_myhelper(this, myhelper);
-          }()
+          }();
           export default precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      <this.X />\\n      {{component this.X}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
             moduleName: 'a.hbs',
             scope: () => ({
@@ -161,7 +161,7 @@ describe('convert template with hot reload helpers', () => {
             NamedComponent = _init_NamedComponent(this, NamedComponent);
             SomeComponent = _init_SomeComponent(this, SomeComponent);
             myhelper = _init_myhelper(this, myhelper);
-          }()
+          }();
           export default createTemplateFactory(
           /*
             
@@ -255,7 +255,7 @@ export { CarbonCodeSnippet as default };
 //# sourceMappingURL=code-snippet.js.map
 `;
     const preTransformed = p.process(code);
-    const result = await babel.transformAsync(preTransformed, {
+    const result = await babel.transformAsync(preTransformed.code, {
       filename: '/rewritten-app/a.gts',
       babelrc: false,
       configFile: false,
@@ -306,7 +306,7 @@ export { CarbonCodeSnippet as default };
             htmlSafe = _init_htmlSafe(this, htmlSafe);
             not = _init_not(this, not);
             on = _init_on(this, on);
-          }()
+          }();
           let template__imports__0 = template__imports__;
           var _class, _descriptor, _descriptor2, _CarbonCodeSnippet;
           const noop = () => '';
@@ -372,9 +372,9 @@ export { CarbonCodeSnippet as default };
       <NamedComponent />
     </template>
     
-    `;
+`;
     const preTransformed = p.process(code);
-    const result = await babel.transformAsync(preTransformed, {
+    const result = await babel.transformAsync(preTransformed.code, {
       filename: '/rewritten-app/a.gts',
       babelrc: false,
       configFile: false,
@@ -414,7 +414,7 @@ export { CarbonCodeSnippet as default };
             Other = _init_Other(this, Other);
             SomeComponent = _init_SomeComponent(this, SomeComponent);
             myhelper = _init_myhelper(this, myhelper);
-          }()
+          }();
           let template__imports__0 = template__imports__;
           const T = setComponentTemplate(precompileTemplate("\\n            <template__imports__.Other />\\n        ", {
             strictMode: true,
@@ -434,7 +434,7 @@ export { CarbonCodeSnippet as default };
           };"
         `);
 
-    const resultWired = await babel.transformAsync(preTransformed, {
+    const resultWired = await babel.transformAsync(preTransformed.code, {
       filename: '/rewritten-app/a.gts',
       babelrc: false,
       configFile: false,
@@ -483,7 +483,7 @@ export { CarbonCodeSnippet as default };
             Other = _init_Other(this, Other);
             SomeComponent = _init_SomeComponent(this, SomeComponent);
             myhelper = _init_myhelper(this, myhelper);
-          }()
+          }();
           let template__imports__0 = template__imports__;
           const T = setComponentTemplate(createTemplateFactory(
           /*
