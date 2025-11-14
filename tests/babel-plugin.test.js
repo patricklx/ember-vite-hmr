@@ -252,7 +252,6 @@ let CarbonCodeSnippet = (_class = (_CarbonCodeSnippet = class CarbonCodeSnippet 
 })), _class);
 
 export { CarbonCodeSnippet as default };
-//# sourceMappingURL=code-snippet.js.map
 `;
     const preTransformed = p.process(code);
     const result = await babel.transformAsync(preTransformed, {
