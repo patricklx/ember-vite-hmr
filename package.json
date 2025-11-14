@@ -39,7 +39,7 @@
     "prepack": "pnpm build || echo 'its okay'"
   },
   "dependencies": {
-    "@babel/core": "^7.28.0",
+    "@babel/core": "^7.28.5",
     "@babel/plugin-transform-typescript": "^7.28.5",
     "@babel/traverse": "^7.28.5",
     "@babel/types": "^7.28.5",
