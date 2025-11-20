@@ -59,7 +59,7 @@
     "@babel/runtime": "^7.28.4",
     "@embroider/addon-dev": "^8.1.0",
     "@embroider/compat": "^4.1.8",
-    "@embroider/core": "^4.2.7",
+    "@embroider/core": "^4.2.8",
     "@glint/core": "^1.2.0",
     "@glint/environment-ember-loose": "^1.5.2",
     "@glint/environment-ember-template-imports": "^1.5.2",
