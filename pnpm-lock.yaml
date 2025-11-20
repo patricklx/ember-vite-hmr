@@ -136,8 +136,8 @@ importers:
         specifier: ^13.1.1
         version: 13.1.1(supports-color@10.2.2)
       ember-source:
-        specifier: ^6.8.1
-        version: 6.8.1(@glimmer/component@2.0.0(supports-color@10.2.2))(rsvp@4.8.5)(supports-color@10.2.2)
+        specifier: ^6.8.2
+        version: 6.8.2(@glimmer/component@2.0.0(supports-color@10.2.2))(rsvp@4.8.5)(supports-color@10.2.2)
       ember-template-lint:
         specifier: ^7.9.3
         version: 7.9.3
@@ -2583,8 +2583,8 @@ packages:
     resolution: {integrity: sha512-89oVHVJwmLDvGvAUWgS87KpBoRhy3aZ6U0Ql6HOmU4TrPkyaa8pM0W81wj9cIwjYprcQtN9EwzZMHnq46+oUyw==}
     engines: {node: 8.* || 10.* || >= 12}
 
-  ember-source@6.8.1:
-    resolution: {integrity: sha512-yGYa7HiXnJA/D0plnS7yCP/1qXGqMocuXi/iJih/QMSLgq3AEy8I5Qaz5re4HOUtpaMh0ZKmyejTD5tLfzhmvQ==}
+  ember-source@6.8.2:
+    resolution: {integrity: sha512-z2ukdKj+97fmo6DqIajKcPFVFwxEIiHzcENmDQVMGlPUR9O7jtENOST7RS3xAiHdCdFoYKRuf7+g2GvNW/7hLw==}
     engines: {node: '>= 18.*'}
     peerDependencies:
       '@glimmer/component': '>= 1.1.2'
@@ -4003,8 +4003,8 @@ packages:
     resolution: {integrity: sha512-Xa4Nw17FS9ApQFJ9umLiJS4orGjm7ZzwUrwamcGQuHSzDyth9boKDaycYdDcZDuqYATXw4HFXgaqWTctW/v1HA==}
     engines: {node: '>=16 || 14 >=14.18'}
 
-  path-scurry@2.0.0:
-    resolution: {integrity: sha512-ypGJsmGtdXUOeM5u93TyeIEfEhM6s+ljAhrk5vAvSx8uyY/02OvrZnA0YNGUrPXfpJMgI1ODd3nwz8Npx4O4cg==}
+  path-scurry@2.0.1:
+    resolution: {integrity: sha512-oWyT4gICAu+kaA7QWk/jvCHWarMKNs6pXOGWKDTr7cw4IGcUbW+PeTfbaQiLGheFRpjo6O9J0PmyMfQPjH71oA==}
     engines: {node: 20 || >=22}
 
   pathe@2.0.3:
@@ -8288,7 +8288,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  ember-source@6.8.1(@glimmer/component@2.0.0(supports-color@10.2.2))(rsvp@4.8.5)(supports-color@10.2.2):
+  ember-source@6.8.2(@glimmer/component@2.0.0(supports-color@10.2.2))(rsvp@4.8.5)(supports-color@10.2.2):
     dependencies:
       '@babel/core': 7.28.5(supports-color@10.2.2)
       '@ember/edition-utils': 1.2.0
@@ -9045,7 +9045,7 @@ snapshots:
     dependencies:
       minimatch: 10.1.1
       minipass: 7.1.2
-      path-scurry: 2.0.0
+      path-scurry: 2.0.1
 
   glob@5.0.15:
     dependencies:
@@ -9971,7 +9971,7 @@ snapshots:
       lru-cache: 10.4.3
       minipass: 7.1.2
 
-  path-scurry@2.0.0:
+  path-scurry@2.0.1:
     dependencies:
       lru-cache: 11.2.2
       minipass: 7.1.2
