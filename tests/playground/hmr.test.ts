@@ -179,9 +179,9 @@ describe('hmr tests', () => {
           shell: true
         });
 
-        await editFile('./babel.config.cjs')
+        await editFile('./babel.config.mjs')
           .insert(
-            "\nconst { hotAstProcessor } = require('ember-vite-hmr/lib/babel-plugin');\n",
+            "\nimport { hotAstProcessor } from 'ember-vite-hmr/lib/babel-plugin';\n",
           )
           .replaceCode(
             'plugins: [',
