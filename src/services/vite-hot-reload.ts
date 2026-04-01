@@ -20,11 +20,11 @@ export default class ViteHotReloadService extends Service {
 
   init(args: any) {
     super.init(args);
-    if (!emberHotReloadPlugin) return;
+    if (!globalThis.emberHotReloadPlugin) return;
     const app = (getOwner(this) as ApplicationInstance)!.application as any;
-    emberHotReloadPlugin.Resolver = app.Resolver;
-    emberHotReloadPlugin.modulePrefix = app.modulePrefix;
-    emberHotReloadPlugin.podModulePrefix = app.podModulePrefix;
+    globalThis.emberHotReloadPlugin.Resolver = app.Resolver;
+    globalThis.emberHotReloadPlugin.modulePrefix = app.modulePrefix;
+    globalThis.emberHotReloadPlugin.podModulePrefix = app.podModulePrefix;
     this.router._router;
     Object.defineProperty(this.router._router, '_routerMicrolib', {
       set(v) {
@@ -47,7 +47,7 @@ export default class ViteHotReloadService extends Service {
       },
     });
     this.container = (getOwner(this) as any)?.__container__;
-    emberHotReloadPlugin.subscribe((oldModule: any, newModule: any) => {
+    globalThis.emberHotReloadPlugin.subscribe((oldModule: any, newModule: any) => {
       let changed = false;
       if (
         oldModule.exports.default?.prototype &&
@@ -71,7 +71,7 @@ export default class ViteHotReloadService extends Service {
         changed = true;
       }
       if (!changed) return;
-      emberHotReloadPlugin.routerVersion += 1;
+      globalThis.emberHotReloadPlugin.routerVersion += 1;
       const types = [
         'route',
         'controller',
