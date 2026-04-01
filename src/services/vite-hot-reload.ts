@@ -32,7 +32,7 @@ export default class ViteHotReloadService extends Service {
         v.getRoute = function (name: string) {
           const route = getRoute.call(
             this,
-            `${name}--hot-version--${emberHotReloadPlugin.routerVersion}`,
+            `${name}--hot-version--${globalThis.emberHotReloadPlugin.routerVersion}`,
           );
           route.fullRouteName = `${name}`.replace(
             /--hot-version--.*$/,
@@ -67,7 +67,7 @@ export default class ViteHotReloadService extends Service {
       ) {
         changed = true;
       }
-      if (oldModule.id.startsWith(`./${emberHotReloadPlugin.podModulePrefix}/`)) {
+      if (oldModule.id.startsWith(`./${globalThis.emberHotReloadPlugin.podModulePrefix}/`)) {
         changed = true;
       }
       if (!changed) return;
@@ -123,7 +123,7 @@ export default class ViteHotReloadService extends Service {
       ) {
         this.router.refresh();
       }
-      if (oldModule.id.startsWith(`./${emberHotReloadPlugin.podModulePrefix}/`)) {
+      if (oldModule.id.startsWith(`./${globalThis.emberHotReloadPlugin.podModulePrefix}/`)) {
         this.router.refresh();
       }
     });
