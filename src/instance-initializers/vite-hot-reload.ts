@@ -1,3 +1,5 @@
+/// <reference types="../../types/global" />
+
 import ApplicationInstance from '@ember/application/instance';
 import { debounce, next } from '@ember/runloop';
 import RouterService from '@ember/routing/router-service';
@@ -42,7 +44,9 @@ function supportErrorRecovery(appInstance: ApplicationInstance) {
       applicationRouter.setup(applicationRouter.context, transition);
     });
   }
-  import.meta.hot?.on('vite:beforeUpdate', () => debounce(rerender, 100));
+  if (import.meta.hot) {
+    import.meta.hot.on('vite:beforeUpdate', () => debounce(rerender, 100));
+  }
   console.warn = function (...args) {
     if (
       args[0].includes(

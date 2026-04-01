@@ -1,7 +1,11 @@
+/// <reference types="../types/global" />
+
+import type { Module } from '../types/global';
+
 if (import.meta.hot) {
     const ModuleMap = new Map();
 
-    (globalThis as any).emberHotReloadPlugin = {
+    emberHotReloadPlugin = {
         modulePrefix: '',
         podModulePrefix: '',
         Resolver: null,
@@ -17,7 +21,7 @@ if (import.meta.hot) {
             this.moduleDepCallbacks[module.id] = {};
         },
         register(module: Module, dep: string, callback: Function) {
-            dep = dep.replace(new RegExp(`^${(globalThis as any).emberHotReloadPlugin.modulePrefix}/`), './');
+            dep = dep.replace(new RegExp(`^${emberHotReloadPlugin.modulePrefix}/`), './');
             this.moduleDepCallbacks[module.id]![dep] =
                 this.moduleDepCallbacks[module.id]![dep] || ([] as Function[]);
             this.moduleDepCallbacks[module.id]![dep]!.push(callback);

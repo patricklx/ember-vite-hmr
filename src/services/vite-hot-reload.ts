@@ -20,11 +20,11 @@ export default class ViteHotReloadService extends Service {
 
   init(args: any) {
     super.init(args);
-    if (!(globalThis as any).emberHotReloadPlugin) return;
+    if (!emberHotReloadPlugin) return;
     const app = (getOwner(this) as ApplicationInstance)!.application as any;
-    (globalThis as any).emberHotReloadPlugin.Resolver = app.Resolver;
-    (globalThis as any).emberHotReloadPlugin.modulePrefix = app.modulePrefix;
-    (globalThis as any).emberHotReloadPlugin.podModulePrefix = app.podModulePrefix;
+    emberHotReloadPlugin.Resolver = app.Resolver;
+    emberHotReloadPlugin.modulePrefix = app.modulePrefix;
+    emberHotReloadPlugin.podModulePrefix = app.podModulePrefix;
     this.router._router;
     Object.defineProperty(this.router._router, '_routerMicrolib', {
       set(v) {
@@ -32,7 +32,7 @@ export default class ViteHotReloadService extends Service {
         v.getRoute = function (name: string) {
           const route = getRoute.call(
             this,
-            `${name}--hot-version--${(globalThis as any).emberHotReloadPlugin.routerVersion}`,
+            `${name}--hot-version--${emberHotReloadPlugin.routerVersion}`,
           );
           route.fullRouteName = `${name}`.replace(
             /--hot-version--.*$/,
@@ -47,7 +47,7 @@ export default class ViteHotReloadService extends Service {
       },
     });
     this.container = (getOwner(this) as any)?.__container__;
-    (globalThis as any).emberHotReloadPlugin.subscribe((oldModule: any, newModule: any) => {
+    emberHotReloadPlugin.subscribe((oldModule: any, newModule: any) => {
       let changed = false;
       if (
         oldModule.exports.default?.prototype &&
@@ -67,11 +67,11 @@ export default class ViteHotReloadService extends Service {
       ) {
         changed = true;
       }
-      if (oldModule.id.startsWith(`./${(globalThis as any).emberHotReloadPlugin.podModulePrefix}/`)) {
+      if (oldModule.id.startsWith(`./${emberHotReloadPlugin.podModulePrefix}/`)) {
         changed = true;
       }
       if (!changed) return;
-      (globalThis as any).emberHotReloadPlugin.routerVersion += 1;
+      emberHotReloadPlugin.routerVersion += 1;
       const types = [
         'route',
         'controller',
@@ -123,7 +123,7 @@ export default class ViteHotReloadService extends Service {
       ) {
         this.router.refresh();
       }
-      if (oldModule.id.startsWith(`./${(globalThis as any).emberHotReloadPlugin.podModulePrefix}/`)) {
+      if (oldModule.id.startsWith(`./${emberHotReloadPlugin.podModulePrefix}/`)) {
         this.router.refresh();
       }
     });
