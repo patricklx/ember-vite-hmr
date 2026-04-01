@@ -1,12 +1,12 @@
 if (import.meta.hot) {
     const ModuleMap = new Map();
 
-    globalThis.emberHotReloadPlugin = {
+    (globalThis as any).emberHotReloadPlugin = {
         modulePrefix: '',
         podModulePrefix: '',
         Resolver: null,
         _accepting: 0,
-        changed: {} as Record<string, any>,
+        changed: {} as Record<string, { old: Module; new: Module }>,
         subscribers: [],
         version: 1,
         routerVersion: 1,
@@ -17,7 +17,7 @@ if (import.meta.hot) {
             this.moduleDepCallbacks[module.id] = {};
         },
         register(module: Module, dep: string, callback: Function) {
-            dep = dep.replace(new RegExp(`^${globalThis.emberHotReloadPlugin.modulePrefix}/`), './');
+            dep = dep.replace(new RegExp(`^${(globalThis as any).emberHotReloadPlugin.modulePrefix}/`), './');
             this.moduleDepCallbacks[module.id]![dep] =
                 this.moduleDepCallbacks[module.id]![dep] || ([] as Function[]);
             this.moduleDepCallbacks[module.id]![dep]!.push(callback);
@@ -76,16 +76,16 @@ if (import.meta.hot) {
         },
         notifyNew() {
             this.version += 1;
-            Object.values(this.changed).forEach((change) => {
+            (Object.values(this.changed) as Array<{ old: Module; new: Module }>).forEach((change) => {
                 this.loadNew(change.old, change.new);
                 this.subscribers.forEach((fn: any) => fn(change.old, change.new));
             });
             this.changed = {};
         },
-        subscribe(fn) {
+        subscribe(fn: (oldModule: Module, newModule: Module) => void) {
             this.subscribers.push(fn);
         },
-        unsubscribe(fn) {
+        unsubscribe(fn: (oldModule: Module, newModule: Module) => void) {
             const idx = this.subscribers.indexOf(fn);
             if (idx >= 0) {
                 this.subscribers.splice(idx, 1);

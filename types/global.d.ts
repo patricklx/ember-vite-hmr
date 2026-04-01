@@ -23,7 +23,7 @@ declare global {
     loadNew(old: any, _new: any): unknown;
     version: number;
     routerVersion: number;
-    changed: Record<string, any>;
+    changed: Record<string, { old: Module; new: Module }>;
     notifyNew(): unknown;
     register: any;
     canAcceptNew: any;
@@ -32,9 +32,34 @@ declare global {
     _accepting: number;
     moduleDepCallbacks: Record<string, Record<string, Function[]>>;
     versionMap: Record<string, number>;
-    subscribe(cb: (newModule: Module, oldModule: Module) => void): void;
-    unsubscribe(cb: (newModule: Module, oldModule: Module) => void): void;
+    subscribe(cb: (oldModule: Module, newModule: Module) => void): void;
+    unsubscribe(cb: (oldModule: Module, newModule: Module) => void): void;
   };
+}
+
+declare global {
+  interface GlobalThis {
+    emberHotReloadPlugin: {
+      modulePrefix: string;
+      podModulePrefix: string;
+      subscribers: any;
+      Resolver: any;
+      loadNew(old: any, _new: any): unknown;
+      version: number;
+      routerVersion: number;
+      changed: Record<string, { old: Module; new: Module }>;
+      notifyNew(): unknown;
+      register: any;
+      canAcceptNew: any;
+      clear(module: Module): unknown;
+      __import(moduleUrl: string): unknown;
+      _accepting: number;
+      moduleDepCallbacks: Record<string, Record<string, Function[]>>;
+      versionMap: Record<string, number>;
+      subscribe(cb: (oldModule: Module, newModule: Module) => void): void;
+      unsubscribe(cb: (oldModule: Module, newModule: Module) => void): void;
+    };
+  }
 }
 interface ImportMeta {
   hot?: {
