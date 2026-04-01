@@ -85,22 +85,22 @@ export default class ViteHotReloadService extends Service {
           delete this.container.cache[k];
         }
       });
-      Object.keys(this.container.factoryManagerCache).forEach((k) => {
+      Object.keys(this.container.factoryManagerCache || {}).forEach((k) => {
         if (types.some((t) => k.startsWith(`${t}:`))) {
           delete this.container.factoryManagerCache[k];
         }
       });
-      Object.keys(this.container.registry._resolveCache).forEach((k) => {
+      Object.keys(this.container.registry._resolveCache || {}).forEach((k) => {
         if (types.some((t) => k.startsWith(`${t}:`))) {
           delete this.container.registry._resolveCache[k];
         }
       });
-      Object.keys(this.container.validationCache).forEach((k) => {
+      Object.keys(this.container.validationCache || {}).forEach((k) => {
         if (types.some((t) => k.startsWith(`${t}:`))) {
           delete this.container.validationCache[k];
         }
       });
-      Object.keys(this.container.registry.registrations).forEach((k) => {
+      Object.keys(this.container.registry.registrations || {}).forEach((k) => {
         if (types.some((t) => k.startsWith(`${t}:`))) {
           delete this.container.registry.registrations[k];
         }
