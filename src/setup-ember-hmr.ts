@@ -5,7 +5,7 @@ import type { Module } from '../types/global';
 if (import.meta.hot) {
     const ModuleMap = new Map();
 
-    emberHotReloadPlugin = {
+    globalThis.emberHotReloadPlugin = {
         modulePrefix: '',
         podModulePrefix: '',
         Resolver: null,
