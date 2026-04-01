@@ -33,8 +33,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.1
       babel-loader:
-        specifier: ^10.0.0
-        version: 10.0.0(@babel/core@7.28.5(supports-color@10.2.2))(webpack@5.94.0)
+        specifier: ^10.1.1
+        version: 10.1.1(@babel/core@7.28.5(supports-color@10.2.2))(webpack@5.94.0)
       babel-preset-env:
         specifier: ^1.7.0
         version: 1.7.0(supports-color@10.2.2)
@@ -2122,12 +2122,18 @@ packages:
     resolution: {integrity: sha512-2copPaWQFUrzooJVIVZA/Oppx/S/KOoZ4Uhr+XWEQDMZ8Rvq/0SNQpbdIyMBJ8IELWt10dewuJw+tX4XjOo7Rg==}
     engines: {node: '>= 12.*'}
 
-  babel-loader@10.0.0:
-    resolution: {integrity: sha512-z8jt+EdS61AMw22nSfoNJAZ0vrtmhPRVi6ghL3rCeRZI8cdNYFiV5xeV3HbE7rlZZNmGH8BVccwWt8/ED0QOHA==}
+  babel-loader@10.1.1:
+    resolution: {integrity: sha512-JwKSzk2kjIe7mgPK+/lyZ2QAaJcpahNAdM+hgR2HI8D0OJVkdj8Rl6J3kaLYki9pwF7P2iWnD8qVv80Lq1ABtg==}
     engines: {node: ^18.20.0 || ^20.10.0 || >=22.0.0}
     peerDependencies:
-      '@babel/core': ^7.12.0
+      '@babel/core': ^7.12.0 || ^8.0.0-beta.1
+      '@rspack/core': ^1.0.0 || ^2.0.0-0
       webpack: '>=5.61.0'
+    peerDependenciesMeta:
+      '@rspack/core':
+        optional: true
+      webpack:
+        optional: true
 
   babel-messages@6.23.0:
     resolution: {integrity: sha512-Bl3ZiA+LjqaMtNYopA9TYE9HP1tQ+E5dLxE0XrAzcIJeK2UqF0/EaqXwBn9esd4UmTfEab+P+UYQ1GnioFIb/w==}
@@ -7966,10 +7972,11 @@ snapshots:
 
   babel-import-util@3.0.1: {}
 
-  babel-loader@10.0.0(@babel/core@7.28.5(supports-color@10.2.2))(webpack@5.94.0):
+  babel-loader@10.1.1(@babel/core@7.28.5(supports-color@10.2.2))(webpack@5.94.0):
     dependencies:
       '@babel/core': 7.28.5(supports-color@10.2.2)
       find-up: 5.0.0
+    optionalDependencies:
       webpack: 5.94.0
 
   babel-messages@6.23.0:

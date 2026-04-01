@@ -47,7 +47,7 @@
     "@glimmer/syntax": "^0.95.0",
     "@types/supports-color": "^10.0.0",
     "babel-import-util": "^3.0.0",
-    "babel-loader": "^10.0.0",
+    "babel-loader": "^10.1.1",
     "babel-preset-env": "^1.7.0",
     "semver": "^7.7.3"
   },
