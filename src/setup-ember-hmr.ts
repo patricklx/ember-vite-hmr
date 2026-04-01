@@ -1,7 +1,7 @@
 if (import.meta.hot) {
     const ModuleMap = new Map();
 
-    window.emberHotReloadPlugin = {
+    globalThis.emberHotReloadPlugin = {
         modulePrefix: '',
         podModulePrefix: '',
         Resolver: null,
