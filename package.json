@@ -58,7 +58,7 @@
     "@babel/plugin-transform-class-static-block": "^7.28.3",
     "@babel/runtime": "^7.28.4",
     "@embroider/addon-dev": "^8.3.0",
-    "@embroider/compat": "^4.1.10",
+    "@embroider/compat": "^4.1.17",
     "@embroider/core": "^4.4.7",
     "@glint/core": "^1.2.0",
     "@glint/environment-ember-loose": "^1.5.2",
