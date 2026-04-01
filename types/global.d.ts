@@ -14,8 +14,8 @@ type Module = {
   version: number;
 };
 
-interface Window {
-  emberHotReloadPlugin: {
+declare global {
+  var emberHotReloadPlugin: {
     modulePrefix: string;
     podModulePrefix: string;
     subscribers: any;
