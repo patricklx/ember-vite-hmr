@@ -21,7 +21,7 @@ if (import.meta.hot) {
             this.moduleDepCallbacks[module.id] = {};
         },
         register(module: Module, dep: string, callback: Function) {
-            dep = dep.replace(new RegExp(`^${emberHotReloadPlugin.modulePrefix}/`), './');
+            dep = dep.replace(new RegExp(`^${globalThis.emberHotReloadPlugin.modulePrefix}/`), './');
             this.moduleDepCallbacks[module.id]![dep] =
                 this.moduleDepCallbacks[module.id]![dep] || ([] as Function[]);
             this.moduleDepCallbacks[module.id]![dep]!.push(callback);
