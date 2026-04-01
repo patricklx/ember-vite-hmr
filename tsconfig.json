@@ -5,6 +5,7 @@
     "environment": ["ember-loose", "ember-template-imports"]
   },
   "compilerOptions": {
+    "types": ["vite/client"],
     "rootDir": ".",
     "allowJs": true,
     "declaration": true,

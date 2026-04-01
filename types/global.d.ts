@@ -1,3 +1,5 @@
+/// <reference lib="es2020" />
+
 declare module 'thread-loader' {
   export function warmup(options: any, loaders: string[]): void;
 }
@@ -8,34 +10,42 @@ type ReqJSEntry = {
   module: Module;
 };
 
-type Module = {
+export type Module = {
   id: string;
   exports: any;
   version: number;
 };
 
-interface Window {
-  emberHotReloadPlugin: {
-    modulePrefix: string;
-    podModulePrefix: string;
-    subscribers: any;
-    Resolver: any;
-    loadNew(old: any, _new: any): unknown;
-    version: number;
-    routerVersion: number;
-    changed: Record<string, any>;
-    notifyNew(): unknown;
-    register: any;
-    canAcceptNew: any;
-    clear(module: Module): unknown;
-    __import(moduleUrl: string): unknown;
-    _accepting: number;
-    moduleDepCallbacks: Record<string, Record<string, Function[]>>;
-    versionMap: Record<string, number>;
-    subscribe(cb: (newModule: Module, oldModule: Module) => void): void;
-    unsubscribe(cb: (newModule: Module, oldModule: Module) => void): void;
-  };
+type EmberHotReloadPlugin = {
+  modulePrefix: string;
+  podModulePrefix: string;
+  subscribers: any;
+  Resolver: any;
+  loadNew(old: any, _new: any): unknown;
+  version: number;
+  routerVersion: number;
+  changed: Record<string, { old: Module; new: Module }>;
+  notifyNew(): unknown;
+  register: any;
+  canAcceptNew: any;
+  clear(module: Module): unknown;
+  __import(moduleUrl: string): unknown;
+  _accepting: number;
+  moduleDepCallbacks: Record<string, Record<string, Function[]>>;
+  versionMap: Record<string, number>;
+  subscribe(cb: (oldModule: Module, newModule: Module) => void): void;
+  unsubscribe(cb: (oldModule: Module, newModule: Module) => void): void;
+};
+
+declare global {
+  var emberHotReloadPlugin: EmberHotReloadPlugin;
+  
+  // Augment GlobalThis to include emberHotReloadPlugin
+  interface GlobalThis {
+    emberHotReloadPlugin: EmberHotReloadPlugin;
+  }
 }
+
 interface ImportMeta {
   hot?: {
     accept(): void;

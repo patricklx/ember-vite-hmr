@@ -1,3 +1,5 @@
+/// <reference types="../../types/global" />
+
 import ApplicationInstance from '@ember/application/instance';
 import { debounce, next } from '@ember/runloop';
 import RouterService from '@ember/routing/router-service';
@@ -18,7 +20,7 @@ function patchResolver(application: ApplicationInstance) {
 }
 
 function supportErrorRecovery(appInstance: ApplicationInstance) {
-  const bodyHtml = window.document.body.cloneNode(true);
+  const bodyHtml = globalThis.document.body.cloneNode(true);
   const renderer = appInstance.__container__.lookup(
     'renderer:-dom',
   ) as Renderer;
@@ -36,13 +38,15 @@ function supportErrorRecovery(appInstance: ApplicationInstance) {
     applicationRouter._router._toplevelView.destroy();
     applicationRouter._router._toplevelView = null;
     (renderer as any)._clearAllRoots();
-    window.document.body = bodyHtml.cloneNode(true) as any;
+    globalThis.document.body = bodyHtml.cloneNode(true) as any;
     next(() => {
       const transition = router.refresh();
       applicationRouter.setup(applicationRouter.context, transition);
     });
   }
-  import.meta.hot?.on('vite:beforeUpdate', () => debounce(rerender, 100));
+  if (import.meta.hot) {
+    import.meta.hot.on('vite:beforeUpdate', () => debounce(rerender, 100));
+  }
   console.warn = function (...args) {
     if (
       args[0].includes(

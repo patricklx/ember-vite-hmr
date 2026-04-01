@@ -275,7 +275,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
               import.meta.hot.accept('@embroider/virtual/compat-modules', (m) => {
                 for (const [name, module] of Object.entries(m.default)) {
                   if (name.includes('initializers') && prevCompatModules[name]?.default !== module.default) {
-                    window.location.reload();
+                    globalThis.location.reload();
                   }
                 }
                 prevCompatModules = m.default;
@@ -441,8 +441,8 @@ ${hotReloadStatements.join('\n')}
         return source;
       }
       return `${source}
-  if (import.meta.hot && window.emberHotReloadPlugin) {
-      const result = window.emberHotReloadPlugin.canAcceptNew(import.meta.url);
+  if (import.meta.hot && globalThis.emberHotReloadPlugin) {
+      const result = globalThis.emberHotReloadPlugin.canAcceptNew(import.meta.url);
       result.then(() => {
         if (!result) {
           import.meta.hot.decline();
