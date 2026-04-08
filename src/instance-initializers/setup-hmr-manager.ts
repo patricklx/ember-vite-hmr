@@ -1,5 +1,6 @@
 import Route from '@ember/routing/route';
 import Controller from '@ember/controller';
+import Service from '@ember/service';
 import Component from '@glimmer/component';
 // @ts-ignore
 import { getInternalComponentManager } from '@glimmer/manager';
@@ -29,7 +30,7 @@ function getState(component: HotComponent, skip: string[]) {
   for (const key in component) {
     if (skip.includes(key)) continue;
     const entry = findPropertyDescriptor(component, key);
-    if (entry) {
+    if (entry && !(component[key as keyof Component] instanceof Service)) {
       if (
         entry.writable &&
         !Object.prototype.toString.call(entry.value).includes('Function')
