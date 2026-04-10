@@ -105,7 +105,7 @@
     "terser": "^5.46.1",
     "thread-loader": "^4.0.2",
     "typescript": "^5.9.3",
-    "vite": "^7.2.6",
+    "vite": "^8.0.8",
     "vitest": "^4.1.2"
   },
   "peerDependencies": {
