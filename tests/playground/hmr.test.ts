@@ -1,3 +1,4 @@
+// add test for service hot reload
 import util from 'node:util';
 import { expect, test, describe, beforeAll, beforeEach } from 'vitest';
 import {
