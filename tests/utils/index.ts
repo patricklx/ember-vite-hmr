@@ -1,18 +1,16 @@
 import child from 'child_process';
 import { resolve } from 'path';
 import PCR from 'puppeteer-chromium-resolver';
-import { fileURLToPath } from 'url';
 
-export async function startVite({ cwd }) {
-  // eslint-disable-next-line new-cap
+export async function startVite({ cwd }: { cwd: string }) {
   const { puppeteer, executablePath } = await PCR({});
 
-  console.log('[ci] starting');
-  const messages = [];
-  let runvite;
+  globalThis.console.log('[ci] starting');
+  const messages: string[] = [];
+  let runvite: ReturnType<typeof child.fork>;
 
-  await /** @type {Promise<void>} */ new Promise((fulfill, reject) => {
-    console.log('start vite');
+  await new Promise<void>((fulfill, reject) => {
+    globalThis.console.log('start vite');
     runvite = child.fork(
       resolve('.', 'node_modules', 'vite', 'bin', 'vite.js'),
       ['--port', '60173', '--no-open', '--force'],
@@ -28,28 +26,29 @@ export async function startVite({ cwd }) {
       reject(new Error('closed:' + err));
     });
 
-    process.on('exit', () => runvite.kill());
+    globalThis.process.on('exit', () => runvite.kill());
 
     runvite.stderr?.on('data', (data) => {
       err += String(data);
-      console.log('stderr', String(data));
+      globalThis.console.log('stderr', String(data));
     });
 
     runvite.stdout?.on('data', (data) => {
       // remove color codes
-      console.log('stdout', String(data));
+      globalThis.console.log('stdout', String(data));
+      // eslint-disable-next-line no-control-regex
       const chunk = String(data).replace(/\u001b[^m]*?m/g, '');
       messages.push(...chunk.split('\n'));
-      console.log('stdout', chunk);
+      globalThis.console.log('stdout', chunk);
       if (chunk.includes('Local') && chunk.includes('60173')) {
         fulfill(1);
       }
     });
 
-    console.log('[ci] spawning');
+    globalThis.console.log('[ci] spawning');
   });
 
-  console.log('[ci] spawned');
+  globalThis.console.log('[ci] spawned');
 
   const browser = await puppeteer.launch({
     headless: 'new',
@@ -57,20 +56,20 @@ export async function startVite({ cwd }) {
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
-  console.log('[ci] puppeteer launched');
+  globalThis.console.log('[ci] puppeteer launched');
 
   try {
     const page = await browser.newPage();
-    console.log('load page');
+    globalThis.console.log('load page');
     await page.goto('http://localhost:60173');
     page.on('console', (msg) => {
-      console.log(msg.text());
+      globalThis.console.log(msg.text());
       messages.push(msg.text());
     });
 
-    function onMessage(onCb) {
+    function onMessage(onCb: () => void) {
       function later() {
-        setTimeout(onCb, 100);
+        globalThis.setTimeout(onCb, 100);
       }
       page.on('console', later);
       runvite.stdout?.on('data', later);
@@ -84,7 +83,7 @@ export async function startVite({ cwd }) {
     };
   } catch {
     await browser.close();
-    process.exit(1);
+    globalThis.process.exit(1);
   }
 
   await browser.close();

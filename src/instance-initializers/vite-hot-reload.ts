@@ -8,12 +8,17 @@ import { Renderer } from '@ember/-internals/glimmer/lib/renderer';
 function patchResolver(application: ApplicationInstance) {
   application.__container__.lookup('service:vite-hot-reload');
   const resolver =
-    (application.__registry__.resolver as any)?._fallback ||
-    (application.__registry__.fallback?.resolver as any)._fallback ||
-    (application.__registry__.fallback?.resolver as any) ||
+    (application.__registry__.resolver as { _fallback?: unknown })?._fallback ||
+    (application.__registry__.fallback?.resolver as { _fallback?: unknown })
+      ._fallback ||
+    (application.__registry__.fallback?.resolver as unknown) ||
     application.__registry__.resolver;
-  const resolverResolve = resolver.resolve;
-  resolver.resolve = function (name: string) {
+  
+  if (!resolver) return;
+  
+  const resolverWithResolve = resolver as { resolve: (name: string) => unknown };
+  const resolverResolve = resolverWithResolve.resolve;
+  resolverWithResolve.resolve = function (name: string) {
     name = name.replace(/--hot-version--.*$/, '');
     return resolverResolve.call(this, name);
   };
@@ -27,18 +32,22 @@ function supportErrorRecovery(appInstance: ApplicationInstance) {
   const router = appInstance.__container__.lookup(
     'service:router',
   ) as RouterService;
-  const warn = console.warn;
+  const warn = globalThis.console.warn;
   let scheduleRerender = false;
   async function rerender() {
     if (!scheduleRerender) return;
     scheduleRerender = false;
     const applicationRouter = appInstance.__container__.lookup(
       'route:application',
-    ) as any;
-    applicationRouter._router._toplevelView.destroy();
+    ) as {
+      _router: { _toplevelView: { destroy: () => void } | null };
+      context: unknown;
+      setup: (context: unknown, transition: unknown) => void;
+    };
+    applicationRouter._router._toplevelView?.destroy();
     applicationRouter._router._toplevelView = null;
-    (renderer as any)._clearAllRoots();
-    globalThis.document.body = bodyHtml.cloneNode(true) as any;
+    (renderer as unknown as { _clearAllRoots: () => void })._clearAllRoots();
+    globalThis.document.body = bodyHtml.cloneNode(true) as HTMLBodyElement;
     next(() => {
       const transition = router.refresh();
       applicationRouter.setup(applicationRouter.context, transition);
@@ -47,7 +56,7 @@ function supportErrorRecovery(appInstance: ApplicationInstance) {
   if (import.meta.hot) {
     import.meta.hot.on('vite:beforeUpdate', () => debounce(rerender, 100));
   }
-  console.warn = function (...args) {
+  globalThis.console.warn = function (...args) {
     if (
       args[0].includes(
         'Attempted to rerender, but the Ember application has had an unrecoverable error occur during render. You should reload the application after fixing the cause of the error.',
@@ -55,7 +64,7 @@ function supportErrorRecovery(appInstance: ApplicationInstance) {
     ) {
       scheduleRerender = true;
     }
-    warn.call(console, ...args);
+    warn.call(globalThis.console, ...args);
   };
 }
 
