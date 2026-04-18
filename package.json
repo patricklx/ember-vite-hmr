@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@babel/core": "^7.28.5",
-    "@babel/plugin-transform-typescript": "^7.28.5",
+    "@babel/plugin-transform-typescript": "^7.28.6",
     "@babel/traverse": "^7.29.0",
     "@babel/types": "^7.28.5",
     "@embroider/addon-shim": "^1.10.2",
