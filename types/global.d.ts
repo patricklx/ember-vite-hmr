@@ -39,7 +39,7 @@ type EmberHotReloadPlugin = {
 
 declare global {
   var emberHotReloadPlugin: EmberHotReloadPlugin;
-  
+
   // Augment GlobalThis to include emberHotReloadPlugin
   interface GlobalThis {
     emberHotReloadPlugin: EmberHotReloadPlugin;

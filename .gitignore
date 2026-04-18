@@ -13,6 +13,7 @@
 !utils/**/*
 !.eslintignore
 !.eslintrc.cjs
+!eslint.config.js
 !.gitignore
 !.prettierignore
 !.prettierrc.cjs

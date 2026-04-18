@@ -10,224 +10,230 @@ import {
 import { dirname, resolve } from 'path';
 import * as process from 'node:process';
 import { startVite } from '../utils';
-import { existsSync, unlinkSync } from "node:fs";
+import { existsSync, unlinkSync } from 'node:fs';
+import { exec } from 'child_process';
 
-const execAsync = util.promisify(require('child_process').exec);
-const execa = (...args) => {
+const execAsync = util.promisify(exec);
+const execa = (...args: Parameters<typeof execAsync>) => {
   const promise = execAsync(...args);
   const child = promise.child;
   child.stdout.on('data', function (data) {
-    console.log(data);
+    globalThis.console.log(data);
   });
   child.stderr.on('data', function (data) {
-    console.log('stderr: ' + data);
+    globalThis.console.log('stderr: ' + data);
   });
   child.on('close', function (code) {
-    console.log('closing code: ' + code);
+    globalThis.console.log('closing code: ' + code);
   });
   return promise;
 };
 
-describe('hmr tests', () => {
-  let endpoint = '';
-  let page;
-  const tmpDir = resolve('./tmp');
-  const appName = 'my-fancy-app';
-  let appDir = resolve(tmpDir, appName);
-  let viteContext: any;
+describe(
+  'hmr tests',
+  () => {
+    let page: Awaited<ReturnType<typeof startVite>>['page'];
+    let endpoint: string;
+    const tmpDir = resolve('./tmp');
+    const appName = 'my-fancy-app';
+    let appDir = resolve(tmpDir, appName);
+    let viteContext: Awaited<ReturnType<typeof startVite>>;
 
-  async function waitForMessage(withText: string | RegExp) {
-    return new Promise((resolve, reject) => {
-      let t = setTimeout(() => {
-        console.log(
-          `waitForMessage '${withText}' time out, messages`,
-          viteContext.messages.map((m) => m),
-        );
-        reject(new Error('time out'));
-      }, 3 * 1000);
-      function check() {
-        if (!t) return;
-        console.log('check', viteContext.messages, withText);
-        const hasPageReload = viteContext.messages.find((m) =>
-          m.includes('page reload'),
-        );
-        if (hasPageReload) {
-          throw new Error('page reload detected');
-        }
-        const m = viteContext.messages.find((m) =>
-          withText instanceof RegExp ? withText.test(m) : m.includes(withText),
-        );
-        if (m) {
-          const i = viteContext.messages.indexOf(m);
-          viteContext.messages.splice(0, i + 1);
-          clearTimeout(t);
-          t = null;
-          resolve(m);
-        }
-      }
-      check();
-      viteContext.onMessage(check);
-    });
-  }
-
-  class EditFile<T = void> {
-    location: string;
-    tasks: (() => Promise<void>)[] = [];
-
-    then<TResult1 = T, TResult2 = never>(
-      onfulfilled?:
-        | ((value: T) => TResult1 | PromiseLike<TResult1>)
-        | undefined
-        | null,
-      onrejected?:
-        | ((reason: any) => TResult2 | PromiseLike<TResult2>)
-        | undefined
-        | null,
-    ): PromiseLike<TResult1 | TResult2>;
-
-    async then(
-      resolve: () => void,
-      reject: (reason: Error) => void,
-    ): Promise<void> {
-      try {
-        for (const task of this.tasks) {
-          await task();
-        }
-        console.log(this.location);
-        console.log((await readFile(this.location)).toString());
-        this.tasks = [];
-        // wait a bit
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        resolve();
-      } catch (e) {
-        reject(e as Error);
-      }
-    }
-
-    constructor(location: string) {
-      this.location = location;
-    }
-
-    setContent(content: string) {
-      const run = async () => {
-        await ensureDir(dirname(this.location));
-        await writeFile(this.location, content);
-      };
-      this.tasks.push(run);
-      return this;
-    }
-
-    insert(content: string) {
-      const run = async () => {
-        let code = (await readFile(this.location)).toString();
-        code = content + code;
-        await writeFile(this.location, code);
-      };
-      this.tasks.push(run);
-      return this;
-    }
-
-    replaceCode(code: string | RegExp, replaceWith: string) {
-      const run = async () => {
-        let content = (await readFile(this.location)).toString();
-        content = content.replace(code, replaceWith);
-        await writeFile(this.location, content);
-      };
-      this.tasks.push(run);
-      return this;
-    }
-  }
-
-  function deleteFile(path: string) {
-    const location = resolve(appDir, path);
-    if(existsSync(location)) {
-      unlinkSync(location);
-    }
-  }
-
-  function editFile(path: string) {
-    const location = resolve(appDir, path);
-    return new EditFile(location);
-  }
-
-  beforeEach(() => {
-    viteContext.messages.length = 0;
-  });
-
-  beforeAll(
-    async () => {
-      if (!pathExistsSync(tmpDir) || !process.env.REUSE) {
-        await ensureDir(tmpDir);
-        await emptyDir(tmpDir);
-        console.log('install to', tmpDir);
-        try {
-          await execa(
-            `npx ember-cli@latest new ${appName} -b @ember/app-blueprint --pnpm`,
-            {
-              cwd: tmpDir,
-              stdio: 'pipe',
-              shell: true
-            },
+    async function waitForMessage(withText: string | RegExp) {
+      return new Promise((resolve, reject) => {
+        let t = globalThis.setTimeout(() => {
+          globalThis.console.log(
+            `waitForMessage '${withText}' time out, messages`,
+            viteContext.messages.map((m) => m),
           );
+          reject(new Error('time out'));
+        }, 3 * 1000);
+        function check() {
+          if (!t) return;
+          globalThis.console.log('check', viteContext.messages, withText);
+          const hasPageReload = viteContext.messages.find((m) =>
+            m.includes('page reload'),
+          );
+          if (hasPageReload) {
+            throw new Error('page reload detected');
+          }
+          const m = viteContext.messages.find((m) =>
+            withText instanceof RegExp
+              ? withText.test(m)
+              : m.includes(withText),
+          );
+          if (m) {
+            const i = viteContext.messages.indexOf(m);
+            viteContext.messages.splice(0, i + 1);
+            globalThis.clearTimeout(t);
+            t = null;
+            resolve(m);
+          }
+        }
+        check();
+        viteContext.onMessage(check);
+      });
+    }
+
+    class EditFile<T = void> {
+      location: string;
+      tasks: (() => Promise<void>)[] = [];
+
+      then<TResult1 = T, TResult2 = never>(
+        onfulfilled?:
+          | ((value: T) => TResult1 | PromiseLike<TResult1>)
+          | undefined
+          | null,
+        onrejected?:
+          | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
+          | undefined
+          | null,
+      ): PromiseLike<TResult1 | TResult2>;
+
+      async then(
+        resolve: () => void,
+        reject: (reason: Error) => void,
+      ): Promise<void> {
+        try {
+          for (const task of this.tasks) {
+            await task();
+          }
+          globalThis.console.log(this.location);
+          globalThis.console.log((await readFile(this.location)).toString());
+          this.tasks = [];
+          // wait a bit
+          await new Promise((resolve) => globalThis.setTimeout(resolve, 100));
+          resolve();
         } catch (e) {
-          console.error(e);
+          reject(e as Error);
+        }
+      }
+
+      constructor(location: string) {
+        this.location = location;
+      }
+
+      setContent(content: string) {
+        const run = async () => {
+          await ensureDir(dirname(this.location));
+          await writeFile(this.location, content);
+        };
+        this.tasks.push(run);
+        return this;
+      }
+
+      insert(content: string) {
+        const run = async () => {
+          let code = (await readFile(this.location)).toString();
+          code = content + code;
+          await writeFile(this.location, code);
+        };
+        this.tasks.push(run);
+        return this;
+      }
+
+      replaceCode(code: string | RegExp, replaceWith: string) {
+        const run = async () => {
+          let content = (await readFile(this.location)).toString();
+          content = content.replace(code, replaceWith);
+          await writeFile(this.location, content);
+        };
+        this.tasks.push(run);
+        return this;
+      }
+    }
+
+    function deleteFile(path: string) {
+      const location = resolve(appDir, path);
+      if (existsSync(location)) {
+        unlinkSync(location);
+      }
+    }
+
+    function editFile(path: string) {
+      const location = resolve(appDir, path);
+      return new EditFile(location);
+    }
+
+    beforeEach(() => {
+      viteContext.messages.length = 0;
+    });
+
+    beforeAll(
+      async () => {
+        if (!pathExistsSync(tmpDir) || !process.env.REUSE) {
+          await ensureDir(tmpDir);
+          await emptyDir(tmpDir);
+          globalThis.console.log('install to', tmpDir);
+          try {
+            await execa(
+              `npx ember-cli@latest new ${appName} -b @ember/app-blueprint --pnpm`,
+              {
+                cwd: tmpDir,
+                stdio: 'pipe',
+                shell: true,
+              },
+            );
+          } catch (e) {
+            globalThis.console.error(e);
+          }
+
+          await execa(`pnpm i --save-dev vite@6`, {
+            cwd: appDir,
+            stdio: 'pipe',
+            shell: true,
+          });
+
+          await editFile('./babel.config.mjs')
+            .insert(
+              "\nimport { hotAstProcessor } from 'ember-vite-hmr/lib/babel-plugin';\n",
+            )
+            .replaceCode(
+              'plugins: [',
+              'plugins: [[\n' +
+                "      'ember-vite-hmr/lib/babel-plugin'\n" +
+                '    ],',
+            )
+            .replaceCode(
+              '...templateCompatSupport()',
+              '...templateCompatSupport(), hotAstProcessor.transform',
+            )
+            .replaceCode(
+              "require.resolve('decorator-transforms/runtime')",
+              "'decorator-transforms/runtime'",
+            );
+
+          await editFile('./vite.config.mjs')
+            .insert("\nimport { hmr } from 'ember-vite-hmr';\n")
+            .replaceCode('plugins: [', 'plugins: [\n    hmr(),\n');
         }
 
-        await execa(`pnpm i --save-dev vite@6`, {
-          cwd: appDir,
+        await execa('pnpm build', {
           stdio: 'pipe',
-          shell: true
+          shell: true,
         });
 
-        await editFile('./babel.config.mjs')
-          .insert(
-            "\nimport { hotAstProcessor } from 'ember-vite-hmr/lib/babel-plugin';\n",
-          )
-          .replaceCode(
-            'plugins: [',
-            'plugins: [[\n' +
-              "      'ember-vite-hmr/lib/babel-plugin'\n" +
-              '    ],',
-          )
-          .replaceCode(
-            '...templateCompatSupport()',
-            '...templateCompatSupport(), hotAstProcessor.transform',
-          )
-          .replaceCode(
-            "require.resolve('decorator-transforms/runtime')",
-            "'decorator-transforms/runtime'",
-          );
+        await execa('pnpm build:lib', {
+          stdio: 'pipe',
+          shell: true,
+        });
 
-        await editFile('./vite.config.mjs')
-          .insert("\nimport { hmr } from 'ember-vite-hmr';\n")
-          .replaceCode('plugins: [', 'plugins: [\n    hmr(),\n');
-      }
+        await execa(`pnpm i --save-dev ../../`, {
+          cwd: appDir,
+          stdio: 'pipe',
+          shell: true,
+        });
 
-      await execa('pnpm build', {
-        stdio: 'pipe',
-        shell: true
-      });
+        deleteFile('./app/templates/application.gjs');
 
-      await execa('pnpm build:lib', {
-        stdio: 'pipe',
-        shell: true
-      });
+        await editFile('./app/templates/application.hbs').setContent(
+          '<WelcomePage /><TestComponent />',
+        );
 
-      await execa(`pnpm i --save-dev ../../`, {
-        cwd: appDir,
-        stdio: 'pipe',
-        shell: true
-      });
-
-      deleteFile('./app/templates/application.gjs');
-
-      await editFile('./app/templates/application.hbs').setContent(
-        '<WelcomePage /><TestComponent />',
-      );
-
-      await editFile('./app/components/test-component.gjs').setContent(`
+        await editFile('./app/components/test-component.gjs').setContent(`
     import * as runtime from 'decorator-transforms/runtime';
     import Component from "@glimmer/component";
+    import { on } from '@ember/modifier';
     
     console.log(runtime);
 
@@ -238,34 +244,38 @@ describe('hmr tests', () => {
     }
     `);
 
-      viteContext = await startVite({
-        cwd: appDir,
-      });
-      endpoint = viteContext.baseUri;
-      page = viteContext.page;
-    },
-    5 * 60 * 1000,
-  );
-
-  test('should render', async () => {
-    const body = await page.waitForSelector('#ember-welcome-page-id-selector');
-    const bodyContent = await body.evaluate((el) => el.textContent);
-    expect(bodyContent, bodyContent).toContain('Congratulations, you made it!');
-  });
-
-  test('should update routes', async () => {
-    await editFile('./app/templates/application.hbs').setContent(
-      '<TestComponent />',
+        viteContext = await startVite({
+          cwd: appDir,
+        });
+        endpoint = viteContext.baseUri;
+        page = viteContext.page;
+      },
+      5 * 60 * 1000,
     );
-    await waitForMessage('hmr update /app/templates/application.hbs');
-    await waitForMessage('hot updated: /app/templates/application.hbs');
-    const body = await page.waitForSelector('.ember-application');
-    const bodyContent = await body.evaluate((el) => el.textContent);
-    expect(bodyContent, bodyContent).toContain('Test Component');
-  });
 
-  test('should hmr', { timeout: 10000 }, async () => {
-    await editFile('./app/components/test-component.gjs').setContent(`
+    test('should render', async () => {
+      const body = await page.waitForSelector(
+        '#ember-welcome-page-id-selector',
+      );
+      const bodyContent = await body.evaluate((el) => el.textContent);
+      expect(bodyContent, bodyContent).toContain(
+        'Congratulations, you made it!',
+      );
+    });
+
+    test('should update routes', async () => {
+      await editFile('./app/templates/application.hbs').setContent(
+        '<TestComponent />',
+      );
+      await waitForMessage('hmr update /app/templates/application.hbs');
+      await waitForMessage('hot updated: /app/templates/application.hbs');
+      const body = await page.waitForSelector('.ember-application');
+      const bodyContent = await body.evaluate((el) => el.textContent);
+      expect(bodyContent, bodyContent).toContain('Test Component');
+    });
+
+    test('should hmr', { timeout: 10000 }, async () => {
+      await editFile('./app/components/test-component.gjs').setContent(`
     import Component from "@glimmer/component";
 
     export default class MyComponent extends Component {
@@ -276,21 +286,21 @@ describe('hmr tests', () => {
       </template>
     }
     `);
-    const body = await page.waitForSelector('.hmr');
-    const bodyContent = await body.evaluate((el) => el.textContent);
-    expect(bodyContent, bodyContent).toContain('Test Component HMR');
-  });
+      const body = await page.waitForSelector('.hmr');
+      const bodyContent = await body.evaluate((el) => el.textContent);
+      expect(bodyContent, bodyContent).toContain('Test Component HMR');
+    });
 
-  test('should forward yields', async () => {
-    await editFile('./app/templates/application.hbs').setContent(`
+    test('should forward yields', async () => {
+      await editFile('./app/templates/application.hbs').setContent(`
         <TestComponent>
             <:default as |txt|>{{txt}}</:default>    
             <:named as |txt|>{{txt}}</:named>    
         </TestComponent>`);
-    await waitForMessage('hmr update /app/templates/application.hbs');
-    await waitForMessage('hot updated: /app/templates/application.hbs');
+      await waitForMessage('hmr update /app/templates/application.hbs');
+      await waitForMessage('hot updated: /app/templates/application.hbs');
 
-    await editFile('./app/components/test-component.gjs').setContent(`
+      await editFile('./app/components/test-component.gjs').setContent(`
     import Component from "@glimmer/component";
 
     export default class MyComponent extends Component {
@@ -302,17 +312,17 @@ describe('hmr tests', () => {
       </template>
     }
     `);
-    await waitForMessage('hmr update /app/templates/application.hbs');
-    const body = await page.waitForSelector('.yields');
-    const bodyContent = await body.evaluate((el) => el.textContent);
-    expect(bodyContent, bodyContent).toContain('yield from test component');
-    expect(bodyContent, bodyContent).toContain(
-      'yield to named from test component',
-    );
-  });
+      await waitForMessage('hmr update /app/templates/application.hbs');
+      const body = await page.waitForSelector('.yields');
+      const bodyContent = await body.evaluate((el) => el.textContent);
+      expect(bodyContent, bodyContent).toContain('yield from test component');
+      expect(bodyContent, bodyContent).toContain(
+        'yield to named from test component',
+      );
+    });
 
-  test('should hmr with state', { timeout: 10 * 1000 }, async () => {
-    await editFile('./app/components/foo-component.gjs').setContent(`
+    test('should hmr with state', { timeout: 10 * 1000 }, async () => {
+      await editFile('./app/components/foo-component.gjs').setContent(`
     import Component from "@glimmer/component";
 
     export default class MyComponent extends Component {
@@ -325,7 +335,7 @@ describe('hmr tests', () => {
     }
     `);
 
-    await editFile('./app/components/test-component.gjs').setContent(`
+      await editFile('./app/components/test-component.gjs').setContent(`
     import Component from "@glimmer/component";
     import FooComponent from "./foo-component.gjs";
 
@@ -335,12 +345,12 @@ describe('hmr tests', () => {
       </template>
     }
     `);
-    await waitForMessage('hot updated: /app/components/test-component.gjs');
-    let body = await page.waitForSelector('.hmr-state');
-    let bodyContent = await body.evaluate((el) => el.textContent);
-    expect(bodyContent, bodyContent).toContain('count: 1');
+      await waitForMessage('hot updated: /app/components/test-component.gjs');
+      let body = await page.waitForSelector('.hmr-state');
+      let bodyContent = await body.evaluate((el) => el.textContent);
+      expect(bodyContent, bodyContent).toContain('count: 1');
 
-    await editFile('./app/components/foo-component.gjs').setContent(`
+      await editFile('./app/components/foo-component.gjs').setContent(`
     import Component from "@glimmer/component";
 
     export default class MyComponent extends Component {
@@ -353,27 +363,30 @@ describe('hmr tests', () => {
       </template>
     }
     `);
-    await waitForMessage(
-      'hot updated: /app/components/foo-component.gjs via /app/components/test-component.gjs',
-    );
-    const test = await page.waitForSelector('body');
-    console.log('wait', await test.evaluate((el) => el.textContent));
-    body = await page.waitForSelector('.count');
-    console.log('.count');
-    bodyContent = await body.evaluate((el) => el.textContent);
-    console.log('content');
-    expect(bodyContent, bodyContent).toContain('version 2');
-    expect(bodyContent, bodyContent).toContain('count still 1: 1');
-  });
+      await waitForMessage(
+        'hot updated: /app/components/foo-component.gjs via /app/components/test-component.gjs',
+      );
+      const test = await page.waitForSelector('body');
+      globalThis.console.log(
+        'wait',
+        await test.evaluate((el) => el.textContent),
+      );
+      body = await page.waitForSelector('.count');
+      globalThis.console.log('.count');
+      bodyContent = await body.evaluate((el) => el.textContent);
+      globalThis.console.log('content');
+      expect(bodyContent, bodyContent).toContain('version 2');
+      expect(bodyContent, bodyContent).toContain('count still 1: 1');
+    });
 
-  test('should hmr with controller state', async () => {
-    await editFile('./app/templates/application.hbs').setContent(
-      '<TestComponent @controller={{this}} />',
-    );
-    await waitForMessage('hmr update /app/templates/application.hbs');
-    await waitForMessage('hot updated: /app/templates/application.hbs');
+    test('should hmr with controller state', async () => {
+      await editFile('./app/templates/application.hbs').setContent(
+        '<TestComponent @controller={{this}} />',
+      );
+      await waitForMessage('hmr update /app/templates/application.hbs');
+      await waitForMessage('hot updated: /app/templates/application.hbs');
 
-    await editFile('./app/components/test-component.gjs').setContent(`
+      await editFile('./app/components/test-component.gjs').setContent(`
     
     import Component from "@glimmer/component";
     import FooComponent from "./foo-component.gjs";
@@ -392,11 +405,11 @@ describe('hmr tests', () => {
       </template>
     }`);
 
-    let body = await page.waitForSelector('.hmr-controller-state');
-    let bodyContent = await body.evaluate((el) => el.textContent);
-    expect(bodyContent, bodyContent).toContain('hi 1');
+      let body = await page.waitForSelector('.hmr-controller-state');
+      let bodyContent = await body.evaluate((el) => el.textContent);
+      expect(bodyContent, bodyContent).toContain('hi 1');
 
-    await editFile('./app/components/test-component.gjs').setContent(`
+      await editFile('./app/components/test-component.gjs').setContent(`
     
     import Component from "@glimmer/component";
     import FooComponent from "./foo-component.gjs";
@@ -413,9 +426,91 @@ describe('hmr tests', () => {
       </template>
     }`);
 
-    await waitForMessage('hot updated: /app/components/test-component.gjs');
-    body = await page.waitForSelector('.ember-application');
-    bodyContent = await body.evaluate((el) => el.textContent);
-    expect(bodyContent, bodyContent).toContain('hi2 2');
-  });
-}, 120 * 1000);
+      await waitForMessage('hot updated: /app/components/test-component.gjs');
+      body = await page.waitForSelector('.ember-application');
+      bodyContent = await body.evaluate((el) => el.textContent);
+      expect(bodyContent, bodyContent).toContain('hi2 2');
+    });
+
+    test('should hmr services with state preservation', async () => {
+      // Create a service with tracked state
+      await editFile('./app/services/counter.js').setContent(`
+import Service from '@ember/service';
+import { tracked } from '@glimmer/tracking';
+
+export default class CounterService extends Service {
+  @tracked count = 0;
+  get message() {
+    return 'v1';
+  }
+
+  increment = () => {
+    this.count++;
+  }
+}
+`);
+
+      // Create a component that uses the service
+      await editFile('./app/components/test-component.gjs').setContent(`
+import Component from "@glimmer/component";
+import { service } from '@ember/service';
+import { on } from '@ember/modifier';
+
+export default class MyComponent extends Component {
+  @service counter;
+
+  <template>
+    <div class='service-hmr'>
+      Count: {{this.counter.count}}
+      Message: {{this.counter.message}}
+      <button type='button' {{on 'click' this.counter.increment}}>Increment</button>
+    </div>
+  </template>
+}
+`);
+
+      await waitForMessage('hot updated: /app/components/test-component.gjs');
+
+      // Wait for component to render and service to be injected
+      // The service needs time to be transformed by Babel and injected
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      let body = await page.waitForSelector('.service-hmr');
+      let bodyContent = await body.evaluate((el) => el.textContent);
+      
+      // If service values are not rendered yet, wait a bit more
+      if (!bodyContent.includes('Count: 0')) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        bodyContent = await body.evaluate((el) => el.textContent);
+      }
+      
+      expect(bodyContent).toContain('Count: 0');
+      expect(bodyContent).toContain('Message: v1');
+
+      // Update the service - change message but keep count logic
+      await editFile('./app/services/counter.js').setContent(`
+import Service from '@ember/service';
+import { tracked } from '@glimmer/tracking';
+
+export default class CounterService extends Service {
+  @tracked count = 1;
+  get message() {
+    return 'v2 - updated';
+  }
+  increment() {
+    this.count++;
+  }
+}
+`);
+
+      await waitForMessage(/hot updated:.*counter\.js/);
+
+      // Verify state was preserved (count should still be 2) but message updated
+      body = await page.waitForSelector('.service-hmr');
+      bodyContent = await body.evaluate((el) => el.textContent);
+      expect(bodyContent).toContain('Count: 0'); // State preserved!
+      expect(bodyContent).toContain('Message: v2 - updated'); // New default value
+    });
+  },
+  120 * 1000,
+);

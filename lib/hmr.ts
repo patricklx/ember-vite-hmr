@@ -95,7 +95,7 @@ function getYieldsFromFile(
   return cachedYields[filename];
 }
 
-function difference(a: Set<any>, b: Set<any>) {
+function difference(a: Set<string>, b: Set<string>) {
   const diff = [];
   for (const bElement of b) {
     if (!a.has(bElement)) {
@@ -114,7 +114,7 @@ function normalizePath(inputPath: string): string {
 const virtualPrefix = '/ember-vite-hmr/virtual/component:';
 
 export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
-  let conf: any;
+  // let conf: any;
   let server: ViteDevServer;
   return {
     name: 'hmr-plugin',
@@ -123,8 +123,8 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       server = s;
     },
     configResolved(config) {
-      conf = config;
-      process.env['EMBER_VITE_HMR_ENABLED'] = enableViteHmrForModes
+      // conf = config;
+      process.env.EMBER_VITE_HMR_ENABLED = enableViteHmrForModes
         .includes(config.mode)
         .toString();
     },
@@ -133,7 +133,8 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         return id;
       }
       if (importer?.startsWith(virtualPrefix)) {
-        importer = path.join(process.cwd(), 'package.json');
+        const newImporter = path.join(process.cwd(), 'package.json');
+        importer = newImporter;
         return this.resolve(id, importer, meta);
       }
       if (id.startsWith(virtualPrefix)) {
@@ -150,14 +151,17 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (id === '/ember-vite-hmr/services/vite-hot-reload') {
         return this.resolve(
           'ember-vite-hmr/services/vite-hot-reload',
-          path.join(process.cwd(), 'package.json'),
+          path.resolve(process.cwd(), 'package.json'),
           meta,
         );
       }
     },
     async load(id: string) {
       if (id.includes('@ember-vite-hmr/setup-ember-hmr.js')) {
-        return await readFile(path.resolve(__dirname, '..', 'setup-ember-hmr.js'), 'utf8');
+        return await readFile(
+          path.resolve(__dirname, '..', 'setup-ember-hmr.js'),
+          'utf8',
+        );
       }
       if (id.startsWith(virtualPrefix)) {
         if (!server) {
@@ -173,7 +177,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         if (filename.includes('__vpc__')) {
           filename = filename.split('__vpc__')[0]!;
         }
-        // @ts-ignore
         const res = await server.transformRequest(filename);
         const content = res?.code;
         const resId = await this.resolve(
@@ -191,7 +194,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       }
     },
     transformIndexHtml(html) {
-      if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
+      if (process.env.EMBER_VITE_HMR_ENABLED !== 'true') {
         return html;
       }
       const fullPath = '/@ember-vite-hmr/setup-ember-hmr.js';
@@ -201,7 +204,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           attrs: { type: 'module' },
           children: `import "${fullPath}"`,
         },
-      ]
+      ];
     },
     handleHotUpdate(ctx) {
       if (!ctx.file.split('?')[0]!.endsWith('.hbs')) {
@@ -260,20 +263,23 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       }
     },
     async transform(source, id) {
-      if (process.env['EMBER_VITE_HMR_ENABLED'] !== 'true') {
+      if (process.env.EMBER_VITE_HMR_ENABLED !== 'true') {
         return source;
       }
       const resourcePath = normalizePath(id.split('?')[0]!);
       const supportedExt = ['.hbs', '.gjs', 'gts', '.js', '.ts'];
-      if (!supportedExt.some(x => resourcePath.endsWith(x))) {
+      if (!supportedExt.some((x) => resourcePath.endsWith(x))) {
         return source;
       }
-      const name = require(`${process.cwd()}/package.json`).name;
+      const pkgPath = path.resolve(process.cwd(), 'package.json');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const name = require(pkgPath).name;
       if (resourcePath.includes(`${name}/app/app.js`)) {
         source += `\n
               let prevCompatModules = Object.assign({}, compatModules);
               import.meta.hot.accept('@embroider/virtual/compat-modules', (m) => {
                 for (const [name, module] of Object.entries(m.default)) {
+                  compatModules[name] = module;
                   if (name.includes('initializers') && prevCompatModules[name]?.default !== module.default) {
                     globalThis.location.reload();
                   }
@@ -306,32 +312,50 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (result) {
         let importVar: string | null = null;
         let bindings: string[] = [];
-        const importStatements: Array<{ local: string, source: string, specifier: string }> = [];
+        const importStatements: Array<{
+          local: string;
+          source: string;
+          specifier: string;
+        }> = [];
 
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const traverse = require('@babel/traverse').default;
 
         // First pass: Extract metadata
         traverse(result, {
-          ExportNamedDeclaration(path: NodePath<any>) {
-            const declaration = path.node.declaration;
+          ExportNamedDeclaration(path: NodePath<{ declaration?: unknown }>) {
+            const declaration = (path.node as { declaration?: { type?: string; declarations?: Array<{ id?: { name?: string }; init?: unknown }> } }).declaration;
 
             // Check if this is: export const __hmr_import_metadata__ = {...}
             if (
               declaration?.type === 'VariableDeclaration' &&
-              declaration.declarations?.[0]?.id?.name === '__hmr_import_metadata__'
+              declaration.declarations?.[0]?.id?.name ===
+                '__hmr_import_metadata__'
             ) {
-              const init = declaration.declarations[0].init;
+              const init = declaration.declarations[0].init as { type?: string; properties?: Array<{ type?: string; key?: { type?: string; name?: string }; value?: { type?: string; value?: string; elements?: Array<{ type?: string; value?: string }> } }> };
 
               if (init?.type === 'ObjectExpression') {
                 // Extract importVar and bindings from the object
                 for (const prop of init.properties) {
-                  if (prop.type === 'ObjectProperty' && prop.key.type === 'Identifier') {
-                    if (prop.key.name === 'importVar' && prop.value.type === 'StringLiteral') {
+                  if (
+                    prop.type === 'ObjectProperty' &&
+                    prop.key.type === 'Identifier'
+                  ) {
+                    if (
+                      prop.key.name === 'importVar' &&
+                      prop.value.type === 'StringLiteral'
+                    ) {
                       importVar = prop.value.value;
-                    } else if (prop.key.name === 'bindings' && prop.value.type === 'ArrayExpression') {
+                    } else if (
+                      prop.key.name === 'bindings' &&
+                      prop.value.type === 'ArrayExpression'
+                    ) {
                       bindings = prop.value.elements
-                        .filter((el: any) => el?.type === 'StringLiteral')
-                        .map((el: any) => el.value);
+                        .filter(
+                          (el: unknown) =>
+                            (el as { type?: string })?.type === 'StringLiteral',
+                        )
+                        .map((el: unknown) => (el as { value: string }).value);
                     }
                   }
                 }
@@ -343,21 +367,21 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         // Second pass: Find matching imports (only if we have bindings to match)
         if (importVar && bindings.length > 0) {
           traverse(result, {
-            ImportDeclaration(path: NodePath<any>) {
-              const importSource = path.node.source.value;
+            ImportDeclaration(path: NodePath<{ source: { value: string }; specifiers: Array<{ type?: string; local: { name: string }; imported?: { name: string } }> }>) {
+              const importSource = (path.node as { source: { value: string } }).source.value;
 
-              for (const specifier of path.node.specifiers) {
-                const local = specifier.local.name;
+              for (const specifier of (path.node as { specifiers: Array<{ type?: string; local: { name: string }; imported?: { name: string } }> }).specifiers) {
+                const local = (specifier as { local: { name: string } }).local.name;
 
                 if (bindings.includes(local)) {
                   let specifierName = 'default';
 
-                  if (specifier.type === 'ImportDefaultSpecifier') {
+                  if ((specifier as { type?: string }).type === 'ImportDefaultSpecifier') {
                     specifierName = 'default';
-                  } else if (specifier.type === 'ImportSpecifier') {
+                  } else if ((specifier as { type?: string }).type === 'ImportSpecifier') {
                     // For named imports, use the imported name
-                    specifierName = specifier.imported.name;
-                  } else if (specifier.type === 'ImportNamespaceSpecifier') {
+                    specifierName = (specifier as { imported?: { name: string } }).imported?.name || 'default';
+                  } else if ((specifier as { type?: string }).type === 'ImportNamespaceSpecifier') {
                     specifierName = '*';
                   }
 
@@ -374,18 +398,23 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
 
         // Process metadata if we found importVar (even with empty bindings)
         if (importVar) {
-
           // Generate hot reload code for each import (only if we have bindings)
           const hotReloadStatements: string[] = [];
           for (const imp of importStatements) {
             // Resolve the import to check if it's from node_modules
             const resolved = await this.resolve(imp.source, resourcePath, {});
-            if (resolved?.id && normalizePath(resolved.id).includes('node_modules')) {
+            if (
+              resolved?.id &&
+              normalizePath(resolved.id).includes('node_modules')
+            ) {
               // Skip node_modules imports
               continue;
             }
 
-            const sourceId = imp.source.replace(/@embroider\/virtual/g, 'embroider_virtual');
+            const sourceId = imp.source.replace(
+              /@embroider\/virtual/g,
+              'embroider_virtual',
+            );
             const virtualPath = `/ember-vite-hmr/virtual/component:${sourceId}::${imp.specifier}.gjs`;
 
             hotReloadStatements.push(`
@@ -403,7 +432,10 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           }
 
           // Always remove the metadata export
-          source = source.replace(/export const __hmr_import_metadata__[^;]+;/, '');
+          source = source.replace(
+            /export const __hmr_import_metadata__[^;]+;/,
+            '',
+          );
 
           // Add HMR code if we have any statements OR if we have bindings (even if all were skipped)
           if (hotReloadStatements.length > 0 || bindings.length > 0) {

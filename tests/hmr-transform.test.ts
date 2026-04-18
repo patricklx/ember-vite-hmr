@@ -1,15 +1,15 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { hmr } from '../lib/hmr';
 
-process.env['EMBER_VITE_HMR_ENABLED'] = 'true';
+process.env.EMBER_VITE_HMR_ENABLED = 'true';
 
 describe('hmr transform function', () => {
-  let plugin: any;
-  let mockContext: any;
+  let plugin: ReturnType<typeof hmr>;
+  let mockContext: { resolve: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     plugin = hmr(['development']);
-    
+
     // Mock the plugin context
     mockContext = {
       resolve: vi.fn(async (id: string) => {
@@ -60,7 +60,7 @@ export const __hmr_import_metadata__ = {
     // Should contain hot reload code
     expect(result).toContain('if (import.meta.hot)');
     expect(result).toContain('import.meta.hot.accept');
-    
+
     // Should NOT contain the metadata export anymore
     expect(result).not.toContain('export const __hmr_import_metadata__');
   });
@@ -92,7 +92,7 @@ export const __hmr_import_metadata__ = {
 
     // Should generate hot reload for each binding
     expect(result).toContain('if (import.meta.hot)');
-    
+
     // Should remove metadata export
     expect(result).not.toContain('export const __hmr_import_metadata__');
   });
@@ -118,7 +118,10 @@ export const __hmr_import_metadata__ = {
 `;
 
     mockContext.resolve = vi.fn(async (id: string) => {
-      if (id === '@glimmer/component' || id === 'some-addon/components/external') {
+      if (
+        id === '@glimmer/component' ||
+        id === 'some-addon/components/external'
+      ) {
         return { id: `/node_modules/${id}` };
       }
       return { id: `/app/${id}` };
@@ -129,7 +132,7 @@ export const __hmr_import_metadata__ = {
 
     // Should still generate hot reload code but skip node_modules
     expect(result).toContain('if (import.meta.hot)');
-    
+
     // Should remove metadata export
     expect(result).not.toContain('export const __hmr_import_metadata__');
   });
@@ -222,8 +225,8 @@ export const __hmr_import_metadata__ = {
   });
 
   it('should not process when EMBER_VITE_HMR_ENABLED is false', async () => {
-    process.env['EMBER_VITE_HMR_ENABLED'] = 'false';
-    
+    process.env.EMBER_VITE_HMR_ENABLED = 'false';
+
     const source = `
 export const __hmr_import_metadata__ = {
   importVar: "template__imports__",
@@ -236,9 +239,9 @@ export const __hmr_import_metadata__ = {
 
     // Should return source unchanged
     expect(result).toBe(source);
-    
+
     // Reset for other tests
-    process.env['EMBER_VITE_HMR_ENABLED'] = 'true';
+    process.env.EMBER_VITE_HMR_ENABLED = 'true';
   });
 
   it('should handle @embroider/virtual imports', async () => {
