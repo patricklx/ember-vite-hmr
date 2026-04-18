@@ -106,8 +106,8 @@ importers:
         specifier: ^11.0.4
         version: 11.0.4
       '@types/lodash':
-        specifier: ^4.17.21
-        version: 4.17.21
+        specifier: ^4.17.24
+        version: 4.17.24
       '@types/mini-css-extract-plugin':
         specifier: ^2.5.1
         version: 2.5.1(webpack@5.94.0)
@@ -1509,8 +1509,8 @@ packages:
   '@types/jsonfile@6.1.4':
     resolution: {integrity: sha512-D5qGUYwjvnNNextdU59/+fI+spnwtTFmyQP0h+PfIOSkNfpU6AOICUOkm4i0OnSk+NyjdPJrxCDro0sJsWlRpQ==}
 
-  '@types/lodash@4.17.21':
-    resolution: {integrity: sha512-FOvQ0YPD5NOfPgMzJihoT+Za5pdkDJWcbpuj1DjaKZIr/gxodQjY/uWEFlTNqW2ugXHUiL8lRQgw63dzKHZdeQ==}
+  '@types/lodash@4.17.24':
+    resolution: {integrity: sha512-gIW7lQLZbue7lRSWEFql49QJJWThrTFFeIMJdp3eH4tKoxm1OvEPg02rm4wCCSHS0cL3/Fizimb35b7k8atwsQ==}
 
   '@types/mini-css-extract-plugin@2.5.1':
     resolution: {integrity: sha512-evjjtJttaUexgg3au9ZJFy76tV9mySwX3a4Jl82BuormBYluWLRt0xk2urWrhOdPgDWzulRFyotwYOJTmkSgKw==}
@@ -6550,7 +6550,7 @@ snapshots:
     dependencies:
       '@types/node': 24.10.1
 
-  '@types/lodash@4.17.21': {}
+  '@types/lodash@4.17.24': {}
 
   '@types/mini-css-extract-plugin@2.5.1(webpack@5.94.0)':
     dependencies:
