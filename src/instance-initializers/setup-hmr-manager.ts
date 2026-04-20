@@ -80,7 +80,7 @@ export function initialize() {
   const create = proto.create;
   proto.create = function (...args: unknown[]) {
     const instance = create.call(this, ...args);
-    syncState(instance.component);
+    setTimeout(() => syncState(instance.component));
     return instance;
   };
 
