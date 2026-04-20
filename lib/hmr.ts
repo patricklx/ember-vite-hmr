@@ -36,9 +36,20 @@ function notAny(...yields) {
   return !yields.some((y) => !!y); 
 }
 
+const hotCallbacks = new Set();
+
+if (import.meta.hot) {
+  import.meta.hot.accept('${imp}', (module) => {
+    for (const callback of hotCallbacks) {
+      callback(module);
+    }
+  });
+}
+
 export default class HotComponent extends Component {
   @tracked curried;
   hot = {};
+  unregisterHotCallback = null;
   constructor(owner, args) {
     super(owner, args);
     const named = {};
@@ -49,12 +60,18 @@ export default class HotComponent extends Component {
     const CurriedComponent = 0;
     this.curried = curry(CurriedComponent, TargetComponent, owner, { positional, named});
     if (import.meta.hot) {
-      // Rehydrate any saved state
-      // fix here
-      import.meta.hot.accept('${imp}', (module) => {
+      const callback = (module) => {
         this.curried = curry(CurriedComponent, module.default, owner, { positional, named});
-      })
+      };
+      hotCallbacks.add(callback);
+      this.unregisterHotCallback = () => {
+        hotCallbacks.delete(callback);
+      };
     }
+  }
+  willDestroy() {
+    super.willDestroy(...arguments);
+    this.unregisterHotCallback?.();
   }
   <template>
     ${generateContent(yields)}
