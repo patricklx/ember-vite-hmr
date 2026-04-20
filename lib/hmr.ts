@@ -31,6 +31,7 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { createComputeRef } from "@glimmer/reference";
 import { curry } from '@glimmer/runtime';
+import { registerDestructor } from '@ember/destroyable';
 
 function notAny(...yields) {
   return !yields.some((y) => !!y); 
@@ -49,7 +50,6 @@ if (import.meta.hot) {
 export default class HotComponent extends Component {
   @tracked curried;
   hot = {};
-  unregisterHotCallback = null;
   constructor(owner, args) {
     super(owner, args);
     const named = {};
@@ -64,15 +64,12 @@ export default class HotComponent extends Component {
         this.curried = curry(CurriedComponent, module.default, owner, { positional, named});
       };
       hotCallbacks.add(callback);
-      this.unregisterHotCallback = () => {
+      registerDestructor(this, () => {
         hotCallbacks.delete(callback);
-      };
+      });
     }
   }
-  willDestroy() {
-    super.willDestroy(...arguments);
-    this.unregisterHotCallback?.();
-  }
+
   <template>
     ${generateContent(yields)}
   </template>
