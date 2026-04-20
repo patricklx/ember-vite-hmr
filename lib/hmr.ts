@@ -50,6 +50,7 @@ export default class HotComponent extends Component {
     this.curried = curry(CurriedComponent, TargetComponent, owner, { positional, named});
     if (import.meta.hot) {
       // Rehydrate any saved state
+      // fix here
       import.meta.hot.accept('${imp}', (module) => {
         this.curried = curry(CurriedComponent, module.default, owner, { positional, named});
       })
