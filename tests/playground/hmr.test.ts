@@ -326,7 +326,7 @@ describe(
     import Component from "@glimmer/component";
 
     export default class MyComponent extends Component {
-      count = 1;
+      @tracked count = 1;
       <template>
         <div class='hmr-state'>
           count: {{this.count}}
@@ -354,7 +354,7 @@ describe(
     import Component from "@glimmer/component";
 
     export default class MyComponent extends Component {
-      count = 2;
+      @tracked count = 2;
       <template>
         <div class='count'>
           version 2
