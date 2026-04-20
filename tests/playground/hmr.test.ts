@@ -324,6 +324,7 @@ describe(
     test('should hmr with state', { timeout: 10 * 1000 }, async () => {
       await editFile('./app/components/foo-component.gjs').setContent(`
     import Component from "@glimmer/component";
+    import { tracked } from '@glimmer/tracking';
 
     export default class MyComponent extends Component {
       @tracked count = 1;
@@ -352,6 +353,7 @@ describe(
 
       await editFile('./app/components/foo-component.gjs').setContent(`
     import Component from "@glimmer/component";
+    import { tracked } from '@glimmer/tracking';
 
     export default class MyComponent extends Component {
       @tracked count = 2;
