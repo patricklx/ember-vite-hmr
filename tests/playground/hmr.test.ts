@@ -578,7 +578,7 @@ export default class DataService extends Service {
   @service logger;
   @tracked value = 'updated';
 
-  getValue() {
+  get getValue() {
     return this.logger.log(this.value);
   }
 }
