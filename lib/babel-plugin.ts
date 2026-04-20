@@ -301,10 +301,10 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
               false,
               true,
             ),
-            // @tracked _delegate = new _OriginalServiceImpl()
+            // @tracked _delegate
             t.classProperty(
               t.identifier('_delegate'),
-              t.newExpression(t.identifier(implVarName), []),
+              null,
               null,
               [t.decorator(tracked)],
               false,
@@ -320,6 +320,37 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
                   t.callExpression(t.super(), [
                     t.spreadElement(t.identifier('args')),
                   ]),
+                ),
+                // Store owner for HMR reloads
+                t.expressionStatement(
+                  t.assignmentExpression(
+                    '=',
+                    t.memberExpression(
+                      t.thisExpression(),
+                      t.identifier('_owner')
+                    ),
+                    t.memberExpression(
+                      t.identifier('args'),
+                      t.numericLiteral(0),
+                      true
+                    )
+                  )
+                ),
+                // Initialize delegate with owner
+                t.expressionStatement(
+                  t.assignmentExpression(
+                    '=',
+                    t.memberExpression(
+                      t.thisExpression(),
+                      t.identifier('_delegate')
+                    ),
+                    t.newExpression(t.identifier(implVarName), [
+                      t.memberExpression(
+                        t.thisExpression(),
+                        t.identifier('_owner')
+                      )
+                    ])
+                  )
                 ),
                 t.ifStatement(
                   t.unaryExpression('!', t.identifier(proxyVarName)),
@@ -486,7 +517,7 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
                 
                 const oldDelegate = ${proxyVarName}._delegate;
                 ${implVarName} = NewImpl;
-                const newDelegate = new ${implVarName}();
+                const newDelegate = new ${implVarName}(${proxyVarName}._owner);
                 ${proxyVarName}._delegate = newDelegate;
                 
                 // Sync state from old to new while keeping new implementation defaults
