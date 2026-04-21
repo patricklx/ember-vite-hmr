@@ -93,9 +93,11 @@ export default TestService;
           [_init__delegate] = _applyDecs2203R(this, [[tracked, 0, "_delegate"]], []).e;
         }
         static Impl = TestService;
-        _delegate = _init__delegate(this, new _TestServiceImpl());
+        _delegate = _init__delegate(this);
         constructor(...args) {
           super(...args);
+          this._owner = args[0];
+          this._delegate = new _TestServiceImpl(this._owner);
           if (!_TestServiceProxy) {
             _TestServiceProxy = this;
           }
@@ -128,7 +130,7 @@ export default TestService;
           }
           const oldDelegate = _TestServiceProxy._delegate;
           _TestServiceImpl = NewImpl;
-          const newDelegate = new _TestServiceImpl();
+          const newDelegate = new _TestServiceImpl(_TestServiceProxy._owner);
           _TestServiceProxy._delegate = newDelegate;
           for (const key in oldDelegate) {
             const descriptor = Object.getOwnPropertyDescriptor(oldDelegate, key) || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(oldDelegate), key);
@@ -308,9 +310,11 @@ export default class DataService extends Service {
           [_init__delegate] = _applyDecs2203R(this, [[tracked, 0, "_delegate"]], []).e;
         }
         static Impl = _DataService;
-        _delegate = _init__delegate(this, new _DataServiceImpl());
+        _delegate = _init__delegate(this);
         constructor(...args) {
           super(...args);
+          this._owner = args[0];
+          this._delegate = new _DataServiceImpl(this._owner);
           if (!_DataServiceProxy) {
             _DataServiceProxy = this;
           }
@@ -343,7 +347,7 @@ export default class DataService extends Service {
           }
           const oldDelegate = _DataServiceProxy._delegate;
           _DataServiceImpl = NewImpl;
-          const newDelegate = new _DataServiceImpl();
+          const newDelegate = new _DataServiceImpl(_DataServiceProxy._owner);
           _DataServiceProxy._delegate = newDelegate;
           for (const key in oldDelegate) {
             const descriptor = Object.getOwnPropertyDescriptor(oldDelegate, key) || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(oldDelegate), key);

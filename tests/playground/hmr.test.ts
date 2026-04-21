@@ -513,6 +513,84 @@ export default class CounterService extends Service {
       expect(bodyContent).toContain('Count: 0'); // State preserved!
       expect(bodyContent).toContain('Message: v2 - updated'); // New default value
     });
+
+    test('should hmr services with injected dependencies', async () => {
+      // Create a logger service that will be injected
+      await editFile('./app/services/logger.js').setContent(`
+import Service from '@ember/service';
+
+export default class LoggerService extends Service {
+  log(message) {
+    return 'Logger v1: ' + message;
+  }
+}
+`);
+
+      // Create a data service that depends on logger
+      await editFile('./app/services/data.js').setContent(`
+import Service from '@ember/service';
+import { service } from '@ember/service';
+import { tracked } from '@glimmer/tracking';
+
+export default class DataService extends Service {
+  @service logger;
+  @tracked value = 'initial';
+
+  get getValue() {
+    return this.logger.log(this.value);
+  }
+}
+`);
+
+      // Create a component that uses the data service
+      await editFile('./app/components/test-component.gjs').setContent(`
+import Component from "@glimmer/component";
+import { service } from '@ember/service';
+
+export default class MyComponent extends Component {
+  @service data;
+
+  <template>
+    <div class='service-injection-hmr'>
+      {{this.data.getValue}}
+    </div>
+  </template>
+}
+`);
+
+      await waitForMessage('hot updated: /app/components/test-component.gjs');
+
+      // Wait for services to be injected
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      let body = await page.waitForSelector('.service-injection-hmr');
+      let bodyContent = await body.evaluate((el) => el.textContent);
+      
+      expect(bodyContent).toContain('Logger v1: initial');
+
+      // Update the data service - change the value
+      await editFile('./app/services/data.js').setContent(`
+import Service from '@ember/service';
+import { service } from '@ember/service';
+import { tracked } from '@glimmer/tracking';
+
+export default class DataService extends Service {
+  @service logger;
+  @tracked value = 'updated';
+
+  get getValue() {
+    return this.logger.log(this.value);
+  }
+}
+`);
+
+      await waitForMessage(/hot updated:.*data\.js/);
+
+      // Verify the injected logger service still works after HMR
+      body = await page.waitForSelector('.service-injection-hmr');
+      bodyContent = await body.evaluate((el) => el.textContent);
+      expect(bodyContent).toContain('Logger v1: initial'); // State preserved!
+    });
   },
   120 * 1000,
 );
