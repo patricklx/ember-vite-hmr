@@ -150,6 +150,7 @@ export default TestService;
               } catch (e) {}
             }
           }
+          newDelegate._hmrAccepted?.(oldDelegate);
           if (oldDelegate.willDestroy) {
             oldDelegate.willDestroy();
           }
@@ -367,6 +368,7 @@ export default class DataService extends Service {
               } catch (e) {}
             }
           }
+          newDelegate._hmrAccepted?.(oldDelegate);
           if (oldDelegate.willDestroy) {
             oldDelegate.willDestroy();
           }

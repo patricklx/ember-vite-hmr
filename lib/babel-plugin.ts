@@ -552,6 +552,8 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
                     }
                   }
                 }
+
+                newDelegate._hmrAccepted?.(oldDelegate);
                 
                 if (oldDelegate.willDestroy) {
                   oldDelegate.willDestroy();

@@ -5,6 +5,7 @@ import { getInternalComponentManager } from '@glimmer/manager';
 
 interface HotComponent extends Component<{ __hot__?: unknown }> {
   __get_hot_state__?: () => Record<string, unknown>;
+  _hmrAccepted?: (oldInstance?: HotComponent) => void;
   [key: string]: unknown;
 }
 
@@ -60,8 +61,9 @@ function getState(component: HotComponent, skip: string[]) {
 }
 
 function syncState(instance: Mutable<HotComponent>) {
-  const args = instance.args as { __hot__?: { getState?: () => Record<string, unknown> } };
+  const args = instance.args as { __hot__?: { getState?: () => Record<string, unknown>; oldInstance?: HotComponent } };
   if (args.__hot__) {
+    const oldInstance = args.__hot__.oldInstance;
     const state =
       (instance.__get_hot_state__ as (() => Record<string, unknown>) | undefined)?.() || args.__hot__.getState?.();
     for (const k in state) {
@@ -70,7 +72,14 @@ function syncState(instance: Mutable<HotComponent>) {
       }
       instance[k as keyof HotComponent] = state[k];
     }
+    
+    // Call _hmrAccepted hook if defined
+    if (typeof instance._hmrAccepted === 'function') {
+      instance._hmrAccepted(oldInstance);
+    }
+    
     args.__hot__.getState = () => getState(instance as HotComponent, ['args']);
+    args.__hot__.oldInstance = instance as HotComponent;
   }
 }
 
