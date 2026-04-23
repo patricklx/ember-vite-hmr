@@ -553,7 +553,7 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
                   }
                 }
 
-                newDelegate._hmrAccepted?.();
+                newDelegate._hmrAccepted?.(oldDelegate);
                 
                 if (oldDelegate.willDestroy) {
                   oldDelegate.willDestroy();
