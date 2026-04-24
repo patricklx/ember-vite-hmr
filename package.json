@@ -61,7 +61,7 @@
     "@embroider/compat": "^4.1.17",
     "@embroider/core": "^4.4.7",
     "@eslint/js": "^9.39.4",
-    "@glimmer/component": "^2.0.0",
+    "@glimmer/component": "^2.1.1",
     "@glint/core": "^1.2.0",
     "@glint/environment-ember-loose": "^1.5.2",
     "@glint/environment-ember-template-imports": "^1.5.2",
