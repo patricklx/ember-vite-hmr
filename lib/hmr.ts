@@ -16,9 +16,9 @@ function generateContent(yields: string[]) {
   }
   return `
     {{#if (notAny ${all})}}
-        <this.curried @__hot__={{this.hot}} />
+        <this.curried @__hot__={{this.hot}} ...attributes />
     {{else}}
-        <this.curried @__hot__={{this.hot}} >
+        <this.curried @__hot__={{this.hot}} ...attributes >
         ${str}
         </this.curried>
     {{/if}}
