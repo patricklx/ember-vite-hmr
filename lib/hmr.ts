@@ -303,16 +303,18 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (compatModulesImport) {
         const compatModules = compatModulesImport[1];
         source += `\n
-              let prevCompatModules = Object.assign({}, ${compatModules});
-              import.meta.hot.accept('${compatModulesSpecifier}', (m) => {
-                for (const [name, module] of Object.entries(m.default)) {
-                  ${compatModules}[name] = module;
-                  if (name.includes('initializers') && prevCompatModules[name]?.default !== module.default) {
-                    globalThis.location.reload();
+              if (import.meta.hot) {
+                let prevCompatModules = Object.assign({}, ${compatModules});
+                import.meta.hot.accept('${compatModulesSpecifier}', (m) => {
+                  for (const [name, module] of Object.entries(m.default)) {
+                    ${compatModules}[name] = module;
+                    if (name.includes('initializers') && prevCompatModules[name]?.default !== module.default) {
+                      globalThis.location.reload();
+                    }
                   }
-                }
-                prevCompatModules = m.default;
-              })`;
+                  prevCompatModules = m.default;
+                });
+              }`;
       }
       if (resourcePath.includes('ember-vite-hmr/virtual/components')) {
         return source;
