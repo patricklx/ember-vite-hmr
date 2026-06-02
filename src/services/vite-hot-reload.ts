@@ -28,6 +28,9 @@ export default class ViteHotReloadService extends Service {
 
   init(args?: object) {
     super.init(args);
+    // HMR-only: `import.meta.hot` is undefined in production builds, so the
+    // resolver/router patching below is dead-code-eliminated there.
+    if (!import.meta.hot) return;
     if (!globalThis.emberHotReloadPlugin) return;
     const app = (getOwner(this) as ApplicationInstance)!.application as unknown as {
       Resolver: unknown;
