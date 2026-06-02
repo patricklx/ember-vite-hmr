@@ -128,6 +128,11 @@ function normalizePath(inputPath: string): string {
 
 const virtualPrefix = '/ember-vite-hmr/virtual/component:';
 
+// Embroider's resolver registry. It's the binding the app entry's HMR hook
+// mutates, so we use it to locate that entry. Embroider keeps this as an
+// internal literal (not a public export), so we mirror the string here.
+const compatModulesSpecifier = '@embroider/virtual/compat-modules';
+
 export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
   // let conf: any;
   let server: ViteDevServer;
@@ -286,15 +291,22 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (!supportedExt.some((x) => resourcePath.endsWith(x))) {
         return source;
       }
-      const pkgPath = path.resolve(process.cwd(), 'package.json');
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const name = require(pkgPath).name;
-      if (resourcePath.includes(`${name}/app/app.js`)) {
+      // Wire compat-modules HMR into the app entry, detected by the
+      // compat-modules import it owns rather than its path.
+      const compatModulesImport =
+        !resourcePath.includes('node_modules') &&
+        source.match(
+          new RegExp(
+            `import\\s+(\\w+)\\s+from\\s+['"]${compatModulesSpecifier}['"]`,
+          ),
+        );
+      if (compatModulesImport) {
+        const compatModules = compatModulesImport[1];
         source += `\n
-              let prevCompatModules = Object.assign({}, compatModules);
-              import.meta.hot.accept('@embroider/virtual/compat-modules', (m) => {
+              let prevCompatModules = Object.assign({}, ${compatModules});
+              import.meta.hot.accept('${compatModulesSpecifier}', (m) => {
                 for (const [name, module] of Object.entries(m.default)) {
-                  compatModules[name] = module;
+                  ${compatModules}[name] = module;
                   if (name.includes('initializers') && prevCompatModules[name]?.default !== module.default) {
                     globalThis.location.reload();
                   }

@@ -244,6 +244,27 @@ export const __hmr_import_metadata__ = {
     process.env.EMBER_VITE_HMR_ENABLED = 'true';
   });
 
+  it('wires compat-modules HMR into the entry by its import (TS entry, folder != package name)', async () => {
+    const source = `import compatModules from '@embroider/virtual/compat-modules';\n`;
+    const id = '/repo/packages/frontend/app/app.ts';
+    const result = await plugin.transform.call(mockContext, source, id);
+
+    expect(result).toContain(
+      "import.meta.hot.accept('@embroider/virtual/compat-modules'",
+    );
+    expect(result).toContain('compatModules[name] = module');
+  });
+
+  it('does not wire compat-modules HMR into modules that do not import it', async () => {
+    const source = `export default class App {}\n`;
+    const id = '/my-app/app/app.js';
+    const result = await plugin.transform.call(mockContext, source, id);
+
+    expect(result).not.toContain(
+      "import.meta.hot.accept('@embroider/virtual/compat-modules'",
+    );
+  });
+
   it('should handle @embroider/virtual imports', async () => {
     const source = `
 import Component from '@embroider/virtual/components/my-component';
