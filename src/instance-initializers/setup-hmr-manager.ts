@@ -84,6 +84,10 @@ function syncState(instance: Mutable<HotComponent>) {
 }
 
 export function initialize() {
+  // HMR-only: in a production build `import.meta.hot` is undefined, so this
+  // (and the manager/route monkey-patches below) is dead-code-eliminated.
+  if (!import.meta.hot) return;
+
   const ComponentManager = getInternalComponentManager(Component);
   const proto = Object.getPrototypeOf(ComponentManager);
   const create = proto.create;
