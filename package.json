@@ -133,7 +133,7 @@
       "./services/vite-hot-reload.js": "./dist/_app_/services/vite-hot-reload.js"
     }
   },
-  "packageManager": "^pnpm@10.0.0",
+  "packageManager": "pnpm@^10.0.0",
   "exports": {
     ".": {
       "default": "./dist/lib/hmr.js"
