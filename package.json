@@ -133,7 +133,7 @@
       "./services/vite-hot-reload.js": "./dist/_app_/services/vite-hot-reload.js"
     }
   },
-  "packageManager": "pnpm@10.0.0",
+  "packageManager": "pnpm@10.1.0",
   "exports": {
     ".": {
       "default": "./dist/lib/hmr.js"
@@ -150,6 +150,13 @@
         "declarations/*"
       ]
     }
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "playwright-chromium",
+      "puppeteer-chromium-resolver",
+      "esbuild",
+      "core-js"
+    ]
   }
 }
-
