@@ -219,7 +219,8 @@ describe(
           shell: true,
         });
 
-        await execa(`pnpm i --save-dev ../../`, {
+        const emberViteHmr = resolve(__dirname, '..', '..');
+        await execa(`pnpm i --save-dev ${emberViteHmr}`, {
           cwd: appDir,
           stdio: 'pipe',
           shell: true,
