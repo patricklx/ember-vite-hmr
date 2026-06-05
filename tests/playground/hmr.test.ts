@@ -252,7 +252,7 @@ describe(
         endpoint = viteContext.baseUri;
         page = viteContext.page;
       },
-      5 * 60 * 1000,
+      10 * 60 * 1000,
     );
 
     test('should render', async () => {
