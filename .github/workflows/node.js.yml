@@ -37,7 +37,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - uses: pnpm/action-setup@v2
         with:
-          version: latest
+          version: 10.1
       - run: pnpm i
       - run: pnpm run build || echo "ignore failures for now"
       - run: pnpm run test
