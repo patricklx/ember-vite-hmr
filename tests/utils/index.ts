@@ -1,9 +1,8 @@
 import child from 'child_process';
 import { resolve } from 'path';
-import PCR from 'puppeteer-chromium-resolver';
+import { chromium } from 'playwright-chromium';
 
 export async function startVite({ cwd }: { cwd: string }) {
-  const { puppeteer, executablePath } = await PCR({});
 
   globalThis.console.log('[ci] starting');
   const messages: string[] = [];
@@ -50,16 +49,16 @@ export async function startVite({ cwd }: { cwd: string }) {
 
   globalThis.console.log('[ci] spawned');
 
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    executablePath,
+  const browser = await chromium.launch({
+    headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
-  globalThis.console.log('[ci] puppeteer launched');
+  globalThis.console.log('[ci] chromium launched');
 
   try {
-    const page = await browser.newPage();
+    const context = await browser.newContext();
+    const page = await context.newPage();
     globalThis.console.log('load page');
     await page.goto('http://localhost:60173');
     page.on('console', (msg) => {
