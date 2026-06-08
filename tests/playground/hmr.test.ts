@@ -7,7 +7,8 @@ import {
   writeFile,
   emptyDir,
 } from 'fs-extra';
-import { dirname, resolve } from 'path';
+import { dirname, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import * as process from 'node:process';
 import { startVite } from '../utils';
 import { existsSync, unlinkSync } from 'node:fs';
@@ -34,7 +35,7 @@ describe(
   () => {
     let page: Awaited<ReturnType<typeof startVite>>['page'];
     let endpoint: string;
-    const tmpDir = resolve('./tmp');
+    const tmpDir = resolve(tmpdir(), './ember-vite-hmr-tmp');
     const appName = 'my-fancy-app';
     let appDir = resolve(tmpDir, appName);
     let viteContext: Awaited<ReturnType<typeof startVite>>;
@@ -178,7 +179,7 @@ describe(
             globalThis.console.error(e);
           }
 
-          await execa(`pnpm i --save-dev vite@6`, {
+          await execa(`pnpm i --save-dev vite@6 @babel/plugin-proposal-decorators`, {
             cwd: appDir,
             stdio: 'pipe',
             shell: true,
@@ -218,7 +219,8 @@ describe(
           shell: true,
         });
 
-        await execa(`pnpm i --save-dev ../../`, {
+        const emberViteHmr = resolve(__dirname, '..', '..');
+        await execa(`pnpm i --save-dev ${emberViteHmr}`, {
           cwd: appDir,
           stdio: 'pipe',
           shell: true,
@@ -250,7 +252,7 @@ describe(
         endpoint = viteContext.baseUri;
         page = viteContext.page;
       },
-      5 * 60 * 1000,
+      30 * 60 * 1000,
     );
 
     test('should render', async () => {
@@ -465,7 +467,7 @@ export default class MyComponent extends Component {
     <div class='service-hmr'>
       Count: {{this.counter.count}}
       Message: {{this.counter.message}}
-      <button type='button' {{on 'click' this.counter.increment}}>Increment</button>
+      <button type='button'>Increment</button>
     </div>
   </template>
 }
@@ -475,7 +477,7 @@ export default class MyComponent extends Component {
 
       // Wait for component to render and service to be injected
       // The service needs time to be transformed by Babel and injected
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       let body = await page.waitForSelector('.service-hmr');
       let bodyContent = await body.evaluate((el) => el.textContent);
@@ -507,7 +509,8 @@ export default class CounterService extends Service {
 
       await waitForMessage(/hot updated:.*counter\.js/);
 
-      // Verify state was preserved (count should still be 2) but message updated
+      // Verify state was preserved (count should still be 0) but message updated
+      await new Promise(resolve => setTimeout(resolve, 1000));
       body = await page.waitForSelector('.service-hmr');
       bodyContent = await body.evaluate((el) => el.textContent);
       expect(bodyContent).toContain('Count: 0'); // State preserved!

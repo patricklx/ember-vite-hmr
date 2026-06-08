@@ -36,8 +36,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://registry.npmjs.org"
       - uses: pnpm/action-setup@v2
-        with:
-          version: latest
       - run: pnpm i
       - run: pnpm run build || echo "ignore failures for now"
       - run: pnpm run test
