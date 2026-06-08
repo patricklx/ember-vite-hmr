@@ -490,7 +490,7 @@ export { CarbonCodeSnippet as default };
         {
           "id": "--id--",
           "block": "[[[8,[32,0,[\\"Other\\"]],null,null,null]],[],[]]",
-          "moduleName": "/rewritten-app/a.gts",
+          "moduleName": "(unknown template module)",
           "scope": () => [template__imports__],
           "isStrictMode": true
         }), templateOnly());
@@ -504,7 +504,7 @@ export { CarbonCodeSnippet as default };
         {
           "id": "--id--",
           "block": "[[[1,[28,[32,0,[\\"myhelper\\"]],null,null]],[1,\\"\\\\n\\"],[46,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n\\"],[8,[32,0,[\\"SomeComponent\\"]],null,null,null],[1,\\"\\\\n\\"],[8,[32,0,[\\"NamedComponent\\"]],null,null,null]],[],[\\"component\\"]]",
-          "moduleName": "/rewritten-app/a.gts",
+          "moduleName": "(unknown template module)",
           "scope": () => [template__imports__0],
           "isStrictMode": true
         }), templateOnly());
