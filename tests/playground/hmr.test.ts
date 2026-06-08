@@ -179,7 +179,7 @@ describe(
             globalThis.console.error(e);
           }
 
-          await execa(`pnpm i --save-dev vite@6`, {
+          await execa(`pnpm i --save-dev vite@6 @babel/plugin-proposal-decorators`, {
             cwd: appDir,
             stdio: 'pipe',
             shell: true,
