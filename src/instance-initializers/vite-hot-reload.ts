@@ -1,5 +1,3 @@
-/// <reference types="../../types/global" />
-
 import ApplicationInstance from '@ember/application/instance';
 import { debounce, next } from '@ember/runloop';
 import RouterService from '@ember/routing/router-service';
@@ -69,6 +67,10 @@ function supportErrorRecovery(appInstance: ApplicationInstance) {
 }
 
 export function initialize(application: ApplicationInstance) {
+  // HMR-only: in a production build `import.meta.hot` is undefined, so the
+  // resolver patch and console.warn override below are dead-code-eliminated.
+  if (!import.meta.hot) return;
+
   patchResolver(application);
   supportErrorRecovery(application);
 }
