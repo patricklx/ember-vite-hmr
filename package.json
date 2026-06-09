@@ -83,7 +83,7 @@
     "assert-never": "^1.4.0",
     "babel-import-util": "^3.0.0",
     "babel-plugin-ember-template-compilation": "^4.0.0",
-    "concurrently": "^9.2.1",
+    "concurrently": "^10.0.3",
     "content-tag": "^4.0.0",
     "ember-cli-htmlbars": "^6.3.0",
     "ember-resolver": "^13.2.0",
