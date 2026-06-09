@@ -139,6 +139,31 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
   return {
     name: 'hmr-plugin',
     enforce: 'post',
+    config(_config, env) {
+      // The per-component hot wrapper (see getHotComponent) imports these, but
+      // it is generated/served on demand, so it is never part of the static
+      // module graph Vite's dependency scanner crawls on the first pass.
+      // Without pre-declaring them, the browser requests them on boot, Vite
+      // discovers "new" deps and triggers a re-optimize + full page reload.
+      //
+      // We must use the Embroider-rewritten `ember-source/...` subpaths: the
+      // bare `@glimmer/reference` etc. specifiers the wrapper writes cannot be
+      // resolved by optimizeDeps.include. (`@glimmer/component` and
+      // `@glimmer/tracking` are omitted on purpose — normal app code already
+      // pulls them into the scan.)
+      if (!enableViteHmrForModes.includes(env.mode)) {
+        return;
+      }
+      return {
+        optimizeDeps: {
+          include: [
+            'ember-source/@glimmer/reference/index.js',
+            'ember-source/@glimmer/runtime/index.js',
+            'ember-source/@ember/destroyable/index.js',
+          ],
+        },
+      };
+    },
     configureServer(s) {
       server = s;
     },
