@@ -21,8 +21,8 @@ importers:
         specifier: ^7.28.5
         version: 7.29.7
       '@embroider/addon-shim':
-        specifier: ^1.10.2
-        version: 1.10.2(supports-color@10.2.2)
+        specifier: ^1.10.3
+        version: 1.10.3(supports-color@10.2.2)
       '@glimmer/syntax':
         specifier: ^0.95.0
         version: 0.95.0
@@ -824,8 +824,8 @@ packages:
       rollup:
         optional: true
 
-  '@embroider/addon-shim@1.10.2':
-    resolution: {integrity: sha512-EfI9cJ5/3QSUJtwm7x1MXrx3TEa2p7RNgSHefy7fvGm8/DP1xUFL25nST1NaHbHcqR1UhMlrTtv5iUIDoVzeQQ==}
+  '@embroider/addon-shim@1.10.3':
+    resolution: {integrity: sha512-GYbaiC1v9inbiwVg5s+Sd14Jc66NYxg23mEOocgWAZFCtOfhMnRLaLAA6SytW76myVVYImGHX5PFK4PVuH2yng==}
     engines: {node: 12.* || 14.* || >= 16}
 
   '@embroider/compat@4.1.19':
@@ -853,6 +853,10 @@ packages:
 
   '@embroider/shared-internals@3.1.0':
     resolution: {integrity: sha512-DAEB8B0rAHMYnwCPIeYIrZ6uKGEesQx5XqLuO0beqDnZLwsIRcvWSSbpUgOu6nwqXm5EiJiJaTbrHedOSrlR5g==}
+    engines: {node: 12.* || 14.* || >= 16}
+
+  '@embroider/shared-internals@3.1.1':
+    resolution: {integrity: sha512-IlxD8okTt9cRUFpJKD8gTuQUBuEflrhCUju1xZFdYvmGm5XVqHPfG4I6+bEdKb8NO92aqHxr9SYuYibDmpMM9w==}
     engines: {node: 12.* || 14.* || >= 16}
 
   '@emnapi/core@1.10.0':
@@ -3961,6 +3965,10 @@ packages:
   pkg-entry-points@1.1.1:
     resolution: {integrity: sha512-BhZa7iaPmB4b3vKIACoppyUoYn8/sFs17VJJtzrzPZvEnN2nqrgg911tdL65lA2m1ml6UI3iPeYbZQ4VXpn1mA==}
 
+  pkg-entry-points@1.1.2:
+    resolution: {integrity: sha512-bmmM+SdLXNNetFr4o53QiiZRZicls2apmzj8HRpo4bU+3nJHiPO/omv8TXHIOzTcirua3YBAwTlKE+7zkICh4g==}
+    engines: {node: '>=20.19.5'}
+
   pkg-up@3.1.0:
     resolution: {integrity: sha512-nDywThFk1i4BQK4twPQ6TA4RT8bDY96yeuCVBWL3ePARCiEKDRSrNGbFIgUJpLp+XeIR65v8ra7WuJOFUBtkMA==}
     engines: {node: '>=8'}
@@ -5866,9 +5874,9 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@embroider/addon-shim@1.10.2(supports-color@10.2.2)':
+  '@embroider/addon-shim@1.10.3(supports-color@10.2.2)':
     dependencies:
-      '@embroider/shared-internals': 3.1.0(supports-color@10.2.2)
+      '@embroider/shared-internals': 3.1.1(supports-color@10.2.2)
       broccoli-funnel: 3.0.8(supports-color@10.2.2)
       common-ancestor-path: 1.0.1
       semver: 7.8.3
@@ -5996,6 +6004,24 @@ snapshots:
       lodash: 4.18.1
       minimatch: 3.1.5
       pkg-entry-points: 1.1.1
+      resolve-package-path: 4.0.3
+      resolve.exports: 2.0.3
+      semver: 7.8.3
+      typescript-memoize: 1.1.1
+    transitivePeerDependencies:
+      - supports-color
+
+  '@embroider/shared-internals@3.1.1(supports-color@10.2.2)':
+    dependencies:
+      babel-import-util: 3.0.1
+      debug: 4.4.3(supports-color@10.2.2)
+      ember-rfc176-data: 0.3.18
+      fs-extra: 9.1.0
+      is-subdir: 1.2.0
+      js-string-escape: 1.0.1
+      lodash: 4.18.1
+      minimatch: 3.1.5
+      pkg-entry-points: 1.1.2
       resolve-package-path: 4.0.3
       resolve.exports: 2.0.3
       semver: 7.8.3
@@ -6145,7 +6171,7 @@ snapshots:
 
   '@glimmer/component@2.1.1(supports-color@10.2.2)':
     dependencies:
-      '@embroider/addon-shim': 1.10.2(supports-color@10.2.2)
+      '@embroider/addon-shim': 1.10.3(supports-color@10.2.2)
       '@glimmer/env': 0.1.7
     transitivePeerDependencies:
       - supports-color
@@ -7887,7 +7913,7 @@ snapshots:
       '@one-ini/wasm': 0.2.1
       commander: 14.0.3
       minimatch: 10.2.5
-      semver: 7.8.1
+      semver: 7.8.3
 
   ee-first@1.1.1: {}
 
@@ -8017,7 +8043,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.29.7(supports-color@10.2.2)
       '@ember/edition-utils': 1.2.0
-      '@embroider/addon-shim': 1.10.2(supports-color@10.2.2)
+      '@embroider/addon-shim': 1.10.3(supports-color@10.2.2)
       '@glimmer/component': 2.1.1(supports-color@10.2.2)
       '@simple-dom/interface': 1.4.0
       backburner.js: 2.8.0
@@ -9579,6 +9605,8 @@ snapshots:
   picomatch@4.0.4: {}
 
   pkg-entry-points@1.1.1: {}
+
+  pkg-entry-points@1.1.2: {}
 
   pkg-up@3.1.0:
     dependencies:
