@@ -61,8 +61,8 @@ importers:
         specifier: ^8.3.0
         version: 8.3.0(@glint/template@1.7.7)(rollup@4.61.1)(supports-color@10.2.2)
       '@embroider/compat':
-        specifier: ^4.1.17
-        version: 4.1.19(@embroider/core@4.6.1(@glint/template@1.7.7)(supports-color@10.2.2))(@glint/template@1.7.7)(supports-color@10.2.2)
+        specifier: ^4.1.20
+        version: 4.1.20(@embroider/core@4.6.1(@glint/template@1.7.7)(supports-color@10.2.2))(@glint/template@1.7.7)(supports-color@10.2.2)
       '@embroider/core':
         specifier: ^4.6.1
         version: 4.6.1(@glint/template@1.7.7)(supports-color@10.2.2)
@@ -241,8 +241,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0(@types/node@25.9.2)(supports-color@10.2.2)
       '@embroider/compat':
-        specifier: ^4.1.17
-        version: 4.1.19(@embroider/core@4.6.1(@glint/template@1.7.7)(supports-color@10.2.2))(@glint/template@1.7.7)(supports-color@10.2.2)
+        specifier: ^4.1.20
+        version: 4.1.20(@embroider/core@4.6.1(@glint/template@1.7.7)(supports-color@10.2.2))(@glint/template@1.7.7)(supports-color@10.2.2)
       '@embroider/config-meta-loader':
         specifier: ^1.0.0
         version: 1.0.0
@@ -946,11 +946,11 @@ packages:
     resolution: {integrity: sha512-GYbaiC1v9inbiwVg5s+Sd14Jc66NYxg23mEOocgWAZFCtOfhMnRLaLAA6SytW76myVVYImGHX5PFK4PVuH2yng==}
     engines: {node: 12.* || 14.* || >= 16}
 
-  '@embroider/compat@4.1.19':
-    resolution: {integrity: sha512-K+vCmmbrM3ie/hBf06BaNB7WrwySLNyWKDR0thnF996VBEo16TtvpTN5x9iGenmuQEfr+lLGOmPB24k11pxycQ==}
+  '@embroider/compat@4.1.20':
+    resolution: {integrity: sha512-WrSbw8EDE+XziYa3GN0Lq3AXCmKO65mg/NPKN2AdJ9mKPC3LIVtHnCPKdx5IhJljdImXfy2wNll2dk3CPbquaQ==}
     engines: {node: '>= 20.19.*'}
     peerDependencies:
-      '@embroider/core': ^4.5.0
+      '@embroider/core': ^4.6.1
 
   '@embroider/config-meta-loader@1.0.0':
     resolution: {integrity: sha512-qznkdjgEGPe6NM94hZNXvOm/WhrJwBh8FtSQZ+nGjh9TOjY42tOiTEevFuM0onNXUn6bpdGzmjwKo2xY2jxQxQ==}
@@ -962,15 +962,6 @@ packages:
 
   '@embroider/legacy-inspector-support@0.1.3':
     resolution: {integrity: sha512-0VzD1xExkT78a1CUiW8wZ5VZDL4bVyMSc3t8E/RiAW1X6TlyKIA/m6zoQgsQtQIiiTPPxH0/1Tdd0F7b5//etw==}
-
-  '@embroider/macros@1.20.3':
-    resolution: {integrity: sha512-8sClktPsQ20KgnWl8id6NL5G/hv3+Q5OlnQ4y4XQjYS/RsPy8/C9tU75/2ujgToi1YfX64UykjCau6PXqKDfUQ==}
-    engines: {node: 12.* || 14.* || >= 16}
-    peerDependencies:
-      '@glint/template': ^1.0.0
-    peerDependenciesMeta:
-      '@glint/template':
-        optional: true
 
   '@embroider/macros@1.20.4':
     resolution: {integrity: sha512-R83kUvMXRNPtFSCyplyBEF6FFYCCclQf4epT3mPBo/GfmchxtChOSNYz/skyhpbhnD47WIW1A+aROXBQPlKI8A==}
@@ -992,10 +983,6 @@ packages:
     peerDependenciesMeta:
       '@embroider/core':
         optional: true
-
-  '@embroider/shared-internals@3.1.0':
-    resolution: {integrity: sha512-DAEB8B0rAHMYnwCPIeYIrZ6uKGEesQx5XqLuO0beqDnZLwsIRcvWSSbpUgOu6nwqXm5EiJiJaTbrHedOSrlR5g==}
-    engines: {node: 12.* || 14.* || >= 16}
 
   '@embroider/shared-internals@3.1.1':
     resolution: {integrity: sha512-IlxD8okTt9cRUFpJKD8gTuQUBuEflrhCUju1xZFdYvmGm5XVqHPfG4I6+bEdKb8NO92aqHxr9SYuYibDmpMM9w==}
@@ -5334,9 +5321,6 @@ packages:
     resolution: {integrity: sha512-9qny7Z9DsQU8Ou39ERsPU4OZQlSTP47ShQzuKZ6PRXpYLtIFgl/DEBYEXKlvcEa+9tHVcK8CF81Y2V72qaZhWA==}
     engines: {node: '>=18'}
 
-  nwsapi@2.2.23:
-    resolution: {integrity: sha512-7wfH4sLbt4M0gCDzGE6vzQBo0bfTKjU7Sfpqy/7gs1qBfYz2vEJH6vXcBKpO3+6Yu1telwd0t9HpyOoLEQQbIQ==}
-
   nwsapi@2.2.24:
     resolution: {integrity: sha512-7YRhZ3jS45LwmSCT4b2sVFHt/WuovaktDU07QrtOBY2PXskss5a9jfmR9jptyumwXST+rFjrmppMY1KT/yn35A==}
 
@@ -5572,9 +5556,6 @@ packages:
   picomatch@4.0.4:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
-
-  pkg-entry-points@1.1.1:
-    resolution: {integrity: sha512-BhZa7iaPmB4b3vKIACoppyUoYn8/sFs17VJJtzrzPZvEnN2nqrgg911tdL65lA2m1ml6UI3iPeYbZQ4VXpn1mA==}
 
   pkg-entry-points@1.1.2:
     resolution: {integrity: sha512-bmmM+SdLXNNetFr4o53QiiZRZicls2apmzj8HRpo4bU+3nJHiPO/omv8TXHIOzTcirua3YBAwTlKE+7zkICh4g==}
@@ -6022,6 +6003,11 @@ packages:
 
   semver@7.8.3:
     resolution: {integrity: sha512-wnilbGyMxzbY7dNOl7jpKbLSjcfeweJWU5j4+u5qW+6/wuGD9KzIGOyZnQVSBM9E7DtWaaH3CyHkppYrKYoxwg==}
+    engines: {node: '>=10'}
+    hasBin: true
+
+  semver@7.8.4:
+    resolution: {integrity: sha512-rUCObTnP32Q08R2uuIrt7r9PlEonuTmtuXYcW6s5kjdlj3xbnwe+21yXptAUYcMAABLkYYTtnmzb3w3EDZfueA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -7965,7 +7951,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@embroider/compat@4.1.19(@embroider/core@4.6.1(@glint/template@1.7.7)(supports-color@10.2.2))(@glint/template@1.7.7)(supports-color@10.2.2)':
+  '@embroider/compat@4.1.20(@embroider/core@4.6.1(@glint/template@1.7.7)(supports-color@10.2.2))(@glint/template@1.7.7)(supports-color@10.2.2)':
     dependencies:
       '@babel/code-frame': 7.29.7
       '@babel/core': 7.29.7(supports-color@10.2.2)
@@ -7977,7 +7963,7 @@ snapshots:
       '@babel/runtime': 7.29.7
       '@babel/traverse': 7.29.7(supports-color@10.2.2)
       '@embroider/core': 4.6.1(@glint/template@1.7.7)(supports-color@10.2.2)
-      '@embroider/macros': 1.20.3(@babel/core@7.29.7(supports-color@10.2.2))(@glint/template@1.7.7)(supports-color@10.2.2)
+      '@embroider/macros': 1.20.4(@babel/core@7.29.7(supports-color@10.2.2))(@glint/template@1.7.7)(supports-color@10.2.2)
       '@types/babel__code-frame': 7.27.0
       assert-never: 1.4.0
       babel-import-util: 3.0.1
@@ -8006,7 +7992,7 @@ snapshots:
       resolve: 1.22.12
       resolve-package-path: 4.0.3
       resolve.exports: 2.0.3
-      semver: 7.8.3
+      semver: 7.8.4
       symlink-or-copy: 1.3.1
       tree-sync: 2.1.0(supports-color@10.2.2)
       typescript-memoize: 1.1.1
@@ -8062,22 +8048,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@embroider/macros@1.20.3(@babel/core@7.29.7(supports-color@10.2.2))(@glint/template@1.7.7)(supports-color@10.2.2)':
-    dependencies:
-      '@embroider/shared-internals': 3.1.0(supports-color@10.2.2)
-      assert-never: 1.4.0
-      babel-import-util: 3.0.1
-      ember-cli-babel: 8.3.1(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2)
-      find-up: 5.0.0
-      lodash: 4.18.1
-      resolve: 1.22.12
-      semver: 7.8.3
-    optionalDependencies:
-      '@glint/template': 1.7.7
-    transitivePeerDependencies:
-      - '@babel/core'
-      - supports-color
-
   '@embroider/macros@1.20.4(@babel/core@7.29.7(supports-color@10.2.2))(@glint/template@1.7.7)(supports-color@10.2.2)':
     dependencies:
       '@embroider/shared-internals': 3.1.1(supports-color@10.2.2)
@@ -8108,24 +8078,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@embroider/shared-internals@3.1.0(supports-color@10.2.2)':
-    dependencies:
-      babel-import-util: 3.0.1
-      debug: 4.4.3(supports-color@10.2.2)
-      ember-rfc176-data: 0.3.18
-      fs-extra: 9.1.0
-      is-subdir: 1.2.0
-      js-string-escape: 1.0.1
-      lodash: 4.18.1
-      minimatch: 3.1.5
-      pkg-entry-points: 1.1.1
-      resolve-package-path: 4.0.3
-      resolve.exports: 2.0.3
-      semver: 7.8.3
-      typescript-memoize: 1.1.1
-    transitivePeerDependencies:
-      - supports-color
-
   '@embroider/shared-internals@3.1.1(supports-color@10.2.2)':
     dependencies:
       babel-import-util: 3.0.1
@@ -8139,7 +8091,7 @@ snapshots:
       pkg-entry-points: 1.1.2
       resolve-package-path: 4.0.3
       resolve.exports: 2.0.3
-      semver: 7.8.3
+      semver: 7.8.4
       typescript-memoize: 1.1.1
     transitivePeerDependencies:
       - supports-color
@@ -8636,7 +8588,7 @@ snapshots:
   '@npmcli/fs@1.1.1':
     dependencies:
       '@gar/promisify': 1.1.3
-      semver: 7.8.3
+      semver: 7.8.4
 
   '@npmcli/git@6.0.3':
     dependencies:
@@ -8646,7 +8598,7 @@ snapshots:
       npm-pick-manifest: 10.0.0
       proc-log: 5.0.0
       promise-retry: 2.0.1
-      semver: 7.8.3
+      semver: 7.8.4
       which: 5.0.0
 
   '@npmcli/move-file@1.1.2':
@@ -8661,7 +8613,7 @@ snapshots:
       hosted-git-info: 8.1.0
       json-parse-even-better-errors: 4.0.0
       proc-log: 5.0.0
-      semver: 7.8.3
+      semver: 7.8.4
       validate-npm-package-license: 3.0.4
 
   '@npmcli/promise-spawn@8.0.3':
@@ -8840,7 +8792,7 @@ snapshots:
       extract-zip: 2.0.1(supports-color@10.2.2)
       progress: 2.0.3
       proxy-agent: 6.5.0(supports-color@10.2.2)
-      semver: 7.8.3
+      semver: 7.8.4
       tar-fs: 3.1.2
       yargs: 17.7.2
     transitivePeerDependencies:
@@ -9207,7 +9159,7 @@ snapshots:
       '@typescript-eslint/visitor-keys': 8.60.1
       debug: 4.4.3(supports-color@10.2.2)
       minimatch: 10.2.5
-      semver: 7.8.3
+      semver: 7.8.4
       tinyglobby: 0.2.17
       ts-api-utils: 2.5.0(typescript@5.9.3)
       typescript: 5.9.3
@@ -9222,7 +9174,7 @@ snapshots:
       '@typescript-eslint/visitor-keys': 8.61.0
       debug: 4.4.3(supports-color@10.2.2)
       minimatch: 10.2.5
-      semver: 7.8.3
+      semver: 7.8.4
       tinyglobby: 0.2.17
       ts-api-utils: 2.5.0(typescript@5.9.3)
       typescript: 5.9.3
@@ -9733,7 +9685,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.29.7(supports-color@10.2.2)
       babel-import-util: 2.1.1
-      semver: 7.8.3
+      semver: 7.8.4
 
   babel-plugin-ember-data-packages-polyfill@0.1.2:
     dependencies:
@@ -10878,7 +10830,7 @@ snapshots:
       '@one-ini/wasm': 0.2.1
       commander: 14.0.3
       minimatch: 10.2.5
-      semver: 7.8.3
+      semver: 7.8.4
 
   ee-first@1.1.1: {}
 
@@ -10983,7 +10935,7 @@ snapshots:
   ember-cli-version-checker@5.1.2(supports-color@10.2.2):
     dependencies:
       resolve-package-path: 3.1.0
-      semver: 7.8.3
+      semver: 7.8.4
       silent-error: 1.1.1(supports-color@10.2.2)
     transitivePeerDependencies:
       - supports-color
@@ -11419,7 +11371,7 @@ snapshots:
   eslint-compat-utils@0.5.1(eslint@9.39.4(supports-color@10.2.2)):
     dependencies:
       eslint: 9.39.4(supports-color@10.2.2)
-      semver: 7.8.3
+      semver: 7.8.4
 
   eslint-config-prettier@10.1.8(eslint@9.39.4(supports-color@10.2.2)):
     dependencies:
@@ -12633,7 +12585,7 @@ snapshots:
       http-proxy-agent: 7.0.2(supports-color@10.2.2)
       https-proxy-agent: 7.0.6(supports-color@10.2.2)
       is-potential-custom-element-name: 1.0.1
-      nwsapi: 2.2.23
+      nwsapi: 2.2.24
       parse5: 7.3.0
       rrweb-cssom: 0.8.0
       saxes: 6.0.0
@@ -13086,7 +13038,7 @@ snapshots:
 
   npm-install-checks@7.1.2:
     dependencies:
-      semver: 7.8.3
+      semver: 7.8.4
 
   npm-normalize-package-bin@4.0.0: {}
 
@@ -13094,14 +13046,14 @@ snapshots:
     dependencies:
       hosted-git-info: 8.1.0
       proc-log: 5.0.0
-      semver: 7.8.3
+      semver: 7.8.4
       validate-npm-package-name: 6.0.2
 
   npm-package-arg@13.0.2:
     dependencies:
       hosted-git-info: 9.0.3
       proc-log: 6.1.0
-      semver: 7.8.3
+      semver: 7.8.4
       validate-npm-package-name: 7.0.2
 
   npm-pick-manifest@10.0.0:
@@ -13109,7 +13061,7 @@ snapshots:
       npm-install-checks: 7.1.2
       npm-normalize-package-bin: 4.0.0
       npm-package-arg: 12.0.2
-      semver: 7.8.3
+      semver: 7.8.4
 
   npm-run-path@4.0.1:
     dependencies:
@@ -13119,8 +13071,6 @@ snapshots:
     dependencies:
       path-key: 4.0.0
       unicorn-magic: 0.3.0
-
-  nwsapi@2.2.23: {}
 
   nwsapi@2.2.24: {}
 
@@ -13283,7 +13233,7 @@ snapshots:
       ky: 1.14.3
       registry-auth-token: 5.1.1
       registry-url: 6.0.1
-      semver: 7.8.3
+      semver: 7.8.4
 
   package-up@5.0.0:
     dependencies:
@@ -13358,8 +13308,6 @@ snapshots:
   picomatch@2.3.2: {}
 
   picomatch@4.0.4: {}
-
-  pkg-entry-points@1.1.1: {}
 
   pkg-entry-points@1.1.2: {}
 
@@ -13898,6 +13846,8 @@ snapshots:
 
   semver@7.8.3: {}
 
+  semver@7.8.4: {}
+
   send@1.2.1(supports-color@10.2.2):
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
@@ -14072,7 +14022,7 @@ snapshots:
       get-stdin: 9.0.0
       git-hooks-list: 3.2.0
       is-plain-obj: 4.1.0
-      semver: 7.8.3
+      semver: 7.8.4
       sort-object-keys: 1.1.3
       tinyglobby: 0.2.17
 
@@ -14082,7 +14032,7 @@ snapshots:
       detect-newline: 4.0.1
       git-hooks-list: 4.2.1
       is-plain-obj: 4.1.0
-      semver: 7.8.3
+      semver: 7.8.4
       sort-object-keys: 2.1.0
       tinyglobby: 0.2.17
 
@@ -14538,7 +14488,7 @@ snapshots:
     dependencies:
       growly: 1.3.0
       is-wsl: 2.2.0
-      semver: 7.8.3
+      semver: 7.8.4
       shellwords: 0.1.1
       which: 2.0.2
 
@@ -14639,7 +14589,7 @@ snapshots:
 
   typescript-auto-import-cache@0.3.6:
     dependencies:
-      semver: 7.8.3
+      semver: 7.8.4
 
   typescript-memoize@1.1.1: {}
 
@@ -14779,7 +14729,7 @@ snapshots:
   volar-service-typescript@0.0.71(@volar/language-service@2.4.28):
     dependencies:
       path-browserify: 1.0.1
-      semver: 7.8.3
+      semver: 7.8.4
       typescript-auto-import-cache: 0.3.6
       vscode-languageserver-textdocument: 1.0.12
       vscode-nls: 5.2.0
