@@ -1,1 +1,5 @@
-{"solution":"github","changelogPath":"CHANGELOG.md"}
+{"solution": {
+    "ember-vite-hmr": {
+      "oldVersion": "2.1.5"
+    }
+  },"changelogPath":"CHANGELOG.md"}
