@@ -1,6 +1,9 @@
 *
 !tests
 !tests/**/*
+!test-app
+!test-app/**/*
+!pnpm-workspace.yaml
 !declarations
 !declarations/**/*
 !lib

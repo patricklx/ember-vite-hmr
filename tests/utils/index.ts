@@ -2,7 +2,13 @@ import child from 'child_process';
 import { resolve } from 'path';
 import { chromium } from 'playwright-chromium';
 
-export async function startVite({ cwd }: { cwd: string }) {
+export async function startVite({
+  cwd,
+  port = 60173,
+}: {
+  cwd: string;
+  port?: number;
+}) {
 
   globalThis.console.log('[ci] starting');
   const messages: string[] = [];
@@ -12,7 +18,7 @@ export async function startVite({ cwd }: { cwd: string }) {
     globalThis.console.log('start vite');
     runvite = child.fork(
       resolve('.', 'node_modules', 'vite', 'bin', 'vite.js'),
-      ['--port', '60173', '--no-open', '--force'],
+      ['--port', String(port), '--no-open', '--force'],
       {
         stdio: 'pipe',
         cwd,
@@ -39,7 +45,7 @@ export async function startVite({ cwd }: { cwd: string }) {
       const chunk = String(data).replace(/\u001b[^m]*?m/g, '');
       messages.push(...chunk.split('\n'));
       globalThis.console.log('stdout', chunk);
-      if (chunk.includes('Local') && chunk.includes('60173')) {
+      if (chunk.includes('Local') && chunk.includes(String(port))) {
         fulfill(1);
       }
     });
@@ -60,7 +66,7 @@ export async function startVite({ cwd }: { cwd: string }) {
     const context = await browser.newContext();
     const page = await context.newPage();
     globalThis.console.log('load page');
-    await page.goto('http://localhost:60173');
+    await page.goto(`http://localhost:${port}`);
     page.on('console', (msg) => {
       globalThis.console.log(msg.text());
       messages.push(msg.text());
@@ -78,7 +84,7 @@ export async function startVite({ cwd }: { cwd: string }) {
       page,
       onMessage,
       messages,
-      baseUri: 'http://localhost:60173',
+      baseUri: `http://localhost:${port}`,
     };
   } catch {
     await browser.close();
