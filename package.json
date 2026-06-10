@@ -1,18 +1,35 @@
 {
   "name": "ember-vite-hmr",
   "version": "2.1.5",
+  "private": false,
+  "description": "provides hmr support for ember apps",
   "keywords": [
     "ember-addon"
   ],
-  "private": false,
-  "description": "provides hmr support for ember apps",
   "repository": {
     "type": "git",
     "url": "https://github.com/patricklx/ember-vite-hmr"
   },
   "license": "MIT",
   "author": "Patrick Pircher",
+  "exports": {
+    ".": {
+      "default": "./dist/lib/hmr.js"
+    },
+    "./*": {
+      "types": "./declarations/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./addon-main.js": "./addon-main.cjs"
+  },
   "main": "dist/lib/hmr.js",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "declarations/*"
+      ]
+    }
+  },
   "files": [
     "addon-main.cjs",
     "dist"
@@ -21,22 +38,22 @@
     "build": "pnpm build:js && pnpm build:lib",
     "build:js": "rollup --config",
     "build:lib": "tsc --p tsconfig.lib.json",
-    "watch:lib": "tsc --p tsconfig.lib.json --watch",
     "build:types": "glint --declaration",
     "lint": "concurrently 'npm:lint:*(!fix)' --names 'lint:'",
     "lint:fix": "concurrently 'npm:lint:*:fix' --names 'fix:'",
     "lint:hbs": "ember-template-lint . --no-error-on-unmatched-pattern",
-    "lint:js": "eslint . --cache",
-    "lint:prettier": "prettier --check .",
     "lint:hbs:fix": "ember-template-lint . --fix --no-error-on-unmatched-pattern",
+    "lint:js": "eslint . --cache",
     "lint:js:fix": "eslint . --fix",
+    "lint:prettier": "prettier --check .",
     "lint:prettier:fix": "prettier --w .",
     "lint:types": "glint",
+    "prepack": "pnpm build || echo 'its okay'",
     "start": "concurrently 'npm:start:*'",
     "start:js": "rollup --config --watch --no-watch.clearScreen",
     "start:types": "glint --declaration --watch",
     "test": "vitest run --hook-timeout=120000",
-    "prepack": "pnpm build || echo 'its okay'"
+    "watch:lib": "tsc --p tsconfig.lib.json --watch"
   },
   "dependencies": {
     "@babel/core": "^7.29.0",
@@ -101,6 +118,7 @@
     "prettier": "^3.8.3",
     "prettier-plugin-ember-template-tag": "^2.1.3",
     "puppeteer-chromium-resolver": "^24.0.2",
+    "release-plan": "^0.18.0",
     "rollup": "^4.60.2",
     "source-map-url": "^0.4.1",
     "strip-ansi": "^7.2.0",
@@ -117,8 +135,17 @@
     "babel-import-util": "^3.0.0",
     "babel-plugin-ember-template-compilation": "^2.2.2"
   },
+  "packageManager": "pnpm@10.1.0",
   "engines": {
     "node": "12.* || 14.* || >= 16"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "playwright-chromium",
+      "puppeteer-chromium-resolver",
+      "esbuild",
+      "core-js"
+    ]
   },
   "ember": {
     "edition": "octane"
@@ -132,31 +159,5 @@
       "./instance-initializers/vite-hot-reload.js": "./dist/_app_/instance-initializers/vite-hot-reload.js",
       "./services/vite-hot-reload.js": "./dist/_app_/services/vite-hot-reload.js"
     }
-  },
-  "packageManager": "pnpm@10.1.0",
-  "exports": {
-    ".": {
-      "default": "./dist/lib/hmr.js"
-    },
-    "./*": {
-      "types": "./declarations/*.d.ts",
-      "default": "./dist/*.js"
-    },
-    "./addon-main.js": "./addon-main.cjs"
-  },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "declarations/*"
-      ]
-    }
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "playwright-chromium",
-      "puppeteer-chromium-resolver",
-      "esbuild",
-      "core-js"
-    ]
   }
 }

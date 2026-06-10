@@ -37,8 +37,6 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - uses: pnpm/action-setup@v2
       - run: pnpm i
-      - run: pnpm run build || echo "ignore failures for now"
+      - run: pnpm run build
       - run: pnpm run test
-      - run: pnpm view "ember-vite-hmr@$(cat package.json | jq -r '.version')" || npm publish
-        if: github.ref == 'refs/heads/main'
 
