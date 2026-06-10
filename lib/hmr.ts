@@ -1,7 +1,13 @@
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { Plugin, ViteDevServer } from 'vite';
 import { NodePath, parseSync } from '@babel/core';
+import traverseModule from '@babel/traverse';
+const traverse = (traverseModule as any).default || traverseModule;
 import { readFile } from 'fs/promises';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function generateContent(yields: string[]) {
   if (!yields.includes('default')) {
@@ -370,10 +376,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           local: string;
           source: string;
           specifier: string;
-        }> = [];
-
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const traverse = require('@babel/traverse').default;
+        }> = [];        
 
         // First pass: Extract metadata
         traverse(result, {
@@ -421,21 +424,23 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         // Second pass: Find matching imports (only if we have bindings to match)
         if (importVar && bindings.length > 0) {
           traverse(result, {
-            ImportDeclaration(path: NodePath<{ source: { value: string }; specifiers: Array<{ type?: string; local: { name: string }; imported?: { name: string } }> }>) {
-              const importSource = (path.node as { source: { value: string } }).source.value;
+            ImportDeclaration(path) {
+              const importSource = path.node.source.value;
 
-              for (const specifier of (path.node as { specifiers: Array<{ type?: string; local: { name: string }; imported?: { name: string } }> }).specifiers) {
-                const local = (specifier as { local: { name: string } }).local.name;
+              for (const specifier of path.node.specifiers) {
+                const local = specifier.local.name;
 
                 if (bindings.includes(local)) {
                   let specifierName = 'default';
 
-                  if ((specifier as { type?: string }).type === 'ImportDefaultSpecifier') {
+                  if (specifier.type === 'ImportDefaultSpecifier') {
                     specifierName = 'default';
-                  } else if ((specifier as { type?: string }).type === 'ImportSpecifier') {
+                  } else if (specifier.type === 'ImportSpecifier') {
                     // For named imports, use the imported name
-                    specifierName = (specifier as { imported?: { name: string } }).imported?.name || 'default';
-                  } else if ((specifier as { type?: string }).type === 'ImportNamespaceSpecifier') {
+                    // Handle both Identifier and StringLiteral types
+                    const imported = specifier.imported;
+                    specifierName = imported.type === 'Identifier' ? imported.name : imported.value;
+                  } else if (specifier.type === 'ImportNamespaceSpecifier') {
                     specifierName = '*';
                   }
 
