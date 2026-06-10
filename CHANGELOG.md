@@ -1,3 +1,1 @@
 # ember-vite-hmr Changelog
-
-
