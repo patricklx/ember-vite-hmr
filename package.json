@@ -1,6 +1,6 @@
 {
   "name": "ember-vite-hmr",
-  "version": "2.1.5",
+  "version": "2.2.0",
   "private": false,
   "description": "provides hmr support for ember apps",
   "keywords": [
