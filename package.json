@@ -59,7 +59,7 @@
     "@babel/runtime": "^7.28.4",
     "@embroider/addon-dev": "^8.3.0",
     "@embroider/compat": "^4.1.17",
-    "@embroider/core": "^4.4.7",
+    "@embroider/core": "^4.6.1",
     "@eslint/js": "^9.39.4",
     "@glimmer/component": "^2.0.0",
     "@glint/core": "^1.2.0",
