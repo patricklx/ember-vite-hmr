@@ -35,3 +35,4 @@
 !babel.config.ember.json
 !.github
 !.github/**/*
+!.release-plan.json
