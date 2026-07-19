@@ -230,11 +230,34 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         }
         const res = await server.transformRequest(filename);
         const content = res?.code;
+
+        // For a classic component with a separately resolved template (a colocated
+        // `.hbs` file next to a backing class, or a template-only component), the
+        // compiled backing module only *imports* its template (e.g. `import TEMPLATE
+        // from "./foo.hbs?import"`); it doesn't inline it. Any {{yield ... to="..."}}
+        // usage lives in that template file, so it has to be fetched and scanned
+        // separately, otherwise named blocks other than "default" are never detected
+        // and get silently dropped by the generated hot-reload wrapper.
+        let yieldSourceFilename = filename;
+        let yieldSourceContent = content;
+        const templateImportMatch = content?.match(
+          /\bfrom\s*['"]([^'"]+\.hbs(?:\?[^'"]*)?)['"]/,
+        );
+        if (templateImportMatch) {
+          const templateSpecifier = templateImportMatch[1]!;
+          const templateRes = await server.transformRequest(templateSpecifier);
+          yieldSourceFilename = templateSpecifier;
+          yieldSourceContent = templateRes?.code;
+        }
+
         const resId = await this.resolve(
-          filename,
+          yieldSourceFilename,
           path.resolve(process.cwd(), 'package.json'),
         );
-        const cached = getYieldsFromFile(resId!.id, content!);
+        // Strip any query string so the cache key matches the plain file path that
+        // `hotUpdate` below receives when that template file is edited.
+        const cacheKey = resId!.id.split('?')[0]!;
+        const cached = getYieldsFromFile(cacheKey, yieldSourceContent ?? '');
         const yields = cached.yields;
         cached.modules.push(id);
         return getHotComponent(
