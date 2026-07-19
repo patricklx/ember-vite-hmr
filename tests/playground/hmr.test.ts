@@ -357,6 +357,17 @@ describe(
       const namedBlock = await page.waitForSelector('.named-block-group-input');
       const namedContent = await namedBlock.evaluate((el) => el.textContent);
       expect(namedContent, namedContent).toContain('named block content');
+
+      // restore TestComponent in the application template, later tests rely on
+      // it being rendered
+      await editFile('./app/templates/application.hbs').setContent(`
+        <TestComponent>
+            <:default as |txt|>{{txt}}</:default>
+            <:named as |txt|>{{txt}}</:named>
+        </TestComponent>`);
+      await waitForMessage('hmr update /app/templates/application.hbs');
+      await waitForMessage('hot updated: /app/templates/application.hbs');
+      await page.waitForSelector('.yields');
     });
 
     test('should hmr with state', { timeout: 10 * 1000 }, async () => {
