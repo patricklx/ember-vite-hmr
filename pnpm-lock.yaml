@@ -274,8 +274,8 @@ importers:
         specifier: ^7.0.0
         version: 7.1.0(@babel/core@7.29.7(supports-color@10.2.2))(@types/babel__core@7.20.5)(rollup@4.62.2)(supports-color@10.2.2)
       babel-plugin-ember-template-compilation:
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^4.0.0
+        version: 4.0.0
       decorator-transforms:
         specifier: ^2.3.2
         version: 2.3.2(@babel/core@7.29.7(supports-color@10.2.2))
