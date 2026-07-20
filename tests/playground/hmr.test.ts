@@ -179,11 +179,14 @@ describe(
             globalThis.console.error(e);
           }
 
-          await execa(`pnpm i --save-dev @babel/plugin-proposal-decorators`, {
-            cwd: appDir,
-            stdio: 'pipe',
-            shell: true,
-          });
+          await execa(
+            `pnpm i --save-dev @babel/plugin-proposal-decorators@^7.28.0`,
+            {
+              cwd: appDir,
+              stdio: 'pipe',
+              shell: true,
+            },
+          );
 
           await editFile('./babel.config.mjs')
             .insert(
@@ -321,6 +324,50 @@ describe(
       expect(bodyContent, bodyContent).toContain(
         'yield to named from test component',
       );
+    });
+
+    test('should forward named blocks for a classic .hbs component with a backing class', async () => {
+      await editFile('./app/components/named-block-group.js').setContent(`
+    import Component from "@glimmer/component";
+
+    export default class NamedBlockGroupComponent extends Component {}
+    `);
+
+      await editFile('./app/components/named-block-group.hbs').setContent(`
+    <div class='named-block-group-default'>{{yield}}</div>
+    <div class='named-block-group-input'>{{yield to='input'}}</div>
+    `);
+
+      await editFile('./app/templates/application.hbs').setContent(`
+        <NamedBlockGroup>
+            <:default>default block content</:default>
+            <:input>named block content</:input>
+        </NamedBlockGroup>`);
+      await waitForMessage('hmr update /app/templates/application.hbs');
+      await waitForMessage('hot updated: /app/templates/application.hbs');
+
+      const defaultBlock = await page.waitForSelector(
+        '.named-block-group-default',
+      );
+      const defaultContent = await defaultBlock.evaluate(
+        (el) => el.textContent,
+      );
+      expect(defaultContent, defaultContent).toContain('default block content');
+
+      const namedBlock = await page.waitForSelector('.named-block-group-input');
+      const namedContent = await namedBlock.evaluate((el) => el.textContent);
+      expect(namedContent, namedContent).toContain('named block content');
+
+      // restore TestComponent in the application template, later tests rely on
+      // it being rendered
+      await editFile('./app/templates/application.hbs').setContent(`
+        <TestComponent>
+            <:default as |txt|>{{txt}}</:default>
+            <:named as |txt|>{{txt}}</:named>
+        </TestComponent>`);
+      await waitForMessage('hmr update /app/templates/application.hbs');
+      await waitForMessage('hot updated: /app/templates/application.hbs');
+      await page.waitForSelector('.yields');
     });
 
     test('should hmr with state', { timeout: 10 * 1000 }, async () => {
