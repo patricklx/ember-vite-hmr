@@ -38,9 +38,10 @@ import { tracked } from "@glimmer/tracking";
 import { createComputeRef } from "@glimmer/reference";
 import { curry } from '@glimmer/runtime';
 import { registerDestructor } from '@ember/destroyable';
+import { getInternalComponentManager, setInternalComponentManager } from '@glimmer/manager';
 
 function notAny(...yields) {
-  return !yields.some((y) => !!y); 
+  return !yields.some((y) => !!y);
 }
 
 const hotCallbacks = new Set();
@@ -53,15 +54,26 @@ if (import.meta.hot) {
   });
 }
 
+// Stack of CapturedArguments (see @glimmer/interfaces), pushed by the shadow
+// component manager below right before it constructs a HotComponent instance,
+// and peeked (not popped) here in the constructor. It is always non-empty at
+// this point because HotComponent is only ever created through that manager.
+const capturedArgsStack = [];
+
 export default class HotComponent extends Component {
   @tracked curried;
   hot = {};
   constructor(owner, args) {
     super(owner, args);
+    const capturedArgs = capturedArgsStack[capturedArgsStack.length - 1];
     const named = {};
     const positional = [];
     for (const name of Object.keys(args)) {
-      named[name] = createComputeRef(() => args[name]);
+      // Forward the caller's original, updatable reference (e.g. a path like
+      // "this.value") instead of wrapping the reified value in a fresh
+      // read-only compute ref. A read-only ref fails Ember's "You can only
+      // pass a path to mut" check, breaking {{mut @arg}} in wrapped components.
+      named[name] = capturedArgs?.named[name] ?? createComputeRef(() => args[name]);
     }
     const CurriedComponent = 0;
     this.curried = curry(CurriedComponent, TargetComponent, owner, { positional, named});
@@ -80,6 +92,26 @@ export default class HotComponent extends Component {
     ${generateContent(yields)}
   </template>
 }
+
+// HotComponent's own args (the reified values passed to its constructor
+// above) only expose values, not the underlying VM references, so the raw
+// references have to be captured one level down, in the internal component
+// manager's create() hook, before Ember reifies them into that value-only
+// proxy. Shadowing the manager (rather than patching the shared default
+// manager's create()) scopes the capture to HotComponent only; getManager()
+// walks the prototype chain and finds this before reaching @glimmer/component's
+// default manager.
+const defaultManager = getInternalComponentManager(Component);
+const shadowManager = Object.create(defaultManager);
+shadowManager.create = function (owner, definition, vmArgs) {
+  capturedArgsStack.push(vmArgs.capture());
+  try {
+    return defaultManager.create(owner, definition, vmArgs);
+  } finally {
+    capturedArgsStack.pop();
+  }
+};
+setInternalComponentManager(shadowManager, HotComponent);
 `;
 
 const cachedYields: Record<
@@ -166,6 +198,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             'ember-source/@glimmer/reference/index.js',
             'ember-source/@glimmer/runtime/index.js',
             'ember-source/@ember/destroyable/index.js',
+            'ember-source/@glimmer/manager/index.js',
           ],
         },
       };
