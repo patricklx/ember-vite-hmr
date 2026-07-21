@@ -5,11 +5,12 @@ import { chromium } from 'playwright-chromium';
 export async function startVite({
   cwd,
   port = 60173,
+  basePath = '/',
 }: {
   cwd: string;
   port?: number;
+  basePath?: string;
 }) {
-
   globalThis.console.log('[ci] starting');
   const messages: string[] = [];
   let runvite: ReturnType<typeof child.fork>;
@@ -18,7 +19,13 @@ export async function startVite({
     globalThis.console.log('start vite');
     runvite = child.fork(
       resolve('.', 'node_modules', 'vite', 'bin', 'vite.js'),
-      ['--port', String(port), '--no-open', '--force'],
+      [
+        '--port',
+        String(port),
+        '--no-open',
+        '--force',
+        ...(basePath !== '/' ? ['--base', basePath] : []),
+      ],
       {
         stdio: 'pipe',
         cwd,
@@ -66,7 +73,7 @@ export async function startVite({
     const context = await browser.newContext();
     const page = await context.newPage();
     globalThis.console.log('load page');
-    await page.goto(`http://localhost:${port}`);
+    await page.goto(`http://localhost:${port}${basePath}`);
     page.on('console', (msg) => {
       globalThis.console.log(msg.text());
       messages.push(msg.text());
@@ -80,11 +87,24 @@ export async function startVite({
       runvite.stdout?.on('data', later);
     }
 
+    async function stop() {
+      await browser.close();
+      await new Promise<void>((fulfill) => {
+        if (runvite.exitCode !== null || runvite.killed) {
+          fulfill();
+          return;
+        }
+        runvite.on('exit', () => fulfill());
+        runvite.kill();
+      });
+    }
+
     return {
       page,
       onMessage,
       messages,
       baseUri: `http://localhost:${port}`,
+      stop,
     };
   } catch {
     await browser.close();

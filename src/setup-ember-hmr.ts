@@ -1,5 +1,22 @@
 import type { Module } from '../types/global';
 
+function moduleIdFromUrl(moduleUrl: string) {
+  let id = moduleUrl.split('?')[0]!;
+  try {
+    // covers http/https and URLs without an explicit port
+    id = new URL(id).pathname;
+  } catch {
+    // not an absolute URL, keep as-is
+  }
+  // strip vite's `base` so ids are stable (`app/templates/...`) no matter
+  // what base the app is served under
+  const base = import.meta.env.BASE_URL || '/';
+  if (base !== '/' && id.startsWith(base)) {
+    id = id.slice(base.length);
+  }
+  return id.replace(/^\//, '');
+}
+
 if (import.meta.hot) {
   const ModuleMap = new Map();
 
@@ -46,7 +63,7 @@ if (import.meta.hot) {
       const m = await this.__import(moduleUrl);
       const module: Module = {
         exports: m,
-        id: moduleUrl.split('?')[0]!.replace(/http:\/\/.*:[^\/]*\//, ''),
+        id: moduleIdFromUrl(moduleUrl),
         version: 0,
       };
       this._accepting -= 1;

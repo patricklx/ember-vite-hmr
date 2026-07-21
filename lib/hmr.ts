@@ -140,7 +140,7 @@ const virtualPrefix = '/ember-vite-hmr/virtual/component:';
 const compatModulesSpecifier = '@embroider/virtual/compat-modules';
 
 export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
-  // let conf: any;
+  let base = '/';
   let server: ViteDevServer;
   return {
     name: 'hmr-plugin',
@@ -174,7 +174,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       server = s;
     },
     configResolved(config) {
-      // conf = config;
+      base = config.base;
       process.env.EMBER_VITE_HMR_ENABLED = enableViteHmrForModes
         .includes(config.mode)
         .toString();
@@ -271,7 +271,9 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (process.env.EMBER_VITE_HMR_ENABLED !== 'true') {
         return html;
       }
-      const fullPath = '/@ember-vite-hmr/setup-ember-hmr.js';
+      // this hook runs after vite's own html transform, so the configured
+      // `base` has to be prefixed manually (it always ends with a slash)
+      const fullPath = `${base}@ember-vite-hmr/setup-ember-hmr.js`;
       return [
         {
           tag: 'script',
@@ -399,12 +401,22 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           local: string;
           source: string;
           specifier: string;
-        }> = [];        
+        }> = [];
 
         // First pass: Extract metadata
         traverse(result, {
           ExportNamedDeclaration(path: NodePath<{ declaration?: unknown }>) {
-            const declaration = (path.node as { declaration?: { type?: string; declarations?: Array<{ id?: { name?: string }; init?: unknown }> } }).declaration;
+            const declaration = (
+              path.node as {
+                declaration?: {
+                  type?: string;
+                  declarations?: Array<{
+                    id?: { name?: string };
+                    init?: unknown;
+                  }>;
+                };
+              }
+            ).declaration;
 
             // Check if this is: export const __hmr_import_metadata__ = {...}
             if (
@@ -412,7 +424,18 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
               declaration.declarations?.[0]?.id?.name ===
                 '__hmr_import_metadata__'
             ) {
-              const init = declaration.declarations[0].init as { type?: string; properties?: Array<{ type?: string; key?: { type?: string; name?: string }; value?: { type?: string; value?: string; elements?: Array<{ type?: string; value?: string }> } }> };
+              const init = declaration.declarations[0].init as {
+                type?: string;
+                properties?: Array<{
+                  type?: string;
+                  key?: { type?: string; name?: string };
+                  value?: {
+                    type?: string;
+                    value?: string;
+                    elements?: Array<{ type?: string; value?: string }>;
+                  };
+                }>;
+              };
 
               if (init?.type === 'ObjectExpression') {
                 // Extract importVar and bindings from the object
@@ -462,7 +485,10 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
                     // For named imports, use the imported name
                     // Handle both Identifier and StringLiteral types
                     const imported = specifier.imported;
-                    specifierName = imported.type === 'Identifier' ? imported.name : imported.value;
+                    specifierName =
+                      imported.type === 'Identifier'
+                        ? imported.name
+                        : imported.value;
                   } else if (specifier.type === 'ImportNamespaceSpecifier') {
                     specifierName = '*';
                   }
