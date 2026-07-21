@@ -277,8 +277,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0
       decorator-transforms:
-        specifier: ^2.3.2
-        version: 2.3.2(@babel/core@7.29.7(supports-color@10.2.2))
+        specifier: ^2.4.0
+        version: 2.4.0(@babel/core@7.29.7(supports-color@10.2.2))
       ember-cli:
         specifier: ~7.0.0
         version: 7.0.1(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@26.1.1)(ejs@3.1.10)(handlebars@4.7.9)(supports-color@10.2.2)(underscore@1.13.8)
@@ -3502,8 +3502,10 @@ packages:
   decimal.js@10.6.0:
     resolution: {integrity: sha512-YpgQiITW3JXGntzdUmyUR1V812Hn8T1YVXhCu+wO3OpS4eU9l4YdD3qjyiKdV6mvV29zapkMeD390UVEf2lkUg==}
 
-  decorator-transforms@2.3.2:
-    resolution: {integrity: sha512-XcErcjlmCzG5ODgYjt6ZTXwd6S8fPKln/sJmw15ZXkWG2JpoQNwszis+AwF6XSGlOoG7g8MCEO97g+Yw3fk5OQ==}
+  decorator-transforms@2.4.0:
+    resolution: {integrity: sha512-IB+0RqnJpuS7ndH4dVY5dfWTZsrCzN3avWFdjSiET0uT2U24jKywjpVEK97TflnZkZgiSRfmeqc1WfS+1CI23w==}
+    peerDependencies:
+      '@babel/core': ^7.23.0 || ^8.0.0
 
   deep-extend@0.6.0:
     resolution: {integrity: sha512-LOHxIOaPYdHlJRtCQfDIVZtfw/ufM8+rVj649RIHzcm/vGwQRXFt6OPqIFWsm2XEMrNIEtWR64sY1LEKD2vAOA==}
@@ -10857,12 +10859,10 @@ snapshots:
 
   decimal.js@10.6.0: {}
 
-  decorator-transforms@2.3.2(@babel/core@7.29.7(supports-color@10.2.2)):
+  decorator-transforms@2.4.0(@babel/core@7.29.7(supports-color@10.2.2)):
     dependencies:
-      '@babel/plugin-syntax-decorators': 7.29.7(@babel/core@7.29.7(supports-color@10.2.2))
+      '@babel/core': 7.29.7(supports-color@10.2.2)
       babel-import-util: 3.0.1
-    transitivePeerDependencies:
-      - '@babel/core'
 
   deep-extend@0.6.0: {}
 
@@ -10989,7 +10989,7 @@ snapshots:
   ember-cli-deprecation-workflow@4.0.1(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2):
     dependencies:
       '@embroider/addon-shim': 1.10.3(supports-color@10.2.2)
-      decorator-transforms: 2.3.2(@babel/core@7.29.7(supports-color@10.2.2))
+      decorator-transforms: 2.4.0(@babel/core@7.29.7(supports-color@10.2.2))
     transitivePeerDependencies:
       - '@babel/core'
       - supports-color
