@@ -524,17 +524,17 @@ export default class MyComponent extends Component {
 
       // Wait for component to render and service to be injected
       // The service needs time to be transformed by Babel and injected
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       let body = await page.waitForSelector('.service-hmr');
       let bodyContent = await body.evaluate((el) => el.textContent);
-      
+
       // If service values are not rendered yet, wait a bit more
       if (!bodyContent.includes('Count: 0')) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         bodyContent = await body.evaluate((el) => el.textContent);
       }
-      
+
       expect(bodyContent).toContain('Count: 0');
       expect(bodyContent).toContain('Message: v1');
 
@@ -557,7 +557,7 @@ export default class CounterService extends Service {
       await waitForMessage(/hot updated:.*counter\.js/);
 
       // Verify state was preserved (count should still be 0) but message updated
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       body = await page.waitForSelector('.service-hmr');
       bodyContent = await body.evaluate((el) => el.textContent);
       expect(bodyContent).toContain('Count: 0'); // State preserved!
@@ -611,11 +611,11 @@ export default class MyComponent extends Component {
       await waitForMessage('hot updated: /app/components/test-component.gjs');
 
       // Wait for services to be injected
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       let body = await page.waitForSelector('.service-injection-hmr');
       let bodyContent = await body.evaluate((el) => el.textContent);
-      
+
       expect(bodyContent).toContain('Logger v1: initial');
 
       // Update the data service - change the value
@@ -641,6 +641,62 @@ export default class DataService extends Service {
       bodyContent = await body.evaluate((el) => el.textContent);
       expect(bodyContent).toContain('Logger v1: initial'); // State preserved!
     });
+
+    // must stay the last test: it tears down the shared vite instance and
+    // boots a new one with a non-root `base`
+    test(
+      'should update route templates when vite base is set',
+      { timeout: 120 * 1000 },
+      async () => {
+        await viteContext.stop();
+
+        // ember's router only understands URLs under its rootURL, so it has
+        // to match the vite base for the app to boot at /my-app/
+        await editFile('./config/environment.js').replaceCode(
+          "rootURL: '/'",
+          "rootURL: '/my-app/'",
+        );
+        await editFile('./app/templates/application.hbs').setContent(
+          '<div class="base-route">base v1</div>',
+        );
+
+        try {
+          // a different port avoids colliding with the previous instance's
+          // socket while it is torn down
+          viteContext = await startVite({
+            cwd: appDir,
+            port: 60174,
+            basePath: '/my-app/',
+          });
+          page = viteContext.page;
+
+          const body = await page.waitForSelector('.base-route');
+          const bodyContent = await body.evaluate((el) => el.textContent);
+          expect(bodyContent, bodyContent).toContain('base v1');
+
+          // drop the boot logs so waitForMessage only sees the update
+          viteContext.messages.length = 0;
+
+          await editFile('./app/templates/application.hbs').setContent(
+            '<div class="base-route">base v2</div>',
+          );
+          await waitForMessage(
+            /hot updated:.*app\/templates\/application\.hbs/,
+          );
+          await page.waitForFunction(
+            () => document.body.textContent!.includes('base v2'),
+            undefined,
+            { timeout: 5000 },
+          );
+        } finally {
+          // keep the app reusable for REUSE runs
+          await editFile('./config/environment.js').replaceCode(
+            "rootURL: '/my-app/'",
+            "rootURL: '/'",
+          );
+        }
+      },
+    );
   },
   120 * 1000,
 );
