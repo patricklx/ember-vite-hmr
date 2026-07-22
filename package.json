@@ -96,7 +96,7 @@
     "@types/rsvp": "^4.0.9",
     "@types/semver": "^7.7.1",
     "@typescript-eslint/eslint-plugin": "^8.61.1",
-    "@typescript-eslint/parser": "^8.64.0",
+    "@typescript-eslint/parser": "^8.65.0",
     "assert-never": "^1.4.0",
     "babel-import-util": "^3.0.0",
     "babel-plugin-ember-template-compilation": "^4.0.0",
