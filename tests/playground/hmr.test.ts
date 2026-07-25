@@ -40,7 +40,10 @@ describe(
     let appDir = resolve(tmpDir, appName);
     let viteContext: Awaited<ReturnType<typeof startVite>>;
 
-    async function waitForMessage(withText: string | RegExp) {
+    async function waitForMessage(
+      withText: string | RegExp,
+      timeoutMs = 3 * 1000,
+    ) {
       return new Promise((resolve, reject) => {
         let t = globalThis.setTimeout(() => {
           globalThis.console.log(
@@ -48,7 +51,7 @@ describe(
             viteContext.messages.map((m) => m),
           );
           reject(new Error('time out'));
-        }, 3 * 1000);
+        }, timeoutMs);
         function check() {
           if (!t) return;
           globalThis.console.log('check', viteContext.messages, withText);
@@ -648,8 +651,11 @@ export default class DataService extends Service {
     // up with "Assertion Failed: You can only pass a path to mut". The wrapper
     // must forward the original (updatable) references instead, so mut both
     // renders and writes back to the parent's tracked state.
-    test('should support the mut helper inside a wrapped component', async () => {
-      await editFile('./app/components/mut-child.gjs').setContent(`
+    test(
+      'should support the mut helper inside a wrapped component',
+      { timeout: 15 * 1000 },
+      async () => {
+        await editFile('./app/components/mut-child.gjs').setContent(`
     import Component from "@glimmer/component";
     import { on } from '@ember/modifier';
     import { fn } from '@ember/helper';
@@ -666,7 +672,7 @@ export default class DataService extends Service {
     }
     `);
 
-      await editFile('./app/components/test-component.gjs').setContent(`
+        await editFile('./app/components/test-component.gjs').setContent(`
     import Component from "@glimmer/component";
     import { tracked } from '@glimmer/tracking';
     import MutChild from './mut-child.gjs';
@@ -680,29 +686,36 @@ export default class DataService extends Service {
     }
     `);
 
-      await waitForMessage('hot updated: /app/components/test-component.gjs');
+        // `fn` from @ember/helper is imported here for the first time in
+        // this suite, so vite's dependency optimizer may need to re-bundle
+        // before the update lands; give it more room than the default 3s.
+        await waitForMessage(
+          'hot updated: /app/components/test-component.gjs',
+          10 * 1000,
+        );
 
-      // Without the fix the child never renders: evaluating (mut @value)
-      // against the wrapper's read-only ref throws during render.
-      let child = await page.waitForSelector('.mut-child-value');
-      let childContent = await child.evaluate((el) => el.textContent);
-      expect(childContent, childContent).toContain('value: initial');
+        // Without the fix the child never renders: evaluating (mut @value)
+        // against the wrapper's read-only ref throws during render.
+        let child = await page.waitForSelector('.mut-child-value');
+        let childContent = await child.evaluate((el) => el.textContent);
+        expect(childContent, childContent).toContain('value: initial');
 
-      await page.click('.mut-child-button');
+        await page.click('.mut-child-button');
 
-      // The write must propagate through the wrapper to the parent's tracked
-      // state, and back down into the child.
-      await page.waitForFunction(
-        () =>
-          globalThis.document
-            .querySelector('.mut-parent-value')
-            ?.textContent?.includes('parent: updated'),
-        { timeout: 5000 },
-      );
-      child = await page.waitForSelector('.mut-child-value');
-      childContent = await child.evaluate((el) => el.textContent);
-      expect(childContent, childContent).toContain('value: updated');
-    });
+        // The write must propagate through the wrapper to the parent's
+        // tracked state, and back down into the child.
+        await page.waitForFunction(
+          () =>
+            globalThis.document
+              .querySelector('.mut-parent-value')
+              ?.textContent?.includes('parent: updated'),
+          { timeout: 5000 },
+        );
+        child = await page.waitForSelector('.mut-child-value');
+        childContent = await child.evaluate((el) => el.textContent);
+        expect(childContent, childContent).toContain('value: updated');
+      },
+    );
 
     // must stay the last test: it tears down the shared vite instance and
     // boots a new one with a non-root `base`
