@@ -2,8 +2,8 @@
   "solution": {
     "ember-vite-hmr": {
       "impact": "patch",
-      "oldVersion": "2.2.0",
-      "newVersion": "2.2.1",
+      "oldVersion": "2.2.1",
+      "newVersion": "2.2.2",
       "tagName": "latest",
       "constraints": [
         {
@@ -14,5 +14,5 @@
       "pkgJSONPath": "./package.json"
     }
   },
-  "description": "## Release (2026-07-29)\n\n* ember-vite-hmr 2.2.1 (patch)\n\n#### :bug: Bug Fix\n* `ember-vite-hmr`\n  * [#518](https://github.com/patricklx/ember-vite-hmr/pull/518) Fix mut helper crash inside hot-wrapped components ([@patricklx](https://github.com/patricklx))\n  * [#509](https://github.com/patricklx/ember-vite-hmr/pull/509) Fix route template HMR when vite base or https is configured ([@patricklx](https://github.com/patricklx))\n  * [#500](https://github.com/patricklx/ember-vite-hmr/pull/500) Fix named blocks dropped for classic .hbs components with a backing class ([@patricklx](https://github.com/patricklx))\n\n#### Committers: 1\n- Patrick Pircher ([@patricklx](https://github.com/patricklx))\n"
+  "description": "## Release (2026-07-29)\n\n* ember-vite-hmr 2.2.2 (patch)\n\n#### :bug: Bug Fix\n* `ember-vite-hmr`\n  * [#530](https://github.com/patricklx/ember-vite-hmr/pull/530) Fix service HMR duplicate-module race on ember-source 7.1+ ([@patricklx](https://github.com/patricklx))\n  * [#529](https://github.com/patricklx/ember-vite-hmr/pull/529) Support template-only components (TOC) in HMR ([@patricklx](https://github.com/patricklx))\n  * [#521](https://github.com/patricklx/ember-vite-hmr/pull/521) Fix virtual component 404 for classic components under non-root base (#498) ([@patricklx](https://github.com/patricklx))\n  * [#522](https://github.com/patricklx/ember-vite-hmr/pull/522) Fix route/template HMR module ids for Node-loader (non-browser) consumers ([@patricklx](https://github.com/patricklx))\n\n#### Committers: 1\n- Patrick Pircher ([@patricklx](https://github.com/patricklx))\n"
 }

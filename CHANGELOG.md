@@ -2,6 +2,20 @@
 
 ## Release (2026-07-29)
 
+* ember-vite-hmr 2.2.2 (patch)
+
+#### :bug: Bug Fix
+* `ember-vite-hmr`
+  * [#530](https://github.com/patricklx/ember-vite-hmr/pull/530) Fix service HMR duplicate-module race on ember-source 7.1+ ([@patricklx](https://github.com/patricklx))
+  * [#529](https://github.com/patricklx/ember-vite-hmr/pull/529) Support template-only components (TOC) in HMR ([@patricklx](https://github.com/patricklx))
+  * [#521](https://github.com/patricklx/ember-vite-hmr/pull/521) Fix virtual component 404 for classic components under non-root base (#498) ([@patricklx](https://github.com/patricklx))
+  * [#522](https://github.com/patricklx/ember-vite-hmr/pull/522) Fix route/template HMR module ids for Node-loader (non-browser) consumers ([@patricklx](https://github.com/patricklx))
+
+#### Committers: 1
+- Patrick Pircher ([@patricklx](https://github.com/patricklx))
+
+## Release (2026-07-29)
+
 * ember-vite-hmr 2.2.1 (patch)
 
 #### :bug: Bug Fix
