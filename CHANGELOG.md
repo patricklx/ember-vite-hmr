@@ -1,5 +1,18 @@
 # ember-vite-hmr Changelog
 
+## Release (2026-07-29)
+
+* ember-vite-hmr 2.2.1 (patch)
+
+#### :bug: Bug Fix
+* `ember-vite-hmr`
+  * [#518](https://github.com/patricklx/ember-vite-hmr/pull/518) Fix mut helper crash inside hot-wrapped components ([@patricklx](https://github.com/patricklx))
+  * [#509](https://github.com/patricklx/ember-vite-hmr/pull/509) Fix route template HMR when vite base or https is configured ([@patricklx](https://github.com/patricklx))
+  * [#500](https://github.com/patricklx/ember-vite-hmr/pull/500) Fix named blocks dropped for classic .hbs components with a backing class ([@patricklx](https://github.com/patricklx))
+
+#### Committers: 1
+- Patrick Pircher ([@patricklx](https://github.com/patricklx))
+
 ## Release (2026-06-10)
 
 * ember-vite-hmr 2.2.0 (minor)
