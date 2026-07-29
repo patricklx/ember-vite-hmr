@@ -745,6 +745,9 @@ export default class DataService extends Service {
           });
           page = viteContext.page;
 
+          const pageErrors: string[] = [];
+          page.on('pageerror', (err) => pageErrors.push(String(err)));
+
           const body = await page.waitForSelector('.base-route');
           const bodyContent = await body.evaluate((el) => el.textContent);
           expect(bodyContent, bodyContent).toContain('base v1');
@@ -763,6 +766,40 @@ export default class DataService extends Service {
             undefined,
             { timeout: 5000 },
           );
+
+          // Reproduce #498: a classic component (separate backing class +
+          // template, going through Embroider's virtual pair-component
+          // pipeline) rendered under a non-root `base`.
+          await editFile('./app/components/base-paired-component.js')
+            .setContent(`
+    import Component from "@glimmer/component";
+
+    export default class BasePairedComponent extends Component {}
+    `);
+          await editFile(
+            './app/components/base-paired-component.hbs',
+          ).setContent(`<div class="base-paired-component">paired v1</div>`);
+          await editFile('./app/templates/application.hbs').setContent(`
+        <div class="base-route">base v2</div>
+        <BasePairedComponent />`);
+          await waitForMessage(
+            /hot updated:.*app\/templates\/application\.hbs/,
+          );
+          const paired = await page.waitForSelector('.base-paired-component');
+          const pairedContent = await paired.evaluate((el) => el.textContent);
+          expect(pairedContent, pairedContent).toContain('paired v1');
+
+          await editFile(
+            './app/components/base-paired-component.hbs',
+          ).setContent(`<div class="base-paired-component">paired v2</div>`);
+          await waitForMessage(/hot updated:.*base-paired-component/);
+          await page.waitForFunction(
+            () => document.body.textContent!.includes('paired v2'),
+            undefined,
+            { timeout: 5000 },
+          );
+
+          expect(pageErrors, pageErrors.join('\n')).toEqual([]);
         } finally {
           // keep the app reusable for REUSE runs
           await editFile('./config/environment.js').replaceCode(
