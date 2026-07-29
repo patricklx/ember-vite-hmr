@@ -277,7 +277,16 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           /\bfrom\s*['"]([^'"]+\.hbs(?:\?[^'"]*)?)['"]/,
         );
         if (templateImportMatch) {
-          const templateSpecifier = templateImportMatch[1]!;
+          // The compiled backing class embeds the template import as a
+          // browser-facing URL (i.e. prefixed with the configured vite
+          // `base`), since that's what gets sent to the client. But
+          // `server.transformRequest` is an internal API keyed by root-
+          // relative ids, so the base has to be stripped back off before
+          // reusing that specifier here, or this 404s under a non-root base.
+          let templateSpecifier = templateImportMatch[1]!;
+          if (base !== '/' && templateSpecifier.startsWith(base)) {
+            templateSpecifier = `/${templateSpecifier.slice(base.length)}`;
+          }
           const templateRes = await server.transformRequest(templateSpecifier);
           yieldSourceFilename = templateSpecifier;
           yieldSourceContent = templateRes?.code;
