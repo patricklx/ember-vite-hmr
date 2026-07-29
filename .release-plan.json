@@ -1,26 +1,18 @@
 {
   "solution": {
     "ember-vite-hmr": {
-      "impact": "minor",
-      "oldVersion": "2.1.5",
-      "newVersion": "2.2.0",
+      "impact": "patch",
+      "oldVersion": "2.2.0",
+      "newVersion": "2.2.1",
       "tagName": "latest",
       "constraints": [
         {
-          "impact": "minor",
-          "reason": "Appears in changelog section :rocket: Enhancement"
-        },
-        {
           "impact": "patch",
           "reason": "Appears in changelog section :bug: Bug Fix"
-        },
-        {
-          "impact": "patch",
-          "reason": "Appears in changelog section :house: Internal"
         }
       ],
       "pkgJSONPath": "./package.json"
     }
   },
-  "description": "## Release (2026-06-10)\n\n* ember-vite-hmr 2.2.0 (minor)\n\n#### :rocket: Enhancement\n* `ember-vite-hmr`\n  * [#470](https://github.com/patricklx/ember-vite-hmr/pull/470) Optimize on demand deps by default in vite ([@johanrd](https://github.com/johanrd))\n\n#### :bug: Bug Fix\n* `ember-vite-hmr`\n  * [#468](https://github.com/patricklx/ember-vite-hmr/pull/468) Fix/setup controller state restore ([@johanrd](https://github.com/johanrd))\n  * [#464](https://github.com/patricklx/ember-vite-hmr/pull/464) fix: detect app entry for HMR by its compat-modules import, not its path ([@johanrd](https://github.com/johanrd))\n  * [#465](https://github.com/patricklx/ember-vite-hmr/pull/465) Fix/guard hmr initializers in prod ([@johanrd](https://github.com/johanrd))\n\n#### :house: Internal\n* `ember-vite-hmr`\n  * [#485](https://github.com/patricklx/ember-vite-hmr/pull/485) Add release-plan dependency to package.json ([@patricklx](https://github.com/patricklx))\n\n#### Committers: 2\n- Johan Røed ([@johanrd](https://github.com/johanrd))\n- Patrick Pircher ([@patricklx](https://github.com/patricklx))\n"
+  "description": "## Release (2026-07-29)\n\n* ember-vite-hmr 2.2.1 (patch)\n\n#### :bug: Bug Fix\n* `ember-vite-hmr`\n  * [#518](https://github.com/patricklx/ember-vite-hmr/pull/518) Fix mut helper crash inside hot-wrapped components ([@patricklx](https://github.com/patricklx))\n  * [#509](https://github.com/patricklx/ember-vite-hmr/pull/509) Fix route template HMR when vite base or https is configured ([@patricklx](https://github.com/patricklx))\n  * [#500](https://github.com/patricklx/ember-vite-hmr/pull/500) Fix named blocks dropped for classic .hbs components with a backing class ([@patricklx](https://github.com/patricklx))\n\n#### Committers: 1\n- Patrick Pircher ([@patricklx](https://github.com/patricklx))\n"
 }
