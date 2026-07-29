@@ -782,8 +782,14 @@ export default class DataService extends Service {
           await editFile('./app/templates/application.hbs').setContent(`
         <div class="base-route">base v2</div>
         <BasePairedComponent />`);
+          // BasePairedComponent is referenced here for the first time, so
+          // resolving it goes through Embroider's virtual pair-component
+          // pipeline cold (no prior module-graph entry) and may also trigger
+          // a dependency re-optimization pass; give it more room than the
+          // default 3s, as with the first `fn` import above.
           await waitForMessage(
             /hot updated:.*app\/templates\/application\.hbs/,
+            20 * 1000,
           );
           const paired = await page.waitForSelector('.base-paired-component');
           const pairedContent = await paired.evaluate((el) => el.textContent);
