@@ -9,26 +9,55 @@ import { readFile } from 'fs/promises';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Above this many distinct named blocks, fall back to forwarding all of them
+// unconditionally rather than generating an exponential number of branches
+// (see generateInvocations below for why branching is needed at all).
+const MAX_COMBINATORIAL_YIELDS = 8;
+
+function blockTag(y: string) {
+  return `<:${y} as |a b c d e f g h i j k l|>{{yield a b c d e f g h i j k l to='${y}'}}</:${y}>`;
+}
+
+function invocation(selected: string[]) {
+  if (!selected.length) {
+    return `<this.curried @__hot__={{this.hot}} ...attributes />`;
+  }
+  return `<this.curried @__hot__={{this.hot}} ...attributes>${selected.map(blockTag).join('\n')}</this.curried>`;
+}
+
+// Glimmer determines a target component's `(has-block "y")` purely from
+// whether a `<:y>` named block tag is structurally present on the
+// invocation, not from whether that block's content renders anything, and
+// named block tags cannot be nested inside `{{#if}}` (a "named block nested
+// in a normal block" compile error). So a per-block `{{#if (has-block 'y')}}
+// <:y>...</:y>{{/if}}` inside a single invocation can't work — instead this
+// recursively branches on `(has-block y)` for each known named block to
+// build one fully static invocation per combination of blocks the caller
+// actually passed, so blocks not passed are truly absent rather than merely
+// empty (see #531).
+function generateInvocations(remaining: string[], selected: string[]): string {
+  if (!remaining.length) {
+    return invocation(selected);
+  }
+  const [y, ...rest] = remaining;
+  return `{{#if (has-block '${y}')}}${generateInvocations(rest, [...selected, y])}{{else}}${generateInvocations(rest, selected)}{{/if}}`;
+}
+
 function generateContent(yields: string[]) {
   if (!yields.includes('default')) {
     yields.push('default');
   }
-  let all = yields.map((y) => `(has-block '${y}')`).join(' ');
-  let str = '';
-  for (const y of yields) {
-    str += `
-        <:${y} as |a b c d e f g h i j k l|>{{yield a b c d e f g h i j k l to='${y}'}}</:${y}>
-    `;
-  }
-  return `
+  if (yields.length > MAX_COMBINATORIAL_YIELDS) {
+    let all = yields.map((y) => `(has-block '${y}')`).join(' ');
+    return `
     {{#if (notAny ${all})}}
         <this.curried @__hot__={{this.hot}} ...attributes />
     {{else}}
-        <this.curried @__hot__={{this.hot}} ...attributes >
-        ${str}
-        </this.curried>
+        ${invocation(yields)}
     {{/if}}
   `;
+  }
+  return generateInvocations(yields, []);
 }
 
 const getHotComponent = (imp: string, specifier: string, yields: string[]) => `
