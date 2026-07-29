@@ -373,6 +373,45 @@ describe(
       await page.waitForSelector('.yields');
     });
 
+    test('should respect (has-block) for a named block the caller did not pass', async () => {
+      await editFile('./app/components/named-block-card.hbs').setContent(`
+    <div class='named-block-card-default'>{{yield}}</div>
+    {{#if (has-block "footer")}}
+      <div class='named-block-card-footer'>{{yield to='footer'}}</div>
+    {{/if}}
+    `);
+
+      // consumer only supplies the default block, never :footer, so the
+      // footer div must not be rendered even though the wrapped component
+      // knows about a 'footer' named block from prior HMR analysis
+      await editFile('./app/templates/application.hbs').setContent(`
+        <NamedBlockCard>default only</NamedBlockCard>`);
+      await waitForMessage('hmr update /app/templates/application.hbs');
+      await waitForMessage('hot updated: /app/templates/application.hbs');
+
+      const defaultBlock = await page.waitForSelector(
+        '.named-block-card-default',
+      );
+      const defaultContent = await defaultBlock.evaluate(
+        (el) => el.textContent,
+      );
+      expect(defaultContent, defaultContent).toContain('default only');
+
+      const footerBlock = await page.$('.named-block-card-footer');
+      expect(footerBlock).toBeNull();
+
+      // restore TestComponent in the application template, later tests rely on
+      // it being rendered
+      await editFile('./app/templates/application.hbs').setContent(`
+        <TestComponent>
+            <:default as |txt|>{{txt}}</:default>
+            <:named as |txt|>{{txt}}</:named>
+        </TestComponent>`);
+      await waitForMessage('hmr update /app/templates/application.hbs');
+      await waitForMessage('hot updated: /app/templates/application.hbs');
+      await page.waitForSelector('.yields');
+    });
+
     test('should hmr with state', { timeout: 10 * 1000 }, async () => {
       await editFile('./app/components/foo-component.gjs').setContent(`
     import Component from "@glimmer/component";
