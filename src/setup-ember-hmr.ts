@@ -1,6 +1,12 @@
 import type { Module } from '../types/global';
 
-function moduleIdFromUrl(moduleUrl: string) {
+// Matches the app/addon-relative portion of a path once it reaches one of
+// the directories ember-vite-hmr hot-reloads, e.g. the `app/templates/...`
+// in `/Users/me/project/app/templates/application.hbs`.
+const APP_RELATIVE_ID =
+  /(?:^|\/)((?:app|addon)\/(?:routes?|routers|controllers|templates|services)\/.*)$/;
+
+export function moduleIdFromUrl(moduleUrl: string) {
   let id = moduleUrl.split('?')[0]!;
   try {
     // covers http/https and URLs without an explicit port
@@ -14,7 +20,19 @@ function moduleIdFromUrl(moduleUrl: string) {
   if (base !== '/' && id.startsWith(base)) {
     id = id.slice(base.length);
   }
-  return id.replace(/^\//, '');
+  id = id.replace(/^\//, '');
+  // Outside of vite's own dev server (e.g. a Node ESM loader running the
+  // app directly against on-disk `file://` URLs, with no server `base` to
+  // strip) `id` is still the full OS path up to the project root instead
+  // of a server-relative one. Re-anchor it to the nearest hot-reloadable
+  // directory so consumers that key off ids like `app/templates/...`
+  // (ViteHotReloadService's `startsWith('app/templates/')` check) keep
+  // working no matter where the checkout lives on disk.
+  const rooted = id.match(APP_RELATIVE_ID);
+  if (rooted) {
+    id = rooted[1]!;
+  }
+  return id;
 }
 
 if (import.meta.hot) {
