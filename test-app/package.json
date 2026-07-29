@@ -37,7 +37,7 @@
     "ember-load-initializers": "^3.0.1",
     "ember-page-title": "^9.0.3",
     "ember-resolver": "^13.2.0",
-    "ember-source": "~7.0.0",
+    "ember-source": "~7.1.0",
     "ember-vite-hmr": "workspace:*",
     "typescript": "^5.9.3",
     "vite": "^8.0.11"
