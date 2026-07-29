@@ -178,11 +178,15 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
     name: 'hmr-plugin',
     enforce: 'post',
     config(_config, env) {
-      // The per-component hot wrapper (see getHotComponent) imports these, but
-      // it is generated/served on demand, so it is never part of the static
-      // module graph Vite's dependency scanner crawls on the first pass.
-      // Without pre-declaring them, the browser requests them on boot, Vite
-      // discovers "new" deps and triggers a re-optimize + full page reload.
+      // The per-component hot wrapper (see getHotComponent) imports the first
+      // four of these, but it is generated/served on demand, so it is never
+      // part of the static module graph Vite's dependency scanner crawls on
+      // the first pass. `@ember/component/template-only` has the same
+      // problem for a different reason: it's injected by the template
+      // compiler into a template-only component's compiled output, which the
+      // scanner (source-only) never sees either. Without pre-declaring them,
+      // the browser requests them on boot, Vite discovers "new" deps and
+      // triggers a re-optimize + full page reload.
       //
       // We must use the Embroider-rewritten `ember-source/...` subpaths: the
       // bare `@glimmer/reference` etc. specifiers the wrapper writes cannot be
@@ -199,6 +203,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             'ember-source/@glimmer/runtime/index.js',
             'ember-source/@ember/destroyable/index.js',
             'ember-source/@glimmer/manager/index.js',
+            'ember-source/@ember/component/template-only.js',
           ],
         },
       };
@@ -570,7 +575,17 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             hotReloadStatements.push(`
   (async () => {
     const GlimmerComponent = (await import('@glimmer/component')).default;
-    if (${imp.local}.prototype instanceof GlimmerComponent) {
+    const { hasInternalComponentManager } = await import('@glimmer/manager');
+    // Class-based Glimmer components are functions, detected the cheap way
+    // via prototype chain. Template-only components (no backing class, e.g.
+    // a bare \`<template>\` export) are plain objects instead, so they have to
+    // be recognized by checking for a registered component manager - that
+    // also keeps helpers/modifiers (which use separate manager registries)
+    // out of this branch.
+    const isComponent = typeof ${imp.local} === 'function'
+      ? ${imp.local}.prototype instanceof GlimmerComponent
+      : typeof ${imp.local} === 'object' && ${imp.local} !== null && hasInternalComponentManager(${imp.local});
+    if (isComponent) {
       const c = await import('${virtualPath}');
       ${importVar}.${imp.local} = c.default;
       import.meta.hot.accept('${virtualPath}', (c) => {

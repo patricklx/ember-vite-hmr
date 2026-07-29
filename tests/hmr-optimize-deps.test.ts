@@ -9,6 +9,12 @@ import { hmr } from '../lib/hmr';
 // boot, Vite discovers "new" deps and triggers a re-optimize + full page
 // reload.
 //
+// `@ember/component/template-only` has the same problem for a different
+// reason: it's injected by the template compiler into a template-only
+// component's (a bare `<template>` export, no backing class) compiled
+// output, so the scanner - which only sees pre-compile source - can't find
+// it either.
+//
 // The deps must be declared as the Embroider-rewritten `ember-source/...`
 // subpaths — the bare `@glimmer/reference` etc. specifiers the wrapper writes
 // cannot be resolved by optimizeDeps.include.
@@ -32,6 +38,7 @@ describe('hmr() optimizeDeps declaration', () => {
       'ember-source/@glimmer/runtime/index.js',
       'ember-source/@ember/destroyable/index.js',
       'ember-source/@glimmer/manager/index.js',
+      'ember-source/@ember/component/template-only.js',
     ]);
   });
 
