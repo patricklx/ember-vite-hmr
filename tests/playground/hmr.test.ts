@@ -717,6 +717,72 @@ export default class DataService extends Service {
       },
     );
 
+    // A template-only component (`<template>...</template>` with no backing
+    // class) exports a TemplateOnlyComponentDefinition instance rather than a
+    // class extending @glimmer/component, so the wrapper's runtime check must
+    // not rely solely on `instanceof GlimmerComponent` or these imports are
+    // silently never hot-wrapped (and never even get an accept boundary),
+    // falling back to a full page reload.
+    test(
+      'should hmr a template-only component',
+      { timeout: 15 * 1000 },
+      async () => {
+        await editFile('./app/components/toc-component.gjs').setContent(`
+    <template>
+      <div class='toc-component'>toc v1</div>
+    </template>
+    `);
+
+        await editFile('./app/components/test-component.gjs').setContent(`
+    import Component from "@glimmer/component";
+    import { tracked } from '@glimmer/tracking';
+    import TocComponent from './toc-component.gjs';
+
+    export default class MyComponent extends Component {
+      @tracked count = 1;
+      <template>
+        <div class='hmr-state'>count: {{this.count}}</div>
+        <TocComponent />
+      </template>
+    }
+    `);
+
+        await waitForMessage('hot updated: /app/components/test-component.gjs');
+        let toc = await page.waitForSelector('.toc-component');
+        let tocContent = await toc.evaluate((el) => el.textContent);
+        expect(tocContent, tocContent).toContain('toc v1');
+
+        // a real page reload would clear this, so it also proves the update
+        // below stayed in-place instead of falling back to a full reload
+        await page.evaluate(() => {
+          (
+            globalThis as unknown as { __tocTestMarker: string }
+          ).__tocTestMarker = 'still-here';
+        });
+
+        await editFile('./app/components/toc-component.gjs').setContent(`
+    <template>
+      <div class='toc-component'>toc v2</div>
+    </template>
+    `);
+
+        await waitForMessage(
+          'hot updated: /app/components/toc-component.gjs via /app/components/test-component.gjs',
+        );
+
+        toc = await page.waitForSelector('.toc-component');
+        tocContent = await toc.evaluate((el) => el.textContent);
+        expect(tocContent, tocContent).toContain('toc v2');
+
+        const marker = await page.evaluate(
+          () =>
+            (globalThis as unknown as { __tocTestMarker?: string })
+              .__tocTestMarker,
+        );
+        expect(marker).toBe('still-here');
+      },
+    );
+
     // must stay the last test: it tears down the shared vite instance and
     // boots a new one with a non-root `base`
     test(
