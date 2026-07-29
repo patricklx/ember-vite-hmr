@@ -281,11 +281,55 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
 
         const originalClassName = classIdentifier.name;
         const proxyClassName = `${originalClassName}HmrProxy`;
-        const implVarName = `_${originalClassName}Impl`;
-        const proxyVarName = `_${originalClassName}Proxy`;
 
         // Keep the original class as-is, just remove it from export
         // We'll add it back as a non-exported class
+
+        const babelTemplate = (babel as typeof import('@babel/core')).template;
+
+        // The live proxy instance and the latest accepted implementation must
+        // live on `import.meta.hot.data`, not in a module-scope `let`: Vite
+        // guarantees that object (and only that object) survives across a
+        // module's hot re-evaluations. A component's `@service` injection can
+        // end up constructing the proxy against a *later* re-evaluation of
+        // this module than the one whose `import.meta.hot.accept` closure
+        // captured a module-scope variable — the closure and the constructor
+        // would then silently operate on two disconnected variable bindings
+        // (a duplicate-module symptom), and the HMR swap would never reach
+        // the instance actually rendered.
+        const ctorBody = babelTemplate.statements(
+          `
+            super(...args);
+            this._owner = args[0];
+            const Impl = (import.meta.hot && import.meta.hot.data._impl) || ${proxyClassName}.Impl;
+            this._delegate = new Impl(this._owner);
+            if (import.meta.hot) {
+              import.meta.hot.data._proxy = this;
+            }
+            return new Proxy(this, {
+              get(target, prop) {
+                if (prop === '_delegate') {
+                  return target._delegate;
+                }
+                return target._delegate[prop];
+              },
+              set(target, prop, value) {
+                target._delegate[prop] = value;
+                return true;
+              },
+            });
+          `,
+        )() as BabelTypesNamespace.Statement[];
+
+        const willDestroyBody = babelTemplate.statements(
+          `
+            super.willDestroy();
+            this._delegate.willDestroy();
+            if (import.meta.hot && import.meta.hot.data._proxy === this) {
+              import.meta.hot.data._proxy = undefined;
+            }
+          `,
+        )() as BabelTypesNamespace.Statement[];
 
         // Create the HMR proxy service class
         const proxyClass = t.classDeclaration(
@@ -310,165 +354,20 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
               false,
               false,
             ),
-            // constructor
             t.classMethod(
               'constructor',
               t.identifier('constructor'),
               [t.restElement(t.identifier('args'))],
-              t.blockStatement([
-                t.expressionStatement(
-                  t.callExpression(t.super(), [
-                    t.spreadElement(t.identifier('args')),
-                  ]),
-                ),
-                // Store owner for HMR reloads
-                t.expressionStatement(
-                  t.assignmentExpression(
-                    '=',
-                    t.memberExpression(
-                      t.thisExpression(),
-                      t.identifier('_owner')
-                    ),
-                    t.memberExpression(
-                      t.identifier('args'),
-                      t.numericLiteral(0),
-                      true
-                    )
-                  )
-                ),
-                // Initialize delegate with owner
-                t.expressionStatement(
-                  t.assignmentExpression(
-                    '=',
-                    t.memberExpression(
-                      t.thisExpression(),
-                      t.identifier('_delegate')
-                    ),
-                    t.newExpression(t.identifier(implVarName), [
-                      t.memberExpression(
-                        t.thisExpression(),
-                        t.identifier('_owner')
-                      )
-                    ])
-                  )
-                ),
-                t.ifStatement(
-                  t.unaryExpression('!', t.identifier(proxyVarName)),
-                  t.blockStatement([
-                    t.expressionStatement(
-                      t.assignmentExpression(
-                        '=',
-                        t.identifier(proxyVarName),
-                        t.thisExpression(),
-                      ),
-                    ),
-                  ]),
-                ),
-                t.returnStatement(
-                  t.newExpression(t.identifier('Proxy'), [
-                    t.thisExpression(),
-                    t.objectExpression([
-                      t.objectMethod(
-                        'method',
-                        t.identifier('get'),
-                        [t.identifier('target'), t.identifier('prop')],
-                        t.blockStatement([
-                          t.ifStatement(
-                            t.binaryExpression(
-                              '===',
-                              t.identifier('prop'),
-                              t.stringLiteral('_delegate'),
-                            ),
-                            t.returnStatement(
-                              t.memberExpression(
-                                t.identifier('target'),
-                                t.identifier('_delegate'),
-                              ),
-                            ),
-                          ),
-                          t.returnStatement(
-                            t.memberExpression(
-                              t.memberExpression(
-                                t.identifier('target'),
-                                t.identifier('_delegate'),
-                              ),
-                              t.identifier('prop'),
-                              true,
-                            ),
-                          ),
-                        ]),
-                      ),
-                      t.objectMethod(
-                        'method',
-                        t.identifier('set'),
-                        [
-                          t.identifier('target'),
-                          t.identifier('prop'),
-                          t.identifier('value'),
-                        ],
-                        t.blockStatement([
-                          t.expressionStatement(
-                            t.assignmentExpression(
-                              '=',
-                              t.memberExpression(
-                                t.memberExpression(
-                                  t.identifier('target'),
-                                  t.identifier('_delegate'),
-                                ),
-                                t.identifier('prop'),
-                                true,
-                              ),
-                              t.identifier('value'),
-                            ),
-                          ),
-                          t.returnStatement(t.booleanLiteral(true)),
-                        ]),
-                      ),
-                    ]),
-                  ]),
-                ),
-              ]),
+              t.blockStatement(ctorBody),
             ),
-            // willDestroy
             t.classMethod(
               'method',
               t.identifier('willDestroy'),
               [],
-              t.blockStatement([
-                t.expressionStatement(
-                  t.callExpression(
-                    t.memberExpression(t.super(), t.identifier('willDestroy')),
-                    [],
-                  ),
-                ),
-                t.expressionStatement(
-                  t.callExpression(
-                    t.memberExpression(
-                      t.memberExpression(
-                        t.thisExpression(),
-                        t.identifier('_delegate'),
-                      ),
-                      t.identifier('willDestroy'),
-                    ),
-                    [],
-                  ),
-                ),
-              ]),
+              t.blockStatement(willDestroyBody),
             ),
           ]),
         );
-
-        // Create variable declarations with unique names to avoid conflicts
-        const currentImplDeclaration = t.variableDeclaration('let', [
-          t.variableDeclarator(
-            t.identifier(implVarName),
-            t.identifier(originalClassName),
-          ),
-        ]);
-
-        const currentProxyDeclaration = t.variableDeclaration('let', [
-          t.variableDeclarator(t.identifier(proxyVarName), t.nullLiteral()),
-        ]);
 
         // For Case 1 (inline class), we need to keep the class as non-exported
         // For Case 2 (separate declaration), the class already exists, so we don't recreate it
@@ -482,18 +381,14 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
           );
 
           // Replace the export with all the necessary declarations
-          // IMPORTANT: Class must be declared BEFORE the variables that reference it
+          // IMPORTANT: Class must be declared BEFORE the proxy class that references it
           path.replaceWithMultiple([
             originalClass, // The original class (no longer exported) - MUST BE FIRST
-            currentImplDeclaration,
-            currentProxyDeclaration,
             t.exportDefaultDeclaration(proxyClass), // Export the proxy class
           ]);
         } else {
           // Case 2: Separate declaration - class already exists, just replace the export
           path.replaceWithMultiple([
-            currentImplDeclaration,
-            currentProxyDeclaration,
             t.exportDefaultDeclaration(proxyClass), // Export the proxy class
           ]);
         }
@@ -503,23 +398,28 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
           const hmrCode = `
             if (import.meta.hot) {
               import.meta.hot.accept((newModule) => {
-                if (import.meta.hot.data._hotReload && newModule?.default?.Impl) {
-                  import.meta.hot.data._hotReload(newModule.default.Impl);
-                }
-              });
-              
-              import.meta.hot.data._hotReload = import.meta.hot.data._hotReload || function(NewImpl) {
-                // Skip reload if no instance has been created yet
-                if (!${proxyVarName}) {
-                  ${implVarName} = NewImpl;
+                const NewImpl = newModule?.default?.Impl;
+                if (!NewImpl) {
                   return;
                 }
-                
-                const oldDelegate = ${proxyVarName}._delegate;
-                ${implVarName} = NewImpl;
-                const newDelegate = new ${implVarName}(${proxyVarName}._owner);
-                ${proxyVarName}._delegate = newDelegate;
-                
+
+                // Remember the latest accepted implementation so a proxy
+                // constructed *after* this update (its instantiation raced
+                // behind the HMR swap) still picks up the new class instead
+                // of the stale one captured at module-evaluation time.
+                import.meta.hot.data._impl = NewImpl;
+
+                const proxy = import.meta.hot.data._proxy;
+                if (!proxy) {
+                  // No instance has been created yet; the next construction
+                  // will read import.meta.hot.data._impl above.
+                  return;
+                }
+
+                const oldDelegate = proxy._delegate;
+                const newDelegate = new NewImpl(proxy._owner);
+                proxy._delegate = newDelegate;
+
                 // Sync state from old to new while keeping new implementation defaults
                 for (const key in oldDelegate) {
                   const descriptor =
@@ -528,17 +428,17 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
                   const hasOwnDefault = Object.prototype.hasOwnProperty.call(newDelegate, key);
                   const currentValue = newDelegate[key];
                   const previousValue = oldDelegate[key];
-                  
+
                   // Skip Service instances - they should not be synced
                   if (previousValue instanceof Service) {
                     continue;
                   }
-                  
+
                   // Skip Function properties - they should not be synced
                   if (typeof previousValue === 'function') {
                     continue;
                   }
-                  
+
                   const shouldSync =
                     !!descriptor &&
                     (descriptor.writable || descriptor.set || Object.prototype.hasOwnProperty.call(oldDelegate, key)) &&
@@ -554,11 +454,11 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
                 }
 
                 newDelegate._hmrAccepted?.(oldDelegate);
-                
+
                 if (oldDelegate.willDestroy) {
                   oldDelegate.willDestroy();
                 }
-              };
+              });
             }
           `;
 

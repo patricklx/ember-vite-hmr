@@ -48,10 +48,9 @@ export default TestService;
     // Verify the transformation includes key HMR components
     expect(result.code).toContain('TestServiceHmrProxy');
     expect(result.code).toContain('class TestService extends');
-    expect(result.code).toContain('let _TestServiceImpl');
-    expect(result.code).toContain('let _TestServiceProxy');
+    expect(result.code).toContain('import.meta.hot.data._proxy');
+    expect(result.code).toContain('import.meta.hot.data._impl');
     expect(result.code).toContain('import.meta.hot');
-    expect(result.code).toContain('_hotReload');
     expect(result.code).toContain('new Proxy');
     expect(result.code).toContain('static Impl');
     expect(result.code).toContain('_delegate');
@@ -86,8 +85,6 @@ export default TestService;
           this.message = 'Hello from test service';
         }
       }
-      let _TestServiceImpl = TestService;
-      let _TestServiceProxy = null;
       export default class TestServiceHmrProxy extends Service {
         static {
           [_init__delegate] = _applyDecs2203R(this, [[tracked, 0, "_delegate"]], []).e;
@@ -97,13 +94,16 @@ export default TestService;
         constructor(...args) {
           super(...args);
           this._owner = args[0];
-          this._delegate = new _TestServiceImpl(this._owner);
-          if (!_TestServiceProxy) {
-            _TestServiceProxy = this;
+          const Impl = import.meta.hot && import.meta.hot.data._impl || TestServiceHmrProxy.Impl;
+          this._delegate = new Impl(this._owner);
+          if (import.meta.hot) {
+            import.meta.hot.data._proxy = this;
           }
           return new Proxy(this, {
             get(target, prop) {
-              if (prop === "_delegate") return target._delegate;
+              if (prop === '_delegate') {
+                return target._delegate;
+              }
               return target._delegate[prop];
             },
             set(target, prop, value) {
@@ -115,23 +115,25 @@ export default TestService;
         willDestroy() {
           super.willDestroy();
           this._delegate.willDestroy();
+          if (import.meta.hot && import.meta.hot.data._proxy === this) {
+            import.meta.hot.data._proxy = undefined;
+          }
         }
       }
       if (import.meta.hot) {
         import.meta.hot.accept(newModule => {
-          if (import.meta.hot.data._hotReload && newModule?.default?.Impl) {
-            import.meta.hot.data._hotReload(newModule.default.Impl);
-          }
-        });
-        import.meta.hot.data._hotReload = import.meta.hot.data._hotReload || function (NewImpl) {
-          if (!_TestServiceProxy) {
-            _TestServiceImpl = NewImpl;
+          const NewImpl = newModule?.default?.Impl;
+          if (!NewImpl) {
             return;
           }
-          const oldDelegate = _TestServiceProxy._delegate;
-          _TestServiceImpl = NewImpl;
-          const newDelegate = new _TestServiceImpl(_TestServiceProxy._owner);
-          _TestServiceProxy._delegate = newDelegate;
+          import.meta.hot.data._impl = NewImpl;
+          const proxy = import.meta.hot.data._proxy;
+          if (!proxy) {
+            return;
+          }
+          const oldDelegate = proxy._delegate;
+          const newDelegate = new NewImpl(proxy._owner);
+          proxy._delegate = newDelegate;
           for (const key in oldDelegate) {
             const descriptor = Object.getOwnPropertyDescriptor(oldDelegate, key) || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(oldDelegate), key);
             const hasOwnDefault = Object.prototype.hasOwnProperty.call(newDelegate, key);
@@ -154,7 +156,7 @@ export default TestService;
           if (oldDelegate.willDestroy) {
             oldDelegate.willDestroy();
           }
-        };
+        });
       }"
     `);
   });
@@ -239,7 +241,6 @@ export default class SimpleService extends Service {
     // Should still contain HMR transformation
     expect(result.code).toContain('SimpleServiceHmrProxy');
     expect(result.code).toContain('class SimpleService extends');
-    expect(result.code).toContain('let _SimpleServiceImpl');
     expect(result.code).toContain('import.meta.hot');
   });
 
@@ -304,8 +305,6 @@ export default class DataService extends Service {
           _initClass();
         }
       }
-      let _DataServiceImpl = _DataService;
-      let _DataServiceProxy = null;
       export default class DataServiceHmrProxy extends Service {
         static {
           [_init__delegate] = _applyDecs2203R(this, [[tracked, 0, "_delegate"]], []).e;
@@ -315,13 +314,16 @@ export default class DataService extends Service {
         constructor(...args) {
           super(...args);
           this._owner = args[0];
-          this._delegate = new _DataServiceImpl(this._owner);
-          if (!_DataServiceProxy) {
-            _DataServiceProxy = this;
+          const Impl = import.meta.hot && import.meta.hot.data._impl || DataServiceHmrProxy.Impl;
+          this._delegate = new Impl(this._owner);
+          if (import.meta.hot) {
+            import.meta.hot.data._proxy = this;
           }
           return new Proxy(this, {
             get(target, prop) {
-              if (prop === "_delegate") return target._delegate;
+              if (prop === '_delegate') {
+                return target._delegate;
+              }
               return target._delegate[prop];
             },
             set(target, prop, value) {
@@ -333,23 +335,25 @@ export default class DataService extends Service {
         willDestroy() {
           super.willDestroy();
           this._delegate.willDestroy();
+          if (import.meta.hot && import.meta.hot.data._proxy === this) {
+            import.meta.hot.data._proxy = undefined;
+          }
         }
       }
       if (import.meta.hot) {
         import.meta.hot.accept(newModule => {
-          if (import.meta.hot.data._hotReload && newModule?.default?.Impl) {
-            import.meta.hot.data._hotReload(newModule.default.Impl);
-          }
-        });
-        import.meta.hot.data._hotReload = import.meta.hot.data._hotReload || function (NewImpl) {
-          if (!_DataServiceProxy) {
-            _DataServiceImpl = NewImpl;
+          const NewImpl = newModule?.default?.Impl;
+          if (!NewImpl) {
             return;
           }
-          const oldDelegate = _DataServiceProxy._delegate;
-          _DataServiceImpl = NewImpl;
-          const newDelegate = new _DataServiceImpl(_DataServiceProxy._owner);
-          _DataServiceProxy._delegate = newDelegate;
+          import.meta.hot.data._impl = NewImpl;
+          const proxy = import.meta.hot.data._proxy;
+          if (!proxy) {
+            return;
+          }
+          const oldDelegate = proxy._delegate;
+          const newDelegate = new NewImpl(proxy._owner);
+          proxy._delegate = newDelegate;
           for (const key in oldDelegate) {
             const descriptor = Object.getOwnPropertyDescriptor(oldDelegate, key) || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(oldDelegate), key);
             const hasOwnDefault = Object.prototype.hasOwnProperty.call(newDelegate, key);
@@ -372,7 +376,7 @@ export default class DataService extends Service {
           if (oldDelegate.willDestroy) {
             oldDelegate.willDestroy();
           }
-        };
+        });
       }"
     `);
   });
@@ -420,10 +424,9 @@ export default TestService;
     // Verify the transformation includes key HMR components
     expect(result.code).toContain('TestServiceHmrProxy');
     expect(result.code).toContain('class TestService extends');
-    expect(result.code).toContain('let _TestServiceImpl');
-    expect(result.code).toContain('let _TestServiceProxy');
+    expect(result.code).toContain('import.meta.hot.data._proxy');
+    expect(result.code).toContain('import.meta.hot.data._impl');
     expect(result.code).toContain('import.meta.hot');
-    expect(result.code).toContain('_hotReload');
     expect(result.code).toContain('new Proxy');
     expect(result.code).toContain('static Impl');
     expect(result.code).toContain('_delegate');
