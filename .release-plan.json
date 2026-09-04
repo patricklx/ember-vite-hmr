@@ -2,8 +2,8 @@
   "solution": {
     "ember-vite-hmr": {
       "impact": "patch",
-      "oldVersion": "2.2.2",
-      "newVersion": "2.2.3",
+      "oldVersion": "2.2.3",
+      "newVersion": "2.2.4",
       "tagName": "latest",
       "constraints": [
         {
@@ -14,5 +14,5 @@
       "pkgJSONPath": "./package.json"
     }
   },
-  "description": "## Release (2026-07-29)\n\n* ember-vite-hmr 2.2.3 (patch)\n\n#### :bug: Bug Fix\n* `ember-vite-hmr`\n  * [#532](https://github.com/patricklx/ember-vite-hmr/pull/532) Fix (has-block) always true for named blocks in HMR-wrapped components ([@patricklx](https://github.com/patricklx))\n\n#### Committers: 1\n- Patrick Pircher ([@patricklx](https://github.com/patricklx))\n"
+  "description": "## Release (2026-09-04)\n\n* ember-vite-hmr 2.2.4 (patch)\n\n#### :bug: Bug Fix\n* `ember-vite-hmr`\n  * [#536](https://github.com/patricklx/ember-vite-hmr/pull/536) Require a live dev server to enable HMR scaffolding ([@patricklx](https://github.com/patricklx))\n\n#### Committers: 1\n- Patrick Pircher ([@patricklx](https://github.com/patricklx))\n"
 }
