@@ -24,6 +24,7 @@ describe('hmr transform function', () => {
     // Configure the plugin
     plugin.configResolved({
       mode: 'development',
+      command: 'serve',
     });
   });
 
@@ -290,5 +291,15 @@ export const __hmr_import_metadata__ = {
     // Should replace @embroider/virtual with embroider_virtual in virtual path
     expect(result).toContain('embroider_virtual');
     expect(result).not.toContain('export const __hmr_import_metadata__');
+  });
+
+  it('gates HMR scaffolding on command, not just mode', () => {
+    const buildPlugin = hmr(['development']);
+
+    buildPlugin.configResolved({ mode: 'development', command: 'build' });
+    expect(process.env.EMBER_VITE_HMR_ENABLED).toBe('false');
+
+    buildPlugin.configResolved({ mode: 'development', command: 'serve' });
+    expect(process.env.EMBER_VITE_HMR_ENABLED).toBe('true');
   });
 });
