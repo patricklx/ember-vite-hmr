@@ -265,8 +265,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1(supports-color@10.2.2)
       '@glint/ember-tsc':
-        specifier: ^1.5.0
-        version: 1.8.0(ember-source@7.1.0(@glimmer/component@2.1.1(supports-color@10.2.2))(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
+        specifier: ^1.8.14
+        version: 1.8.14(ember-source@7.1.0(@glimmer/component@2.1.1(supports-color@10.2.2))(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
       '@glint/template':
         specifier: ^1.7.7
         version: 1.7.7
@@ -1252,8 +1252,8 @@ packages:
     peerDependencies:
       typescript: '>=4.8.0'
 
-  '@glint/ember-tsc@1.8.0':
-    resolution: {integrity: sha512-nJ8S/d56BC8GU/IhaKOaVb6LvwoXnAbwsX0R585AA1VScL6D9WTV67lpVKhmmlh6GeiGW1newRkm3KD2+GOk8w==}
+  '@glint/ember-tsc@1.8.14':
+    resolution: {integrity: sha512-m9Tq3LJRR4LbQhqkgZQG3m36NAUaqZ/179yU83i05JATEvuwB54d8P/+Mj1CADrZC3Yh+XTmEA4JetCvo8OkLg==}
     hasBin: true
     peerDependencies:
       ember-source: '>=3.28.0'
@@ -1308,6 +1308,9 @@ packages:
         optional: true
       '@types/ember__routing':
         optional: true
+
+  '@glint/template@1.7.10':
+    resolution: {integrity: sha512-dixKlQDF4jMM7AekQ+PPdMZRJy+Jze6ejcV/wUzRJm59nFY+D32zsYxGIm3vVLiIvafhW78QSgAf3KPUrrP5Jg==}
 
   '@glint/template@1.7.7':
     resolution: {integrity: sha512-jcPdQ3A6cXo5h9RBi0tK4/o5qNn7868Y8xpkwWQNPAd8xQKuRKmG9dGJwUycXvtqISzfrnL1p3MQr3hYN/Ua6Q==}
@@ -2857,8 +2860,8 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
 
-  baseline-browser-mapping@2.11.6:
-    resolution: {integrity: sha512-69D/imtToCsIcAl8WBS2YaRwA4jO/j0HhU+hELqMEu9f54MoUtI6+XH5mrKU8rEFNEk/Ui1I2MK4/JkWacclGw==}
+  baseline-browser-mapping@2.11.7:
+    resolution: {integrity: sha512-APw5YuIQAg6L9w4sHDI6j26DGFJI6RpYOhnkMPdC9lWbkKvsyPHzDsve1yd73lk21yz7Y09Kci8B2Pp9FonzWA==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -6868,8 +6871,8 @@ packages:
     resolution: {integrity: sha512-C+r0eKJUIfiDIfwJhria30+TYWPtuHJXHtI7J0YlOmKAo7ogxP20T0zxB7HZQIFhIyvoBPwWskjxrvAtfjyZfA==}
     engines: {node: '>=14.0.0'}
 
-  vscode-jsonrpc@9.0.0:
-    resolution: {integrity: sha512-+VvMmQPJhtvJ+8O+zu2JKIRiLxXF8NW7krWgyMGeOHrp4Cn23T5hc0v2LknNeopDOB70wghHAds7mKtcZ0I4Sg==}
+  vscode-jsonrpc@9.0.1:
+    resolution: {integrity: sha512-rfuA6T75H6m5EkbhtEPzre9pT0HPcDI2MMy4+nPFIBks5J8JBAUHD4tRYSgaBOijIEC7SRkC1kKyXTLqbmh9jw==}
     engines: {node: '>=14.0.0'}
 
   vscode-languageserver-protocol@3.17.3:
@@ -6878,8 +6881,8 @@ packages:
   vscode-languageserver-protocol@3.17.5:
     resolution: {integrity: sha512-mb1bvRJN8SVznADSGWM9u/b07H7Ecg0I3OgXDuLdn307rl/J3A9YD6/eYOssqhecL27hK1IPZAsaqh00i/Jljg==}
 
-  vscode-languageserver-protocol@3.18.0:
-    resolution: {integrity: sha512-Zdz+kJ12Iz6tc11xfZyEo501bBATHXrCjmMfnaR3pMnf1CoqZBKIynba3P+/bi9VEdrMbNtAVKYpKhbODvqy+Q==}
+  vscode-languageserver-protocol@3.18.2:
+    resolution: {integrity: sha512-XRyDbT0Pp3sSNti3JmxVEUMySWCSi1hhM+/KUlCy1hV1zmrqpM1OwO12EAki8blhmLuIMpaJrYbo0OzGVfK2Qg==}
 
   vscode-languageserver-textdocument@1.0.12:
     resolution: {integrity: sha512-cxWNPesCnQCcMPeenjKKsOCKQZ/L6Tv19DTRIGuLWe32lyzWhihGVJ/rcckZXJxfdKCFvRLS3fpBIsV/ZGX4zA==}
@@ -8428,10 +8431,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@glint/ember-tsc@1.8.0(ember-source@7.1.0(@glimmer/component@2.1.1(supports-color@10.2.2))(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)':
+  '@glint/ember-tsc@1.8.14(ember-source@7.1.0(@glimmer/component@2.1.1(supports-color@10.2.2))(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)':
     dependencies:
       '@glimmer/syntax': 0.95.0
-      '@glint/template': 1.7.7
+      '@glint/template': 1.7.10
       '@volar/kit': 2.4.28(typescript@5.9.3)
       '@volar/language-core': 2.4.28
       '@volar/language-server': 2.4.28
@@ -8444,7 +8447,7 @@ snapshots:
       typescript: 5.9.3
       volar-service-html: 0.0.71(@volar/language-service@2.4.28)
       volar-service-typescript: 0.0.71(@volar/language-service@2.4.28)
-      vscode-languageserver-protocol: 3.18.0
+      vscode-languageserver-protocol: 3.18.2
       vscode-languageserver-textdocument: 1.0.12
       vscode-uri: 3.1.0
     optionalDependencies:
@@ -8464,6 +8467,8 @@ snapshots:
       '@glint/environment-ember-loose': 1.5.2(@glimmer/component@2.1.1(supports-color@10.2.2))(@glint/template@1.7.7)(ember-cli-htmlbars@6.3.0(supports-color@10.2.2))
       '@glint/template': 1.7.7
       content-tag: 2.0.3
+
+  '@glint/template@1.7.10': {}
 
   '@glint/template@1.7.7': {}
 
@@ -9386,14 +9391,14 @@ snapshots:
       path-browserify: 1.0.1
       request-light: 0.7.0
       vscode-languageserver: 9.0.1
-      vscode-languageserver-protocol: 3.18.0
+      vscode-languageserver-protocol: 3.18.2
       vscode-languageserver-textdocument: 1.0.12
       vscode-uri: 3.1.0
 
   '@volar/language-service@2.4.28':
     dependencies:
       '@volar/language-core': 2.4.28
-      vscode-languageserver-protocol: 3.18.0
+      vscode-languageserver-protocol: 3.18.2
       vscode-languageserver-textdocument: 1.0.12
       vscode-uri: 3.1.0
 
@@ -10189,7 +10194,7 @@ snapshots:
 
   baseline-browser-mapping@2.10.33: {}
 
-  baseline-browser-mapping@2.11.6: {}
+  baseline-browser-mapping@2.11.7: {}
 
   basic-auth@2.0.1:
     dependencies:
@@ -10510,7 +10515,7 @@ snapshots:
 
   browserslist@4.28.7:
     dependencies:
-      baseline-browser-mapping: 2.11.6
+      baseline-browser-mapping: 2.11.7
       caniuse-lite: 1.0.30001806
       electron-to-chromium: 1.5.398
       node-releases: 2.0.51
@@ -14892,7 +14897,7 @@ snapshots:
 
   vscode-jsonrpc@8.2.0: {}
 
-  vscode-jsonrpc@9.0.0: {}
+  vscode-jsonrpc@9.0.1: {}
 
   vscode-languageserver-protocol@3.17.3:
     dependencies:
@@ -14904,9 +14909,9 @@ snapshots:
       vscode-jsonrpc: 8.2.0
       vscode-languageserver-types: 3.17.5
 
-  vscode-languageserver-protocol@3.18.0:
+  vscode-languageserver-protocol@3.18.2:
     dependencies:
-      vscode-jsonrpc: 9.0.0
+      vscode-jsonrpc: 9.0.1
       vscode-languageserver-types: 3.18.0
 
   vscode-languageserver-textdocument@1.0.12: {}
