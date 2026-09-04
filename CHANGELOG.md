@@ -1,5 +1,16 @@
 # ember-vite-hmr Changelog
 
+## Release (2026-09-04)
+
+* ember-vite-hmr 2.2.4 (patch)
+
+#### :bug: Bug Fix
+* `ember-vite-hmr`
+  * [#536](https://github.com/patricklx/ember-vite-hmr/pull/536) Require a live dev server to enable HMR scaffolding ([@patricklx](https://github.com/patricklx))
+
+#### Committers: 1
+- Patrick Pircher ([@patricklx](https://github.com/patricklx))
+
 ## Release (2026-07-29)
 
 * ember-vite-hmr 2.2.3 (patch)
