@@ -242,9 +242,13 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
     },
     configResolved(config) {
       base = config.base;
-      process.env.EMBER_VITE_HMR_ENABLED = enableViteHmrForModes
-        .includes(config.mode)
-        .toString();
+      // `import.meta.hot` is never truthy without a dev server, so a `vite
+      // build` that resolves mode to 'development' would inject permanently
+      // dead HMR scaffolding and leave imported components bound to undefined.
+      process.env.EMBER_VITE_HMR_ENABLED = (
+        config.command === 'serve' &&
+        enableViteHmrForModes.includes(config.mode)
+      ).toString();
     },
     async resolveId(id, importer, meta) {
       if (id.includes('@ember-vite-hmr/setup-ember-hmr.js')) {
