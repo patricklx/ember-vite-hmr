@@ -195,4 +195,52 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
       writeFileSync(basePath, original);
     }
   }, 30_000);
+
+  // Reproduces https://github.com/patricklx/ember-vite-hmr/issues/560:
+  // own-property function fields (arrow fields, modifier()/helper() results)
+  // must keep their original identity through the HMR proxy, not a fresh
+  // bound copy. See test-app/app/services/fn-identity.ts.
+  test('own-property function fields keep their identity through the HMR proxy', async () => {
+    const errors: string[] = [];
+    ctx.page.on('pageerror', (e) => errors.push(String(e?.message ?? e)));
+
+    const result = await ctx.page.evaluate(async () => {
+      const app = (
+        window as unknown as {
+          emberInspectorApps: {
+            app: { _applicationInstances: Set<unknown> };
+          }[];
+        }
+      ).emberInspectorApps[0].app;
+      const instance = [...app._applicationInstances.values()][0] as {
+        __container__: { lookup: (name: string) => unknown };
+      };
+      const svc = instance.__container__.lookup('service:fn-identity') as {
+        taggedFn: () => string;
+        readSecret: () => string;
+        lookupManager: (fn: object) => string | undefined;
+      };
+      try {
+        return {
+          ok: true,
+          manager: svc.lookupManager(svc.taggedFn),
+          called: svc.taggedFn(),
+          secret: svc.readSecret(),
+        };
+      } catch (e) {
+        return { ok: false, error: String((e as Error)?.message ?? e) };
+      }
+    });
+
+    expect(
+      errors.join('\n'),
+      `unexpected page errors:\n${errors.join('\n')}`,
+    ).toBe('');
+    expect(result).toEqual({
+      ok: true,
+      manager: 'manager',
+      called: 'called',
+      secret: 'private-value',
+    });
+  }, 30_000);
 });

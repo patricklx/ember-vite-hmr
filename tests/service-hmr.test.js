@@ -115,7 +115,7 @@ export default TestService;
               const delegate = target._delegate;
               if (prop in delegate) {
                 const value = delegate[prop];
-                if (typeof value === 'function') {
+                if (typeof value === 'function' && !Object.prototype.hasOwnProperty.call(delegate, prop)) {
                   let cache = boundMethods.get(delegate);
                   if (!cache) {
                     cache = new Map();
@@ -364,7 +364,7 @@ export default class DataService extends Service {
               const delegate = target._delegate;
               if (prop in delegate) {
                 const value = delegate[prop];
-                if (typeof value === 'function') {
+                if (typeof value === 'function' && !Object.prototype.hasOwnProperty.call(delegate, prop)) {
                   let cache = boundMethods.get(delegate);
                   if (!cache) {
                     cache = new Map();
