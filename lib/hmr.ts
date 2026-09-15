@@ -140,6 +140,17 @@ shadowManager.create = function (owner, definition, vmArgs) {
     capturedArgsStack.pop();
   }
 };
+// Glimmer's debug render tree normally adds one 'component' node per
+// invoked component instance (see VM_GET_COMPONENT_SELF_OP). Returning no
+// nodes here suppresses that node for HotComponent itself, so only the
+// real, curried target component (invoked in HotComponent's own template)
+// shows up in ember-inspector's component tree - this is the same hook
+// Ember core uses internally to keep its own {{outlet}}/{{mount}} wrapper
+// machinery out of (or relabeled in) that tree (see OutletComponentManager
+// and MountManager in ember-source).
+shadowManager.getDebugCustomRenderTree = function () {
+  return [];
+};
 setInternalComponentManager(shadowManager, HotComponent);
 `;
 
