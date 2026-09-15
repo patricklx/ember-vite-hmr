@@ -46,14 +46,18 @@ function getState(component: HotComponent, skip: string[]) {
     }
     
     if (entry) {
-      if (
-        entry.writable &&
-        !Object.prototype.toString.call(entry.value).includes('Function')
-      ) {
-        state[key] = component[key as keyof Component];
+      // Note: don't probe `entry.value` any further here (e.g. via
+      // `Object.prototype.toString.call`) to decide whether it's a plain
+      // function - the `typeof value === 'function'` check above already
+      // covers that, and a stricter check on `entry.value` (which may be a
+      // resource proxy, e.g. reactiveweb's `trackedTask`) can trigger that
+      // proxy's `get` trap on first touch, lazily invoking a helper against
+      // this component instance - see issue #557.
+      if (entry.writable) {
+        state[key] = value;
       }
       if (entry.set) {
-        state[key] = component[key as keyof Component];
+        state[key] = value;
       }
     }
   }
