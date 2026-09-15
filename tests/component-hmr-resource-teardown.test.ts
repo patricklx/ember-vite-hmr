@@ -73,4 +73,40 @@ describe('test-app: HMR-destroyed component with an unread resource-backed field
       `unexpected destroyable-child error:\n${errors.join('\n')}`,
     ).toBeUndefined();
   }, 30_000);
+
+  test('ordinary tracked state is still carried over across the swap', async () => {
+    await ctx.page.click('.nav-equipment');
+    await ctx.page.waitForSelector('.equipment-page');
+    await ctx.page.waitForSelector('.resource-holder-increment');
+
+    await ctx.page.click('.resource-holder-increment');
+    await ctx.page.click('.resource-holder-increment');
+    await ctx.page.waitForFunction(
+      () =>
+        document.querySelector('.resource-holder-count')?.textContent ===
+        '2',
+    );
+
+    // Same kind of in-place edit as above - just enough to trigger a
+    // HotComponent swap without changing component structure. The fix for
+    // #557 removes a redundant `Object.prototype.toString.call(entry.value)`
+    // check from getState() (the one that touched the resource proxy) -
+    // this asserts that removal doesn't regress the normal case of an
+    // ordinary tracked field transferring across the swap.
+    await writeFile(
+      componentPath,
+      originalContent.replace('resource holder', 'resource holder?'),
+    );
+
+    await ctx.page.waitForSelector('.resource-holder');
+    await ctx.page.waitForFunction(
+      () =>
+        document.querySelector('.resource-holder')?.textContent ===
+        'resource holder?',
+      { timeout: 5_000 },
+    );
+
+    const count = await ctx.page.textContent('.resource-holder-count');
+    expect(count).toBe('2');
+  }, 30_000);
 });
