@@ -398,11 +398,21 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
                 // bind 'this' to whatever object the property access happened on
                 // -- the proxy, here -- not to the delegate. That breaks native
                 // private fields, whose storage lives only on the concrete
-                // delegate instance, so delegate-owned methods are explicitly
-                // bound to the delegate.
+                // delegate instance, so prototype methods are explicitly bound
+                // to the delegate. Own-property function values (arrow-function
+                // class fields, modifier()/helper() results, component classes,
+                // etc.) must NOT be bound: they're either already lexically
+                // bound to the delegate (arrow fields, since the delegate is
+                // constructed via 'new Impl(owner)') or carry manager/identity
+                // metadata attached to the exact function object via a WeakMap
+                // (modifier()/helper()/setComponentManager) that bind() would
+                // silently lose by returning a fresh function.
                 if (prop in delegate) {
                   const value = delegate[prop];
-                  if (typeof value === 'function') {
+                  if (
+                    typeof value === 'function' &&
+                    !Object.prototype.hasOwnProperty.call(delegate, prop)
+                  ) {
                     let cache = boundMethods.get(delegate);
                     if (!cache) {
                       cache = new Map();
