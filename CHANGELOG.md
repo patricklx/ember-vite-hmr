@@ -1,5 +1,26 @@
 # ember-vite-hmr Changelog
 
+## Release (2026-09-15)
+
+* ember-vite-hmr 2.3.0 (minor)
+
+#### :rocket: Enhancement
+* `ember-vite-hmr`
+  * [#555](https://github.com/patricklx/ember-vite-hmr/pull/555) Hide HotComponent HMR wrapper from ember-inspector's component tree ([@patricklx](https://github.com/patricklx))
+
+#### :bug: Bug Fix
+* `ember-vite-hmr`
+  * [#556](https://github.com/patricklx/ember-vite-hmr/pull/556) Fix crash with optimizeDeps.noDiscovery: true ([@patricklx](https://github.com/patricklx))
+  * [#551](https://github.com/patricklx/ember-vite-hmr/pull/551) Fix service HMR proxy crashes for private fields and subclassed services ([@patricklx](https://github.com/patricklx))
+  * [#550](https://github.com/patricklx/ember-vite-hmr/pull/550) Gate Vite-plugin main export behind "node" condition ([@patricklx](https://github.com/patricklx))
+
+#### :house: Internal
+* `ember-vite-hmr`
+  * [#547](https://github.com/patricklx/ember-vite-hmr/pull/547) Revert @babel/types, @babel/runtime, @babel/plugin-transform-runtime to 7.x ([@patricklx](https://github.com/patricklx))
+
+#### Committers: 1
+- Patrick Pircher ([@patricklx](https://github.com/patricklx))
+
 ## Release (2026-09-04)
 
 * ember-vite-hmr 2.2.4 (patch)
