@@ -217,7 +217,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
   return {
     name: 'hmr-plugin',
     enforce: 'post',
-    config(_config, env) {
+    config(config, env) {
       // The per-component hot wrapper (see getHotComponent) imports the first
       // four of these, but it is generated/served on demand, so it is never
       // part of the static module graph Vite's dependency scanner crawls on
@@ -234,6 +234,18 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       // `@glimmer/tracking` are omitted on purpose — normal app code already
       // pulls them into the scan.)
       if (!enableViteHmrForModes.includes(env.mode)) {
+        return;
+      }
+      // With `optimizeDeps.noDiscovery: true`, Vite never scans the app's own
+      // source, so nothing else pulls these same glimmer subpaths into the
+      // optimizer. Forcing them into `include` then creates a second,
+      // separately pre-bundled copy of the glimmer VM alongside the
+      // unoptimized one the rest of the (unscanned) app actually uses,
+      // leading to "The global context for Glimmer VM was not set" (#554).
+      // There's nothing useful this hook can pre-declare in that mode, so
+      // skip it entirely rather than fight the user's own dep-optimization
+      // config.
+      if (config.optimizeDeps?.noDiscovery) {
         return;
       }
       return {
