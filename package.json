@@ -14,7 +14,8 @@
   "author": "Patrick Pircher",
   "exports": {
     ".": {
-      "default": "./dist/lib/hmr.js"
+      "node": "./dist/lib/hmr.js",
+      "default": null
     },
     "./*": {
       "types": "./declarations/*.d.ts",
@@ -22,7 +23,6 @@
     },
     "./addon-main.js": "./addon-main.cjs"
   },
-  "main": "dist/lib/hmr.js",
   "typesVersions": {
     "*": {
       "*": [
