@@ -22,12 +22,13 @@ describe('hmr() optimizeDeps declaration', () => {
   const callConfig = (
     plugin: ReturnType<typeof hmr>,
     mode: string,
+    config: unknown = {},
   ) => {
     const hook = plugin.config as (
       config: unknown,
       env: { mode: string; command: string },
     ) => { optimizeDeps?: { include?: string[] } } | undefined;
-    return hook({}, { mode, command: 'serve' });
+    return hook(config, { mode, command: 'serve' });
   };
 
   it('pre-bundles the wrapper deps the scanner cannot see (enabled mode)', () => {
@@ -44,6 +45,18 @@ describe('hmr() optimizeDeps declaration', () => {
 
   it('does not touch optimizeDeps when HMR is disabled for the mode', () => {
     const result = callConfig(hmr(['development']), 'production');
+
+    expect(result).toBeUndefined();
+  });
+
+  // Regression test for #554: forcing these into optimizeDeps.include under
+  // `noDiscovery: true` produced a second, separately pre-bundled copy of
+  // the glimmer VM (nothing else gets scanned/optimized in that mode),
+  // crashing with "The global context for Glimmer VM was not set".
+  it('does not touch optimizeDeps when the user has set optimizeDeps.noDiscovery', () => {
+    const result = callConfig(hmr(['development']), 'development', {
+      optimizeDeps: { noDiscovery: true },
+    });
 
     expect(result).toBeUndefined();
   });
