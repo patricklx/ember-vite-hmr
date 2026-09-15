@@ -2,6 +2,7 @@ import Route from '@ember/routing/route';
 import Service from '@ember/service';
 import Component from '@glimmer/component';
 import { getInternalComponentManager } from '@glimmer/manager';
+import { isDestroying, isDestroyed } from '@ember/destroyable';
 
 interface HotComponent extends Component<{ __hot__?: unknown }> {
   __get_hot_state__?: () => Record<string, unknown>;
@@ -27,7 +28,13 @@ function findPropertyDescriptor(
 
 function getState(component: HotComponent, skip: string[]) {
   const state: Record<string, unknown> = {};
-  if (!component) {
+  if (!component || isDestroying(component) || isDestroyed(component)) {
+    // A destroying/destroyed instance can carry resource-backed properties
+    // (e.g. reactiveweb's `trackedTask`) that lazily invoke a helper the
+    // first time ANY of their properties are read - including indirectly,
+    // via the `Object.prototype.toString.call(entry.value)` check below.
+    // Reading one here would call `invokeHelper`/`associateDestroyableChild`
+    // with this already-destroying instance as the parent, which throws.
     return state;
   }
   for (const key in component) {
