@@ -18,7 +18,7 @@
     "@babel/runtime": "^7.29.2",
     "@ember/app-tsconfig": "^2.0.0",
     "@ember/optional-features": "^3.0.0",
-    "@embroider/compat": "^4.1.20",
+    "@embroider/compat": "^4.1.21",
     "@embroider/config-meta-loader": "^1.0.0",
     "@embroider/core": "^4.6.2",
     "@embroider/legacy-inspector-support": "^0.1.3",
