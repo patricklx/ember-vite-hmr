@@ -77,6 +77,7 @@ const hotCallbacks = new Set();
 
 if (import.meta.hot) {
   import.meta.hot.accept('${imp}', (module) => {
+    import.meta.hot.data.latestModule = module;
     for (const callback of hotCallbacks) {
       callback(module);
     }
@@ -105,7 +106,11 @@ export default class HotComponent extends Component {
       named[name] = capturedArgs?.named[name] ?? createComputeRef(() => args[name]);
     }
     const CurriedComponent = 0;
-    this.curried = curry(CurriedComponent, TargetComponent, owner, { positional, named});
+    // After an accepted update this module is not re-evaluated, so the static
+    // TargetComponent binding still points at the pre-update module. Instances
+    // created after the update must curry the latest accepted class instead.
+    const Target = import.meta.hot?.data.latestModule?.default ?? TargetComponent;
+    this.curried = curry(CurriedComponent, Target, owner, { positional, named});
     if (import.meta.hot) {
       const callback = (module) => {
         this.curried = curry(CurriedComponent, module.default, owner, { positional, named});
