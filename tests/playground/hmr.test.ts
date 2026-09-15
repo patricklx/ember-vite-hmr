@@ -756,6 +756,87 @@ export default class DataService extends Service {
       },
     );
 
+    // The hot wrapper statically imports its target component. After an
+    // accepted update the wrapper module is not re-evaluated, so that binding
+    // still points at the pre-update module: already-mounted instances are
+    // re-curried through hotCallbacks, but every instance constructed after
+    // the update (a remount, a route change, a new list row) curried the stale
+    // class and kept rendering the old code until a full reload.
+    test(
+      'should curry the latest class for instances created after an update',
+      { timeout: 15 * 1000 },
+      async () => {
+        await editFile('./app/components/remount-child.gjs').setContent(`
+    import Component from "@glimmer/component";
+
+    export default class RemountChild extends Component {
+      <template>
+        <div class='remount-child'>remount version 1</div>
+      </template>
+    }
+    `);
+
+        await editFile('./app/components/test-component.gjs').setContent(`
+    import Component from "@glimmer/component";
+    import { tracked } from '@glimmer/tracking';
+    import { on } from '@ember/modifier';
+    import RemountChild from './remount-child.gjs';
+
+    export default class MyComponent extends Component {
+      @tracked show = true;
+      toggle = () => {
+        this.show = !this.show;
+      };
+      <template>
+        <button class='remount-toggle' type='button' {{on "click" this.toggle}}>
+          toggle
+        </button>
+        {{#if this.show}}
+          <RemountChild />
+        {{/if}}
+      </template>
+    }
+    `);
+        await waitForMessage(
+          'hot updated: /app/components/test-component.gjs',
+          10 * 1000,
+        );
+        let child = await page.waitForSelector('.remount-child');
+        let childContent = await child.evaluate((el) => el.textContent);
+        expect(childContent, childContent).toContain('remount version 1');
+
+        await editFile('./app/components/remount-child.gjs').setContent(`
+    import Component from "@glimmer/component";
+
+    export default class RemountChild extends Component {
+      <template>
+        <div class='remount-child'>remount version 2</div>
+      </template>
+    }
+    `);
+        await waitForMessage(
+          'hot updated: /app/components/remount-child.gjs via /app/components/test-component.gjs',
+        );
+        // The mounted instance is updated through its hot callback.
+        await page.waitForFunction(
+          () =>
+            globalThis.document
+              .querySelector('.remount-child')
+              ?.textContent?.includes('remount version 2'),
+          { timeout: 5000 },
+        );
+
+        // Unmount and remount: this instance is constructed after the update
+        // and must curry the updated class, not the wrapper's stale import.
+        await page.click('.remount-toggle');
+        await page.waitForSelector('.remount-child', { state: 'detached' });
+        await page.click('.remount-toggle');
+        child = await page.waitForSelector('.remount-child');
+        childContent = await child.evaluate((el) => el.textContent);
+        expect(childContent, childContent).toContain('remount version 2');
+      },
+    );
+
     // A template-only component (`<template>...</template>` with no backing
     // class) exports a TemplateOnlyComponentDefinition instance rather than a
     // class extending @glimmer/component, so the wrapper's runtime check must
