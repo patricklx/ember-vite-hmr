@@ -8,12 +8,20 @@ import BaseDateService from './base';
 // installed via [[DefineOwnProperty]], which bypasses the proxy's `set`
 // trap), and `someMethod` (a prototype method) was unreachable because the
 // old `get` trap always forwarded to the delegate instead of falling back
-// to the real prototype chain.
+// to the real prototype chain. `baseMethod` overrides a method the base
+// class already defines -- the delegate (an instance of `BaseDateService`)
+// also has `baseMethod` on its prototype chain, so the `get` trap must
+// prefer this subclass's own override instead of matching the delegate's
+// implementation first.
 export default class DateCalculationService extends BaseDateService {
   today = () => 'calculated-today';
 
   someMethod() {
     return 'some-method-result';
+  }
+
+  baseMethod() {
+    return 'overridden-method-result';
   }
 }
 

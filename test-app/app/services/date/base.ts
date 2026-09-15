@@ -5,4 +5,8 @@ import Service from '@ember/service';
 // (it directly extends Service), subclassed from another service module.
 export default class BaseDateService extends Service {
   baseValue = 'base-value';
+
+  baseMethod() {
+    return 'base-method-result';
+  }
 }

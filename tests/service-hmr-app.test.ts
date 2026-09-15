@@ -92,6 +92,7 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
       ) as {
         today: () => string;
         someMethod: () => string;
+        baseMethod: () => string;
         baseValue: string;
       };
       try {
@@ -99,6 +100,7 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
           ok: true,
           today: dateCalculation.today(),
           someMethod: dateCalculation.someMethod(),
+          baseMethod: dateCalculation.baseMethod(),
           baseValue: dateCalculation.baseValue,
         };
       } catch (e) {
@@ -114,6 +116,7 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
       ok: true,
       today: 'calculated-today',
       someMethod: 'some-method-result',
+      baseMethod: 'overridden-method-result',
       baseValue: 'base-value',
     });
   }, 30_000);
@@ -158,6 +161,7 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
           ) as {
             today: () => string;
             someMethod: () => string;
+            baseMethod: () => string;
             baseValue: string;
           };
           try {
@@ -165,6 +169,7 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
               ok: true,
               today: dateCalculation.today(),
               someMethod: dateCalculation.someMethod(),
+              baseMethod: dateCalculation.baseMethod(),
               baseValue: dateCalculation.baseValue,
             };
           } catch (e) {
@@ -183,6 +188,7 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
         ok: true,
         today: 'calculated-today',
         someMethod: 'some-method-result',
+        baseMethod: 'overridden-method-result',
         baseValue: 'base-value-edited',
       });
     } finally {

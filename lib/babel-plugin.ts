@@ -316,6 +316,21 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
                 if (prop === '_delegate') {
                   return target._delegate;
                 }
+                // A subclass of this service (see the Reflect.get fallback
+                // below) may override a method the base delegate class also
+                // defines. Since 'prop in delegate' walks the delegate's
+                // *entire* prototype chain, it would match the base
+                // implementation before the subclass's own override ever
+                // gets a chance -- so look for an own property between
+                // target's dynamic prototype and this proxy's own prototype
+                // first, and prefer it over the delegate.
+                let proto = Object.getPrototypeOf(target);
+                while (proto && proto !== ${proxyClassName}.prototype) {
+                  if (Object.prototype.hasOwnProperty.call(proto, prop)) {
+                    return Reflect.get(target, prop, receiver);
+                  }
+                  proto = Object.getPrototypeOf(proto);
+                }
                 const delegate = target._delegate;
                 // Methods invoked via normal member-call syntax (service.method())
                 // bind 'this' to whatever object the property access happened on

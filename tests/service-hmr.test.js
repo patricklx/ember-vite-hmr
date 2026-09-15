@@ -105,6 +105,13 @@ export default TestService;
               if (prop === '_delegate') {
                 return target._delegate;
               }
+              let proto = Object.getPrototypeOf(target);
+              while (proto && proto !== TestServiceHmrProxy.prototype) {
+                if (Object.prototype.hasOwnProperty.call(proto, prop)) {
+                  return Reflect.get(target, prop, receiver);
+                }
+                proto = Object.getPrototypeOf(proto);
+              }
               const delegate = target._delegate;
               if (prop in delegate) {
                 const value = delegate[prop];
@@ -346,6 +353,13 @@ export default class DataService extends Service {
             get(target, prop, receiver) {
               if (prop === '_delegate') {
                 return target._delegate;
+              }
+              let proto = Object.getPrototypeOf(target);
+              while (proto && proto !== DataServiceHmrProxy.prototype) {
+                if (Object.prototype.hasOwnProperty.call(proto, prop)) {
+                  return Reflect.get(target, prop, receiver);
+                }
+                proto = Object.getPrototypeOf(proto);
               }
               const delegate = target._delegate;
               if (prop in delegate) {
