@@ -2,7 +2,6 @@ import Route from '@ember/routing/route';
 import Service from '@ember/service';
 import Component from '@glimmer/component';
 import { getInternalComponentManager } from '@glimmer/manager';
-import { isDestroying, isDestroyed } from '@ember/destroyable';
 
 interface HotComponent extends Component<{ __hot__?: unknown }> {
   __get_hot_state__?: () => Record<string, unknown>;
@@ -28,13 +27,7 @@ function findPropertyDescriptor(
 
 function getState(component: HotComponent, skip: string[]) {
   const state: Record<string, unknown> = {};
-  if (!component || isDestroying(component) || isDestroyed(component)) {
-    // A destroying/destroyed instance can carry resource-backed properties
-    // (e.g. reactiveweb's `trackedTask`) that lazily invoke a helper the
-    // first time ANY of their properties are read - including indirectly,
-    // via the `Object.prototype.toString.call(entry.value)` check below.
-    // Reading one here would call `invokeHelper`/`associateDestroyableChild`
-    // with this already-destroying instance as the parent, which throws.
+  if (!component) {
     return state;
   }
   for (const key in component) {
@@ -53,14 +46,18 @@ function getState(component: HotComponent, skip: string[]) {
     }
     
     if (entry) {
-      if (
-        entry.writable &&
-        !Object.prototype.toString.call(entry.value).includes('Function')
-      ) {
-        state[key] = component[key as keyof Component];
+      // Note: don't probe `entry.value` any further here (e.g. via
+      // `Object.prototype.toString.call`) to decide whether it's a plain
+      // function - the `typeof value === 'function'` check above already
+      // covers that, and a stricter check on `entry.value` (which may be a
+      // resource proxy, e.g. reactiveweb's `trackedTask`) can trigger that
+      // proxy's `get` trap on first touch, lazily invoking a helper against
+      // this component instance - see issue #557.
+      if (entry.writable) {
+        state[key] = value;
       }
       if (entry.set) {
-        state[key] = component[key as keyof Component];
+        state[key] = value;
       }
     }
   }
