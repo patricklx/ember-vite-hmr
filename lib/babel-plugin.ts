@@ -306,16 +306,72 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
             if (import.meta.hot) {
               import.meta.hot.data._proxy = this;
             }
+            // Bound methods are cached per-delegate (not per-proxy) so identity
+            // stays stable across repeated reads of the same delegate (e.g.
+            // {{on "click" this.svc.handler}} comparing args by reference), while
+            // naturally invalidating once a delegate is swapped out on HMR accept.
+            const boundMethods = new WeakMap();
             return new Proxy(this, {
-              get(target, prop) {
+              get(target, prop, receiver) {
                 if (prop === '_delegate') {
                   return target._delegate;
                 }
-                return target._delegate[prop];
+                // A subclass of this service (see the Reflect.get fallback
+                // below) may override a method the base delegate class also
+                // defines. Since 'prop in delegate' walks the delegate's
+                // *entire* prototype chain, it would match the base
+                // implementation before the subclass's own override ever
+                // gets a chance -- so look for an own property between
+                // target's dynamic prototype and this proxy's own prototype
+                // first, and prefer it over the delegate.
+                let proto = Object.getPrototypeOf(target);
+                while (proto && proto !== ${proxyClassName}.prototype) {
+                  if (Object.prototype.hasOwnProperty.call(proto, prop)) {
+                    return Reflect.get(target, prop, receiver);
+                  }
+                  proto = Object.getPrototypeOf(proto);
+                }
+                const delegate = target._delegate;
+                // Methods invoked via normal member-call syntax (service.method())
+                // bind 'this' to whatever object the property access happened on
+                // -- the proxy, here -- not to the delegate. That breaks native
+                // private fields, whose storage lives only on the concrete
+                // delegate instance, so delegate-owned methods are explicitly
+                // bound to the delegate.
+                if (prop in delegate) {
+                  const value = delegate[prop];
+                  if (typeof value === 'function') {
+                    let cache = boundMethods.get(delegate);
+                    if (!cache) {
+                      cache = new Map();
+                      boundMethods.set(delegate, cache);
+                    }
+                    let bound = cache.get(prop);
+                    if (!bound) {
+                      bound = value.bind(delegate);
+                      cache.set(prop, bound);
+                    }
+                    return bound;
+                  }
+                  return value;
+                }
+                // Not on the delegate: fall through to the proxy's own real
+                // prototype chain, which covers methods declared on a subclass
+                // of this service (the subclass never went through this babel
+                // transform itself, since it doesn't extend Service directly).
+                return Reflect.get(target, prop, receiver);
               },
               set(target, prop, value) {
                 target._delegate[prop] = value;
                 return true;
+              },
+              defineProperty(target, prop, descriptor) {
+                // A subclass's own class fields are installed via
+                // [[DefineOwnProperty]] against whatever 'this' super() returned
+                // (this proxy), bypassing the 'set' trap entirely. Route them to
+                // the delegate too, so subclass state lives alongside the rest
+                // of the service's state instead of stranded on the proxy target.
+                return Reflect.defineProperty(target._delegate, prop, descriptor);
               },
             });
           `,
@@ -434,8 +490,19 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
                     continue;
                   }
 
-                  // Skip Function properties - they should not be synced
-                  if (typeof previousValue === 'function') {
+                  // Skip function properties that the new implementation also
+                  // declares (a fresh redefinition should win over the old
+                  // one). But a function-valued property the new
+                  // implementation *doesn't* declare at all isn't a stale
+                  // redefinition -- it's state a subclass installed on the
+                  // delegate directly (subclasses of this service never go
+                  // through this transform themselves, since their
+                  // superclass isn't literally named Service; their own
+                  // class fields land on the delegate via the proxy's
+                  // defineProperty trap instead). Dropping it here would
+                  // silently break e.g. an arrow-function class field on a
+                  // subclass across a base-class HMR swap.
+                  if (typeof previousValue === 'function' && hasOwnDefault) {
                     continue;
                   }
 

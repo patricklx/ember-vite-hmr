@@ -99,16 +99,45 @@ export default TestService;
           if (import.meta.hot) {
             import.meta.hot.data._proxy = this;
           }
+          const boundMethods = new WeakMap();
           return new Proxy(this, {
-            get(target, prop) {
+            get(target, prop, receiver) {
               if (prop === '_delegate') {
                 return target._delegate;
               }
-              return target._delegate[prop];
+              let proto = Object.getPrototypeOf(target);
+              while (proto && proto !== TestServiceHmrProxy.prototype) {
+                if (Object.prototype.hasOwnProperty.call(proto, prop)) {
+                  return Reflect.get(target, prop, receiver);
+                }
+                proto = Object.getPrototypeOf(proto);
+              }
+              const delegate = target._delegate;
+              if (prop in delegate) {
+                const value = delegate[prop];
+                if (typeof value === 'function') {
+                  let cache = boundMethods.get(delegate);
+                  if (!cache) {
+                    cache = new Map();
+                    boundMethods.set(delegate, cache);
+                  }
+                  let bound = cache.get(prop);
+                  if (!bound) {
+                    bound = value.bind(delegate);
+                    cache.set(prop, bound);
+                  }
+                  return bound;
+                }
+                return value;
+              }
+              return Reflect.get(target, prop, receiver);
             },
             set(target, prop, value) {
               target._delegate[prop] = value;
               return true;
+            },
+            defineProperty(target, prop, descriptor) {
+              return Reflect.defineProperty(target._delegate, prop, descriptor);
             }
           });
         }
@@ -142,7 +171,7 @@ export default TestService;
             if (previousValue instanceof Service) {
               continue;
             }
-            if (typeof previousValue === 'function') {
+            if (typeof previousValue === 'function' && hasOwnDefault) {
               continue;
             }
             const shouldSync = !!descriptor && (descriptor.writable || descriptor.set || Object.prototype.hasOwnProperty.call(oldDelegate, key)) && (!hasOwnDefault || currentValue === previousValue);
@@ -319,16 +348,45 @@ export default class DataService extends Service {
           if (import.meta.hot) {
             import.meta.hot.data._proxy = this;
           }
+          const boundMethods = new WeakMap();
           return new Proxy(this, {
-            get(target, prop) {
+            get(target, prop, receiver) {
               if (prop === '_delegate') {
                 return target._delegate;
               }
-              return target._delegate[prop];
+              let proto = Object.getPrototypeOf(target);
+              while (proto && proto !== DataServiceHmrProxy.prototype) {
+                if (Object.prototype.hasOwnProperty.call(proto, prop)) {
+                  return Reflect.get(target, prop, receiver);
+                }
+                proto = Object.getPrototypeOf(proto);
+              }
+              const delegate = target._delegate;
+              if (prop in delegate) {
+                const value = delegate[prop];
+                if (typeof value === 'function') {
+                  let cache = boundMethods.get(delegate);
+                  if (!cache) {
+                    cache = new Map();
+                    boundMethods.set(delegate, cache);
+                  }
+                  let bound = cache.get(prop);
+                  if (!bound) {
+                    bound = value.bind(delegate);
+                    cache.set(prop, bound);
+                  }
+                  return bound;
+                }
+                return value;
+              }
+              return Reflect.get(target, prop, receiver);
             },
             set(target, prop, value) {
               target._delegate[prop] = value;
               return true;
+            },
+            defineProperty(target, prop, descriptor) {
+              return Reflect.defineProperty(target._delegate, prop, descriptor);
             }
           });
         }
@@ -362,7 +420,7 @@ export default class DataService extends Service {
             if (previousValue instanceof Service) {
               continue;
             }
-            if (typeof previousValue === 'function') {
+            if (typeof previousValue === 'function' && hasOwnDefault) {
               continue;
             }
             const shouldSync = !!descriptor && (descriptor.writable || descriptor.set || Object.prototype.hasOwnProperty.call(oldDelegate, key)) && (!hasOwnDefault || currentValue === previousValue);
