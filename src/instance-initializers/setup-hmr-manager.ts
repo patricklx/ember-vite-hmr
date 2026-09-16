@@ -25,6 +25,38 @@ function findPropertyDescriptor(
   }
 }
 
+// The private property key `ember-resources`' `wrapForPlainUsage()` uses on
+// the plain object it wraps in a Proxy for `resource()` (which reactiveweb's
+// `trackedTask` uses internally) - see
+// https://github.com/NullVoxPopuli/ember-resources/blob/main/ember-resources/src/plain/index.ts.
+// Carrying such a proxy's *reference* over onto a new HMR-swapped instance
+// (instead of leaving the new instance's own, correctly-parented resource in
+// place) is unsafe: the proxy's underlying helper cache is lazily created on
+// first property read and permanently bound, at that point, to whichever
+// component instance was passed as `context` when `resource()` was called -
+// for a carried-over proxy that's always the *old*, already-destroyed
+// instance, so the first read after the swap throws "Attempted to associate
+// a destroyable child with an object that is already destroying or
+// destroyed" - see issue #563.
+//
+// `in` is used (rather than reading a property, or `Object.keys`/
+// `Object.prototype.toString.call`) because it's the one reflective
+// operation `wrapForPlainUsage`'s Proxy doesn't trap (no `has` handler), so
+// it forwards to a plain `[[HasProperty]]` on the underlying target without
+// ever invoking the lazy getter - it can't accidentally trigger the same
+// crash it's checking for. If `ember-resources` ever renames this key, this
+// check simply stops matching and behavior falls back to today's (already
+// broken, pre-existing) state - it does not introduce a new failure mode.
+const RESOURCE_INTERMEDIATE_VALUE_KEY = '__Intermediate_Value__';
+
+function isUnsafeToCarryOver(value: unknown): boolean {
+  return (
+    (typeof value === 'object' || typeof value === 'function') &&
+    value !== null &&
+    RESOURCE_INTERMEDIATE_VALUE_KEY in value
+  );
+}
+
 function getState(component: HotComponent, skip: string[]) {
   const state: Record<string, unknown> = {};
   if (!component) {
@@ -44,7 +76,12 @@ function getState(component: HotComponent, skip: string[]) {
     if (typeof value === 'function') {
       continue;
     }
-    
+
+    // Skip resource()-backed proxies - see isUnsafeToCarryOver above.
+    if (isUnsafeToCarryOver(value)) {
+      continue;
+    }
+
     if (entry) {
       // Note: don't probe `entry.value` any further here (e.g. via
       // `Object.prototype.toString.call`) to decide whether it's a plain
