@@ -14,6 +14,12 @@ const __dirname = path.dirname(__filename);
 // (see generateInvocations below for why branching is needed at all).
 const MAX_COMBINATORIAL_YIELDS = 8;
 
+// Safety cap on how many `extends` links resolveYieldSource will walk while
+// looking for an inherited template (see its own doc comment) - real
+// component hierarchies never get remotely this deep, this only guards
+// against a pathological/cyclic chain.
+const MAX_EXTENDS_DEPTH = 20;
+
 function blockTag(y: string) {
   return `<:${y} as |a b c d e f g h i j k l|>{{yield a b c d e f g h i j k l to='${y}'}}</:${y}>`;
 }
@@ -209,6 +215,222 @@ function normalizePath(inputPath: string): string {
   return inputPath.replace(/\\/g, '/');
 }
 
+// The compiled backing class embeds an import specifier as a browser-facing
+// URL (i.e. prefixed with the configured vite `base`), since that's what
+// gets sent to the client. But `server.transformRequest` is an internal API
+// keyed by root-relative ids, so the base has to be stripped back off before
+// reusing that specifier, or a lookup 404s under a non-root base.
+function stripBase(specifier: string, base: string): string {
+  if (base !== '/' && specifier.startsWith(base)) {
+    return `/${specifier.slice(base.length)}`;
+  }
+  return specifier;
+}
+
+// A component's compiled module only calls `setComponentTemplate` on itself
+// when it owns a template directly (an inline `<template>`); it's absent
+// both for a classic component whose template lives in a separately
+// resolved colocated `.hbs` (see the `.hbs` import check this feeds into)
+// and for a component with no template of its own at all, which inherits
+// whatever's registered on its nearest ancestor class instead (Glimmer's
+// `getComponentTemplate`/`setComponentTemplate`, vendored in ember-source's
+// `@glimmer/manager`, resolve a component's template by walking
+// `Object.getPrototypeOf` up the prototype chain - the same mechanism
+// `getInternalComponentManager` uses, see the `shadowManager` comment above).
+function findSuperclassImportSource(content: string): string | null {
+  let result;
+  try {
+    result = parseSync(content, {
+      filename: 'hmr-extends-check.js',
+      ast: true,
+      code: false,
+      configFile: false,
+      babelrc: false,
+      plugins: [
+        ['@babel/plugin-syntax-typescript', { isTSX: true }],
+        ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
+      ],
+    });
+  } catch {
+    return null;
+  }
+  if (!result) {
+    return null;
+  }
+
+  // Prefer the default-exported class specifically (that's always the
+  // component itself) over "the first class with a superclass in the file",
+  // since a file can declare other, unrelated classes above it (a local
+  // helper class, etc.) that would otherwise be matched instead.
+  let superName: string | null = null;
+  traverse(result, {
+    ExportDefaultDeclaration(
+      path: NodePath<{
+        declaration: {
+          type: string;
+          name?: string;
+          superClass?: { type?: string; name?: string };
+        };
+      }>,
+    ) {
+      const declaration = path.node.declaration;
+      let classNode = declaration;
+      if (declaration.type === 'Identifier' && declaration.name) {
+        const binding = path.scope.getBinding(declaration.name);
+        if (
+          binding?.path.isClassDeclaration() ||
+          binding?.path.isClassExpression()
+        ) {
+          classNode = binding.path.node as unknown as typeof declaration;
+        }
+      }
+      const superClass = classNode.superClass;
+      if (superClass?.type === 'Identifier' && superClass.name) {
+        superName = superClass.name;
+      }
+    },
+  });
+  if (!superName) {
+    // Fall back to the first class with a superclass anywhere in the file
+    // (e.g. a non-default-exported component, or an export form the check
+    // above doesn't specifically handle).
+    traverse(result, {
+      'ClassDeclaration|ClassExpression'(
+        path: NodePath<{ superClass?: { type?: string; name?: string } }>,
+      ) {
+        if (superName) {
+          return;
+        }
+        const superClass = path.node.superClass;
+        if (superClass?.type === 'Identifier' && superClass.name) {
+          superName = superClass.name;
+        }
+      },
+    });
+  }
+  if (!superName) {
+    return null;
+  }
+
+  let source: string | null = null;
+  traverse(result, {
+    ImportDeclaration(
+      path: NodePath<{
+        specifiers: Array<{ local: { name: string } }>;
+        source: { value: string };
+      }>,
+    ) {
+      if (source) {
+        return;
+      }
+      if (path.node.specifiers.some((s) => s.local.name === superName)) {
+        source = path.node.source.value;
+      }
+    },
+  });
+  return source;
+}
+
+// If `content` (already run through `server.transformRequest`) registers a
+// template on itself - either inline, or via a colocated `.hbs` import -
+// returns that template's own source. Returns null when this file has no
+// template of its own to scan, meaning any named blocks it uses have to be
+// found on an ancestor class instead (see resolveYieldSource).
+async function resolveOwnTemplateSource(
+  server: ViteDevServer,
+  base: string,
+  filename: string,
+  content: string,
+): Promise<{ filename: string; content: string } | null> {
+  // For a classic component with a separately resolved template (a colocated
+  // `.hbs` file next to a backing class, or a template-only component), the
+  // compiled backing module only *imports* its template (e.g. `import TEMPLATE
+  // from "./foo.hbs?import"`); it doesn't inline it. Any {{yield ... to="..."}}
+  // usage lives in that template file, so it has to be fetched and scanned
+  // separately, otherwise named blocks other than "default" are never detected
+  // and get silently dropped by the generated hot-reload wrapper.
+  const templateImportMatch = content.match(
+    /\bfrom\s*['"]([^'"]+\.hbs(?:\?[^'"]*)?)['"]/,
+  );
+  if (templateImportMatch) {
+    const templateSpecifier = stripBase(templateImportMatch[1]!, base);
+    const templateRes = await server.transformRequest(templateSpecifier);
+    return { filename: templateSpecifier, content: templateRes?.code ?? '' };
+  }
+  if (content.includes('setComponentTemplate(')) {
+    return { filename, content };
+  }
+  return null;
+}
+
+// Determines which file's source should be scanned for named-block
+// (`{{yield ... to="..."}}`) usage for the component at `filename`/`content`.
+// Usually that's the component's own file (or its colocated `.hbs`, handled
+// by resolveOwnTemplateSource). But a component with no template of its own
+// renders whatever template is registered on its nearest ancestor class (see
+// resolveOwnTemplateSource's doc comment) - previously this only ever
+// scanned the child's own (template-less) file, silently dropping every
+// named block other than "default" for any component subclassed without its
+// own template. This walks the `extends` chain, resolving each ancestor's
+// import the same way Vite already resolved it in the already-transformed
+// source, until one with its own template is found.
+async function resolveYieldSource(
+  server: ViteDevServer,
+  base: string,
+  filename: string,
+  content: string,
+): Promise<{ filename: string; content: string }> {
+  const own = await resolveOwnTemplateSource(server, base, filename, content);
+  if (own) {
+    return own;
+  }
+
+  const seen = new Set<string>([filename]);
+  let currentContent = content;
+  for (let i = 0; i < MAX_EXTENDS_DEPTH; i++) {
+    const superSource = findSuperclassImportSource(currentContent);
+    if (!superSource) {
+      break;
+    }
+    const superSpecifier = stripBase(superSource, base);
+    // Framework/addon base classes live in node_modules and are never
+    // hot-tracked by this plugin (see the node_modules skip in `transform`);
+    // stop there rather than walking into vendored internals.
+    if (seen.has(superSpecifier) || superSpecifier.includes('node_modules')) {
+      break;
+    }
+    seen.add(superSpecifier);
+    let superContent: string | undefined;
+    try {
+      // Unlike the `.hbs` specifier resolveOwnTemplateSource requests
+      // (always something Vite itself already resolved for a file we
+      // successfully transformed), this specifier can be anything a
+      // superclass import resolved to, including forms
+      // `transformRequest` can't handle. Failing to resolve an ancestor's
+      // template is the same "no named blocks found" outcome as before
+      // this fix existed - it must never fail the whole component load.
+      const superRes = await server.transformRequest(superSpecifier);
+      superContent = superRes?.code;
+    } catch {
+      break;
+    }
+    if (!superContent) {
+      break;
+    }
+    const superOwn = await resolveOwnTemplateSource(
+      server,
+      base,
+      superSpecifier,
+      superContent,
+    );
+    if (superOwn) {
+      return superOwn;
+    }
+    currentContent = superContent;
+  }
+  return { filename, content };
+}
+
 const virtualPrefix = '/ember-vite-hmr/virtual/component:';
 
 // Embroider's resolver registry. It's the binding the app entry's HMR hook
@@ -330,33 +552,8 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         const res = await server.transformRequest(filename);
         const content = res?.code;
 
-        // For a classic component with a separately resolved template (a colocated
-        // `.hbs` file next to a backing class, or a template-only component), the
-        // compiled backing module only *imports* its template (e.g. `import TEMPLATE
-        // from "./foo.hbs?import"`); it doesn't inline it. Any {{yield ... to="..."}}
-        // usage lives in that template file, so it has to be fetched and scanned
-        // separately, otherwise named blocks other than "default" are never detected
-        // and get silently dropped by the generated hot-reload wrapper.
-        let yieldSourceFilename = filename;
-        let yieldSourceContent = content;
-        const templateImportMatch = content?.match(
-          /\bfrom\s*['"]([^'"]+\.hbs(?:\?[^'"]*)?)['"]/,
-        );
-        if (templateImportMatch) {
-          // The compiled backing class embeds the template import as a
-          // browser-facing URL (i.e. prefixed with the configured vite
-          // `base`), since that's what gets sent to the client. But
-          // `server.transformRequest` is an internal API keyed by root-
-          // relative ids, so the base has to be stripped back off before
-          // reusing that specifier here, or this 404s under a non-root base.
-          let templateSpecifier = templateImportMatch[1]!;
-          if (base !== '/' && templateSpecifier.startsWith(base)) {
-            templateSpecifier = `/${templateSpecifier.slice(base.length)}`;
-          }
-          const templateRes = await server.transformRequest(templateSpecifier);
-          yieldSourceFilename = templateSpecifier;
-          yieldSourceContent = templateRes?.code;
-        }
+        const { filename: yieldSourceFilename, content: yieldSourceContent } =
+          await resolveYieldSource(server, base, filename, content ?? '');
 
         const resId = await this.resolve(
           yieldSourceFilename,
