@@ -297,6 +297,9 @@ importers:
       ember-resolver:
         specifier: ^13.2.0
         version: 13.2.0
+      ember-resources:
+        specifier: ^7.1.0
+        version: 7.1.0(@glimmer/component@2.1.1(supports-color@10.2.2))(@glint/template@1.7.10)(supports-color@10.2.2)
       ember-source:
         specifier: ~7.1.0
         version: 7.1.0(@glimmer/component@2.1.1(supports-color@10.2.2))(supports-color@10.2.2)
@@ -3671,6 +3674,17 @@ packages:
 
   ember-resolver@13.2.0:
     resolution: {integrity: sha512-A+BffoSKC0ngiczbgaz/IOY66ovZVRRHHIDDi+d7so5i0By8xuB4nXgZZ6Dv3u/3WwoUyixgUvb0xTUO+MtupA==}
+
+  ember-resources@7.1.0:
+    resolution: {integrity: sha512-3Pt/bhXeG6ACHgsDi03R00BH29Tso4j08yFNnQB/h/SZr06zjByQdatlB1YmCI0ebRDU1Z0wZA6c3EtiSQKkkA==}
+    peerDependencies:
+      '@glimmer/component': '>= 1.1.2 || >= 2.0.0'
+      '@glint/template': '>= 1.0.0'
+    peerDependenciesMeta:
+      '@glimmer/component':
+        optional: true
+      '@glint/template':
+        optional: true
 
   ember-rfc176-data@0.3.18:
     resolution: {integrity: sha512-JtuLoYGSjay1W3MQAxt3eINWXNYYQliK90tLwtb8aeCuQK8zKGCRbBodVIrkcTqshULMnRuTOS6t1P7oQk3g6Q==}
@@ -11182,6 +11196,15 @@ snapshots:
       - supports-color
 
   ember-resolver@13.2.0: {}
+
+  ember-resources@7.1.0(@glimmer/component@2.1.1(supports-color@10.2.2))(@glint/template@1.7.10)(supports-color@10.2.2):
+    dependencies:
+      '@embroider/addon-shim': 1.10.3(supports-color@10.2.2)
+    optionalDependencies:
+      '@glimmer/component': 2.1.1(supports-color@10.2.2)
+      '@glint/template': 1.7.10
+    transitivePeerDependencies:
+      - supports-color
 
   ember-rfc176-data@0.3.18: {}
 
