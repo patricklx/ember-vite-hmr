@@ -99,7 +99,6 @@ export default TestService;
           if (import.meta.hot) {
             import.meta.hot.data._proxy = this;
           }
-          const boundMethods = new WeakMap();
           return new Proxy(this, {
             get(target, prop, receiver) {
               if (prop === '_delegate') {
@@ -114,21 +113,7 @@ export default TestService;
               }
               const delegate = target._delegate;
               if (prop in delegate) {
-                const value = delegate[prop];
-                if (typeof value === 'function' && !Object.prototype.hasOwnProperty.call(delegate, prop)) {
-                  let cache = boundMethods.get(delegate);
-                  if (!cache) {
-                    cache = new Map();
-                    boundMethods.set(delegate, cache);
-                  }
-                  let bound = cache.get(prop);
-                  if (!bound) {
-                    bound = value.bind(delegate);
-                    cache.set(prop, bound);
-                  }
-                  return bound;
-                }
-                return value;
+                return delegate[prop];
               }
               return Reflect.get(target, prop, receiver);
             },
@@ -348,7 +333,6 @@ export default class DataService extends Service {
           if (import.meta.hot) {
             import.meta.hot.data._proxy = this;
           }
-          const boundMethods = new WeakMap();
           return new Proxy(this, {
             get(target, prop, receiver) {
               if (prop === '_delegate') {
@@ -363,21 +347,7 @@ export default class DataService extends Service {
               }
               const delegate = target._delegate;
               if (prop in delegate) {
-                const value = delegate[prop];
-                if (typeof value === 'function' && !Object.prototype.hasOwnProperty.call(delegate, prop)) {
-                  let cache = boundMethods.get(delegate);
-                  if (!cache) {
-                    cache = new Map();
-                    boundMethods.set(delegate, cache);
-                  }
-                  let bound = cache.get(prop);
-                  if (!bound) {
-                    bound = value.bind(delegate);
-                    cache.set(prop, bound);
-                  }
-                  return bound;
-                }
-                return value;
+                return delegate[prop];
               }
               return Reflect.get(target, prop, receiver);
             },

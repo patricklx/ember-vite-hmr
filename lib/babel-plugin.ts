@@ -273,30 +273,37 @@ function hasPrivateMembers(classBody: BabelTypesNamespace.ClassBody): boolean {
 
 // The generated HMR proxy (see `ctorBody` below) reads and writes service
 // state through a Proxy whose `get`/`set` traps forward to a separately
-// constructed delegate instance, and rebinds delegate-owned *prototype*
-// methods to the delegate so their `this` is the real instance. Native
-// `#private` fields can only ever be accessed with `this` bound to the exact
-// object that declared them, which is why that rebinding exists -- but it
-// only covers methods found on the delegate's prototype chain. A plain
-// (non-arrow) function assigned as an *own* property -- e.g. in the
-// constructor -- is deliberately left unbound (see PR #561/#560: binding it
-// would break identity-sensitive code like `modifier()`/`helper()`), so if
-// such a function reads a `#private` field it breaks once called through the
-// proxy with `this` set to the proxy instead of the delegate.
+// constructed delegate instance. Native `#private` fields can only ever be
+// accessed with `this` bound to the exact object that declared them, and a
+// method called as `proxy.method()` runs with `this` set to the proxy, not
+// the delegate -- so a `#private` field read from ANY function reached
+// through the proxy (a prototype method or a plain own-property function
+// assigned in the constructor) would throw "Cannot read private member ...
+// from an object whose class did not declare it" once called through it.
+// An earlier version of this proxy special-cased prototype methods by
+// `.bind()`-ing them to the delegate, but that's exactly backwards for an
+// own-property function value: `bind()` returns a fresh function object,
+// silently dropping any metadata identity-sensitive code associates with
+// the original one via a WeakMap (e.g. `modifier()`/`helper()`,
+// `setComponentManager` -- see #560/#561).
 //
 // Rewriting `#foo` to a plain, uniquely-named, non-computed property
-// sidesteps that: an ordinary property reads and writes correctly through
-// the proxy's existing traps no matter what `this` is at the call site, with
-// no runtime behavior changes beyond that. This runs generically on *every*
-// class the app's own source defines (see the `Class` visitor below), not
-// just service classes, so it also covers `#private` fields on an ancestor
-// class the service extends, as long as that ancestor is part of the app's
-// own source (and therefore passes through this same babel pass). It does
-// NOT help with a `#private` field declared on an ancestor class that lives
-// in `node_modules` -- that file is never passed through this transform, so
-// its fields stay fully native -- which is why the proxy's `get` trap still
-// has to bind every delegate-owned prototype method regardless of this
-// rewrite.
+// sidesteps the whole problem instead: an ordinary property reads and
+// writes correctly through the proxy's existing traps no matter what `this`
+// is at the call site, so no per-property binding is needed at all. This
+// runs generically on *every* class the app's own source defines (see the
+// `Class` visitor below), not just service classes, so it also covers
+// `#private` fields on an ancestor class the service extends, as long as
+// that ancestor is part of the app's own source (and therefore passes
+// through this same babel pass). It does NOT help with a `#private` field
+// declared on an ancestor class that lives in `node_modules` -- that file is
+// never passed through this transform, so its fields stay fully native, and
+// a prototype method inherited from it would still crash if called through
+// the proxy. Ember's own `Service`/`EmberObject`/`CoreObject` chain declares
+// no native `#private` fields, so this doesn't affect normal Ember apps; a
+// third-party base class that does would need to stop using native
+// `#private` fields, or avoid extending it directly with an HMR-proxied
+// service.
 //
 // A Symbol-keyed property (an earlier version of this rewrite) would keep
 // the member non-enumerable, closer to real privacy, but Ember's `@tracked`
@@ -638,11 +645,6 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
             if (import.meta.hot) {
               import.meta.hot.data._proxy = this;
             }
-            // Bound methods are cached per-delegate (not per-proxy) so identity
-            // stays stable across repeated reads of the same delegate (e.g.
-            // {{on "click" this.svc.handler}} comparing args by reference), while
-            // naturally invalidating once a delegate is swapped out on HMR accept.
-            const boundMethods = new WeakMap();
             return new Proxy(this, {
               get(target, prop, receiver) {
                 if (prop === '_delegate') {
@@ -664,38 +666,39 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
                   proto = Object.getPrototypeOf(proto);
                 }
                 const delegate = target._delegate;
-                // Methods invoked via normal member-call syntax (service.method())
-                // bind 'this' to whatever object the property access happened on
-                // -- the proxy, here -- not to the delegate. That breaks native
-                // private fields, whose storage lives only on the concrete
-                // delegate instance, so prototype methods are explicitly bound
-                // to the delegate. Own-property function values (arrow-function
-                // class fields, modifier()/helper() results, component classes,
-                // etc.) must NOT be bound: they're either already lexically
-                // bound to the delegate (arrow fields, since the delegate is
-                // constructed via 'new Impl(owner)') or carry manager/identity
-                // metadata attached to the exact function object via a WeakMap
-                // (modifier()/helper()/setComponentManager) that bind() would
-                // silently lose by returning a fresh function.
+                // Function-valued properties are returned exactly as stored
+                // on the delegate, never bound. Binding used to be necessary
+                // for prototype methods reading native '#private' fields
+                // (private-field access requires 'this' to literally be the
+                // declaring instance), but the private-member rewrite below
+                // now rewrites every '#private' member the app's own source
+                // declares to a plain property, which reads correctly
+                // through this same trap regardless of what 'this' is at
+                // the call site -- so a bound copy is never needed for that
+                // case. Binding would also be actively wrong for
+                // identity-sensitive own-property function values
+                // (modifier()/helper() results, component classes, etc.),
+                // since bind() returns a fresh function object and silently
+                // drops any metadata associated with the original one via a
+                // WeakMap (see #560/#561).
+                //
+                // Calling a returned prototype method as 'service.method()'
+                // now runs it with 'this' set to the proxy (standard
+                // member-call semantics), not the raw delegate -- the same
+                // way own-property function values have always run here.
+                // Reflection idioms inside such a method (Object.keys(this),
+                // 'this instanceof OriginalClass', for-in over this)
+                // therefore see the proxy's own shape, not the delegate's --
+                // a pre-existing limitation for own-property functions, now
+                // also true for prototype methods. Nothing in this repo's
+                // services relies on that, and ember-source's own
+                // Service/EmberObject/CoreObject chain declares no native
+                // '#private' fields, so this is safe for the common case;
+                // a third-party base class outside the app's own source that
+                // both uses native '#private' fields AND relies on such
+                // reflection from a service method would still be affected.
                 if (prop in delegate) {
-                  const value = delegate[prop];
-                  if (
-                    typeof value === 'function' &&
-                    !Object.prototype.hasOwnProperty.call(delegate, prop)
-                  ) {
-                    let cache = boundMethods.get(delegate);
-                    if (!cache) {
-                      cache = new Map();
-                      boundMethods.set(delegate, cache);
-                    }
-                    let bound = cache.get(prop);
-                    if (!bound) {
-                      bound = value.bind(delegate);
-                      cache.set(prop, bound);
-                    }
-                    return bound;
-                  }
-                  return value;
+                  return delegate[prop];
                 }
                 // Not on the delegate: fall through to the proxy's own real
                 // prototype chain, which covers methods declared on a subclass
