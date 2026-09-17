@@ -24,6 +24,24 @@ export default class FnIdentityService extends Service {
   // Own-property arrow field relying on lexical `this` to reach `#secret`.
   readSecret = () => this.#secret;
 
+  // A plain (non-arrow) function assigned as an own property in the
+  // constructor, reading `#secret` via a dynamic `this`. PR #561 documented
+  // this as a known, accepted tradeoff of leaving own-property functions
+  // unbound: called through the proxy, `this` is the proxy (not this
+  // delegate), and native private fields throw unless `this` is literally
+  // the declaring instance. ember-vite-hmr's babel plugin now rewrites
+  // undecorated `#private` members declared directly on a service into a
+  // Symbol-keyed property instead, which reads correctly through the proxy's
+  // existing traps regardless of what `this` is bound to at the call site.
+  readSecretPlain: () => string;
+
+  constructor(...args: [unknown]) {
+    super(...args);
+    this.readSecretPlain = function (this: FnIdentityService) {
+      return this.#secret;
+    };
+  }
+
   lookupManager(fn: object) {
     return managers.get(fn);
   }

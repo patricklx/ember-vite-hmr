@@ -199,7 +199,11 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
   // Reproduces https://github.com/patricklx/ember-vite-hmr/issues/560:
   // own-property function fields (arrow fields, modifier()/helper() results)
   // must keep their original identity through the HMR proxy, not a fresh
-  // bound copy. See test-app/app/services/fn-identity.ts.
+  // bound copy. Also covers PR #561's own documented tradeoff (a plain,
+  // non-arrow own-property function reading a `#private` field, via
+  // `readSecretPlain`), now closed by rewriting undecorated private class
+  // members to Symbol-keyed properties. See
+  // test-app/app/services/fn-identity.ts.
   test('own-property function fields keep their identity through the HMR proxy', async () => {
     const errors: string[] = [];
     ctx.page.on('pageerror', (e) => errors.push(String(e?.message ?? e)));
@@ -218,6 +222,7 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
       const svc = instance.__container__.lookup('service:fn-identity') as {
         taggedFn: () => string;
         readSecret: () => string;
+        readSecretPlain: () => string;
         lookupManager: (fn: object) => string | undefined;
       };
       try {
@@ -226,6 +231,7 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
           manager: svc.lookupManager(svc.taggedFn),
           called: svc.taggedFn(),
           secret: svc.readSecret(),
+          secretPlain: svc.readSecretPlain(),
         };
       } catch (e) {
         return { ok: false, error: String((e as Error)?.message ?? e) };
@@ -241,6 +247,7 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
       manager: 'manager',
       called: 'called',
       secret: 'private-value',
+      secretPlain: 'private-value',
     });
   }, 30_000);
 });

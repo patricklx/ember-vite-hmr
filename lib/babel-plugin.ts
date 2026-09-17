@@ -263,6 +263,157 @@ class HotAstProcessor {
 
 export const hotAstProcessor = new HotAstProcessor();
 
+function hasPrivateMembers(classBody: BabelTypesNamespace.ClassBody): boolean {
+  return classBody.body.some(
+    (member) =>
+      member.type === 'ClassPrivateProperty' ||
+      member.type === 'ClassPrivateMethod',
+  );
+}
+
+// The generated HMR proxy (see `ctorBody` below) reads and writes service
+// state through a Proxy whose `get`/`set` traps forward to a separately
+// constructed delegate instance, and rebinds delegate-owned *prototype*
+// methods to the delegate so their `this` is the real instance. Native
+// `#private` fields can only ever be accessed with `this` bound to the exact
+// object that declared them, which is why that rebinding exists -- but it
+// only covers methods found on the delegate's prototype chain. A plain
+// (non-arrow) function assigned as an *own* property -- e.g. in the
+// constructor -- is deliberately left unbound (see PR #561/#560: binding it
+// would break identity-sensitive code like `modifier()`/`helper()`), so if
+// such a function reads a `#private` field it breaks once called through the
+// proxy with `this` set to the proxy instead of the delegate.
+//
+// Rewriting `#foo` to a per-class Symbol-keyed property sidesteps that for
+// any private member declared directly in *this* class's own body: a Symbol
+// is just a regular (non-`for...in`-enumerable) property key, so it reads
+// and writes correctly through the proxy's existing traps with no runtime
+// changes at all. It does NOT help with `#private` fields declared on an
+// ancestor class defined outside this file -- that class is never passed
+// through this transform, so its fields stay fully native -- which is why
+// the proxy's `get` trap still has to bind every delegate-owned prototype
+// method regardless of this rewrite.
+function renamePrivateMembersToSymbols(
+  babel: typeof Babel,
+  classPath: Babel.NodePath<BabelTypesNamespace.ClassDeclaration>,
+  programPath: Babel.NodePath<BabelTypesNamespace.Program>,
+): void {
+  const t = babel.types;
+  if (!hasPrivateMembers(classPath.node.body)) {
+    return;
+  }
+
+  // A decorated private member (e.g. `@tracked #count = 0`) can't be
+  // renamed to a computed key: `decorator-transforms` (the babel plugin
+  // Ember apps use for `@tracked`/`@action`/etc.) installs its own native
+  // private backing field for the decorated value under a *string* name it
+  // derives from the property, independently of whatever key the field
+  // itself declares. Feeding it a computed (Symbol) key silently detaches
+  // the two -- the declared field becomes a dead, always-`undefined` slot
+  // while the real tracked storage lives elsewhere -- rather than erroring,
+  // so this has to be caught here, not left to blow up loudly downstream.
+  // These stay fully native and keep relying on `.bind(delegate)`.
+  const skipNames = new Set<string>();
+  for (const member of classPath.node.body.body) {
+    if (
+      (member.type === 'ClassPrivateProperty' ||
+        member.type === 'ClassPrivateMethod') &&
+      member.decorators &&
+      member.decorators.length > 0
+    ) {
+      skipNames.add(member.key.id.name);
+    }
+  }
+
+  const symbolIdentifiers = new Map<string, BabelTypesNamespace.Identifier>();
+  const getSymbolRef = (name: string): BabelTypesNamespace.Identifier => {
+    let uid = symbolIdentifiers.get(name);
+    if (!uid) {
+      uid = programPath.scope.generateUidIdentifier(name);
+      programPath.scope.push({
+        id: t.identifier(uid.name),
+        init: t.callExpression(t.identifier('Symbol'), [
+          t.stringLiteral(`#${name}`),
+        ]),
+        kind: 'const',
+      });
+      symbolIdentifiers.set(name, uid);
+    }
+    return t.identifier(uid.name);
+  };
+
+  classPath.traverse({
+    'ClassDeclaration|ClassExpression'(
+      path: Babel.NodePath<BabelTypesNamespace.Node>,
+    ) {
+      // Don't rename a nested class's own (unrelated) private members.
+      path.skip();
+    },
+    ClassPrivateProperty(
+      path: Babel.NodePath<BabelTypesNamespace.ClassPrivateProperty>,
+    ) {
+      const node = path.node;
+      if (skipNames.has(node.key.id.name)) {
+        return;
+      }
+      path.replaceWith(
+        t.classProperty(
+          getSymbolRef(node.key.id.name),
+          node.value,
+          node.typeAnnotation,
+          node.decorators,
+          true,
+          node.static,
+        ),
+      );
+    },
+    ClassPrivateMethod(
+      path: Babel.NodePath<BabelTypesNamespace.ClassPrivateMethod>,
+    ) {
+      const node = path.node;
+      if (skipNames.has(node.key.id.name)) {
+        return;
+      }
+      path.replaceWith(
+        t.classMethod(
+          node.kind,
+          getSymbolRef(node.key.id.name),
+          node.params,
+          node.body,
+          true,
+          node.static,
+          node.generator,
+          node.async,
+        ),
+      );
+    },
+    'MemberExpression|OptionalMemberExpression'(
+      path: Babel.NodePath<
+        | BabelTypesNamespace.MemberExpression
+        | BabelTypesNamespace.OptionalMemberExpression
+      >,
+    ) {
+      const property = path.node.property;
+      if (t.isPrivateName(property) && !skipNames.has(property.id.name)) {
+        path.node.property = getSymbolRef(property.id.name);
+        path.node.computed = true;
+      }
+    },
+    BinaryExpression(
+      path: Babel.NodePath<BabelTypesNamespace.BinaryExpression>,
+    ) {
+      const left = path.node.left;
+      if (
+        path.node.operator === 'in' &&
+        t.isPrivateName(left) &&
+        !skipNames.has(left.id.name)
+      ) {
+        path.node.left = getSymbolRef(left.id.name);
+      }
+    },
+  });
+}
+
 export default function hotReplaceAst(babel: typeof Babel): PluginObj {
   const t = babel.types;
   return {
@@ -291,11 +442,16 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
         let classDeclaration: BabelTypesNamespace.ClassDeclaration | null =
           null;
         let classIdentifier: BabelTypesNamespace.Identifier | null = null;
+        let classPath: Babel.NodePath<BabelTypesNamespace.ClassDeclaration> | null =
+          null;
 
         if (declaration.type === 'ClassDeclaration' && declaration.id) {
           // Case 1: export default class MyService extends Service { ... }
           classDeclaration = declaration;
           classIdentifier = declaration.id;
+          classPath = path.get(
+            'declaration',
+          ) as Babel.NodePath<BabelTypesNamespace.ClassDeclaration>;
         } else if (declaration.type === 'Identifier') {
           // Case 2: class MyService extends Service { ... } \n export default MyService;
           const binding = path.scope.getBinding(declaration.name);
@@ -303,10 +459,12 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
             classDeclaration = binding.path
               .node as BabelTypesNamespace.ClassDeclaration;
             classIdentifier = classDeclaration.id;
+            classPath =
+              binding.path as Babel.NodePath<BabelTypesNamespace.ClassDeclaration>;
           }
         }
 
-        if (!classDeclaration || !classIdentifier) {
+        if (!classDeclaration || !classIdentifier || !classPath) {
           return;
         }
 
@@ -332,6 +490,8 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
         if (!programPath) {
           return;
         }
+
+        renamePrivateMembersToSymbols(babel, classPath, programPath);
 
         const util = new ImportUtil(babel, programPath);
         const tracked = util.import(

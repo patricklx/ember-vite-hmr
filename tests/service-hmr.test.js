@@ -490,4 +490,72 @@ export default TestService;
     expect(result.code).toContain('_delegate');
     expect(result.code).toContain('willDestroy');
   });
+
+  // A native `#private` field/method declared directly on the service class
+  // can only ever be accessed with `this` bound to the exact instance that
+  // declared it (see PR #561), so an undecorated one is rewritten to a
+  // Symbol-keyed property here, which reads/writes correctly through the
+  // proxy's `get`/`set` traps no matter what `this` is at the call site. A
+  // *decorated* private member (`@tracked #count`) is left untouched: the
+  // decorator transform Ember apps use for `@tracked` installs its own
+  // native private backing field under a name it derives independently of
+  // the field's own key, so feeding it a computed key would silently detach
+  // the two instead of erroring.
+  it('rewrites undecorated private members to Symbol-keyed properties, but leaves decorated ones native', async () => {
+    const code = `
+import Service from '@ember/service';
+import { tracked } from '@glimmer/tracking';
+
+class TestService extends Service {
+  @tracked #count = 0;
+  #plain = 'hidden';
+
+  increment() {
+    this.#count++;
+  }
+
+  readPlain() {
+    return this.#plain;
+  }
+
+  #helper() {
+    return this.#plain;
+  }
+
+  hasPlain(o) {
+    return #plain in o;
+  }
+}
+
+export default TestService;
+    `;
+
+    // Parses `@tracked` without transforming it -- unlike
+    // `@babel/plugin-proposal-decorators` (used elsewhere in this file),
+    // which runs its own whole-program pre-pass and would strip the
+    // decorator before this plugin's visitor ever saw it, regardless of
+    // plugin order. Real host apps run ember-vite-hmr's babel plugin
+    // *before* their actual decorator transform (see
+    // test-app/babel.config.mjs), so this matches what this plugin's
+    // visitor actually sees in practice: the decorator still attached.
+    const result = await babel.transformAsync(code, {
+      filename: '/rewritten-app/app/services/test-service.js',
+      babelrc: false,
+      configFile: false,
+      plugins: [
+        ['@babel/plugin-syntax-decorators', { version: '2022-03' }],
+        plugin,
+      ],
+    });
+
+    // Undecorated `#plain`/`#helper`: rewritten to a Symbol-keyed property.
+    expect(result.code).toContain('Symbol("#plain")');
+    expect(result.code).toContain('Symbol("#helper")');
+    expect(result.code).not.toContain('this.#plain');
+    expect(result.code).not.toContain('#plain in o');
+
+    // Decorated `#count`: left as a real native private field.
+    expect(result.code).not.toContain('Symbol("#count")');
+    expect(result.code).toContain('this.#count');
+  });
 });
