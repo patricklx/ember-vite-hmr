@@ -11,6 +11,68 @@ interface ASTPluginEnvironment {
   filename: string;
 }
 
+export interface HmrImportStatement {
+  local: string;
+  source: string;
+  specifier: string;
+}
+
+export interface HmrImportMetadata {
+  importVar: string;
+  bindings: string[];
+  importStatements: HmrImportStatement[];
+}
+
+// Populated by hotReplaceAst's Program visitor below (once per file, per
+// babel pass) and consumed by lib/hmr.ts's Vite `transform` hook, so that
+// hook doesn't have to re-parse and re-traverse the same file from scratch
+// just to recover metadata this babel pass already computed. Keyed by the
+// file's path, normalized the same way on both sides (see
+// normalizeHmrCacheFilename / lib/hmr.ts's normalizePath) since both run
+// against the same on-disk file within the same Vite transform pipeline
+// pass.
+//
+// This assumes babel never truly interleaves two files' Program visitors in
+// a way that corrupts a single file's own derived data -- see the
+// `hotAstProcessor.meta.babelProgram === path.node` guard at the write site
+// below, which detects (and skips caching for) the case where a concurrent
+// babel pass for a *different* file has reset the shared `hotAstProcessor`
+// singleton in between. On any doubt, lib/hmr.ts falls back to its own
+// from-source parse, which is always correct, just slower.
+export const hmrImportMetadataCache = new Map<string, HmrImportMetadata>();
+
+export function normalizeHmrCacheFilename(filename: string): string {
+  return filename.split('?')[0]!.replace(/\\/g, '/');
+}
+
+function computeImportStatements(
+  programBody: BabelTypesNamespace.Statement[],
+  bindings: Set<string>,
+): HmrImportStatement[] {
+  const importStatements: HmrImportStatement[] = [];
+  for (const statement of programBody) {
+    if (statement.type !== 'ImportDeclaration') continue;
+    for (const specifier of statement.specifiers) {
+      const local = specifier.local.name;
+      if (!bindings.has(local)) continue;
+      let specifierName = 'default';
+      if (specifier.type === 'ImportSpecifier') {
+        const imported = specifier.imported;
+        specifierName =
+          imported.type === 'Identifier' ? imported.name : imported.value;
+      } else if (specifier.type === 'ImportNamespaceSpecifier') {
+        specifierName = '*';
+      }
+      importStatements.push({
+        local,
+        source: statement.source.value,
+        specifier: specifierName,
+      });
+    }
+  }
+  return importStatements;
+}
+
 class HotAstProcessor {
   options = {
     itsStatic: false,
@@ -612,6 +674,30 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
 
         const exportMetadata = t.exportNamedDeclaration(importMetadata, []);
         path.node.body.push(exportMetadata);
+
+        // Share the metadata just computed above with lib/hmr.ts via the
+        // in-process cache (see hmrImportMetadataCache's own comment). Only
+        // trust `hotAstProcessor.meta` here if it's still the same Program
+        // node `pre()` set it up for -- if a concurrent babel pass for a
+        // *different* file reset the shared singleton in between (see
+        // hmrImportMetadataCache's doc comment), `meta.babelProgram` would
+        // point at that other file's AST (or be undefined) instead of
+        // `path.node`, and this file's data must not be cached under this
+        // file's key.
+        if (state.filename && hotAstProcessor.meta.babelProgram === path.node) {
+          hmrImportMetadataCache.set(
+            normalizeHmrCacheFilename(state.filename),
+            {
+              importVar: hotAstProcessor.meta.importVar,
+              bindings,
+              importStatements: computeImportStatements(
+                path.node.body,
+                hotAstProcessor.meta.importBindings,
+              ),
+            },
+          );
+        }
+
         path.scope.crawl();
       },
     },

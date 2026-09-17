@@ -5,6 +5,7 @@ import { NodePath, parseSync } from '@babel/core';
 import traverseModule from '@babel/traverse';
 const traverse = (traverseModule as any).default || traverseModule;
 import { readFile } from 'fs/promises';
+import { hmrImportMetadataCache } from './babel-plugin.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -685,152 +686,174 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         return source;
       }
 
-      // Add hot reload statements for tracked imports (only non-node_modules)
-      // Use babel visitor to extract __hmr_import_metadata__
-      const result = parseSync(source, {
-        filename: resourcePath,
-        ast: true,
-        code: false,
-        configFile: false,
-        babelrc: false,
-        plugins: [
-          ['@babel/plugin-syntax-typescript', { isTSX: true }],
-          ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
-        ],
-      });
+      // Add hot reload statements for tracked imports.
+      //
+      // lib/babel-plugin.ts's hotReplaceAst already computes this exact
+      // metadata (importVar/bindings/importStatements) while babel processes
+      // this same file earlier in the pipeline, and shares it via
+      // hmrImportMetadataCache keyed by filename -- so the common case skips
+      // re-parsing and re-traversing this file from scratch. Only fall back
+      // to recovering it the slow way (parsing the already-babel-transformed
+      // source and pulling the __hmr_import_metadata__ export back out of
+      // it) when there's no cache entry, e.g. because this file's babel pass
+      // didn't go through hotReplaceAst in this process, or a concurrent
+      // babel pass for another file raced the cache write out (see that
+      // cache's own doc comment).
+      let importVar: string | null = null;
+      let bindings: string[] = [];
+      let importStatements: Array<{
+        local: string;
+        source: string;
+        specifier: string;
+      }> = [];
 
-      if (result) {
-        let importVar: string | null = null;
-        let bindings: string[] = [];
-        const importStatements: Array<{
-          local: string;
-          source: string;
-          specifier: string;
-        }> = [];
+      const cached = hmrImportMetadataCache.get(resourcePath);
+      if (cached) {
+        importVar = cached.importVar;
+        bindings = cached.bindings;
+        importStatements = cached.importStatements;
+      } else {
+        const result = parseSync(source, {
+          filename: resourcePath,
+          ast: true,
+          code: false,
+          configFile: false,
+          babelrc: false,
+          plugins: [
+            ['@babel/plugin-syntax-typescript', { isTSX: true }],
+            ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
+          ],
+        });
 
-        // First pass: Extract metadata
-        traverse(result, {
-          ExportNamedDeclaration(path: NodePath<{ declaration?: unknown }>) {
-            const declaration = (
-              path.node as {
-                declaration?: {
+        if (result) {
+          // First pass: Extract metadata
+          traverse(result, {
+            ExportNamedDeclaration(path: NodePath<{ declaration?: unknown }>) {
+              const declaration = (
+                path.node as {
+                  declaration?: {
+                    type?: string;
+                    declarations?: Array<{
+                      id?: { name?: string };
+                      init?: unknown;
+                    }>;
+                  };
+                }
+              ).declaration;
+
+              // Check if this is: export const __hmr_import_metadata__ = {...}
+              if (
+                declaration?.type === 'VariableDeclaration' &&
+                declaration.declarations?.[0]?.id?.name ===
+                  '__hmr_import_metadata__'
+              ) {
+                const init = declaration.declarations[0].init as {
                   type?: string;
-                  declarations?: Array<{
-                    id?: { name?: string };
-                    init?: unknown;
+                  properties?: Array<{
+                    type?: string;
+                    key?: { type?: string; name?: string };
+                    value?: {
+                      type?: string;
+                      value?: string;
+                      elements?: Array<{ type?: string; value?: string }>;
+                    };
                   }>;
                 };
-              }
-            ).declaration;
 
-            // Check if this is: export const __hmr_import_metadata__ = {...}
-            if (
-              declaration?.type === 'VariableDeclaration' &&
-              declaration.declarations?.[0]?.id?.name ===
-                '__hmr_import_metadata__'
-            ) {
-              const init = declaration.declarations[0].init as {
-                type?: string;
-                properties?: Array<{
-                  type?: string;
-                  key?: { type?: string; name?: string };
-                  value?: {
-                    type?: string;
-                    value?: string;
-                    elements?: Array<{ type?: string; value?: string }>;
-                  };
-                }>;
-              };
-
-              if (init?.type === 'ObjectExpression') {
-                // Extract importVar and bindings from the object
-                for (const prop of init.properties) {
-                  if (
-                    prop.type === 'ObjectProperty' &&
-                    prop.key.type === 'Identifier'
-                  ) {
+                if (init?.type === 'ObjectExpression') {
+                  // Extract importVar and bindings from the object
+                  for (const prop of init.properties) {
                     if (
-                      prop.key.name === 'importVar' &&
-                      prop.value.type === 'StringLiteral'
+                      prop.type === 'ObjectProperty' &&
+                      prop.key.type === 'Identifier'
                     ) {
-                      importVar = prop.value.value;
-                    } else if (
-                      prop.key.name === 'bindings' &&
-                      prop.value.type === 'ArrayExpression'
-                    ) {
-                      bindings = prop.value.elements
-                        .filter(
-                          (el: unknown) =>
-                            (el as { type?: string })?.type === 'StringLiteral',
-                        )
-                        .map((el: unknown) => (el as { value: string }).value);
+                      if (
+                        prop.key.name === 'importVar' &&
+                        prop.value.type === 'StringLiteral'
+                      ) {
+                        importVar = prop.value.value;
+                      } else if (
+                        prop.key.name === 'bindings' &&
+                        prop.value.type === 'ArrayExpression'
+                      ) {
+                        bindings = prop.value.elements
+                          .filter(
+                            (el: unknown) =>
+                              (el as { type?: string })?.type ===
+                              'StringLiteral',
+                          )
+                          .map(
+                            (el: unknown) => (el as { value: string }).value,
+                          );
+                      }
                     }
                   }
                 }
               }
-            }
-          },
-        });
-
-        // Second pass: Find matching imports (only if we have bindings to match)
-        if (importVar && bindings.length > 0) {
-          traverse(result, {
-            ImportDeclaration(path) {
-              const importSource = path.node.source.value;
-
-              for (const specifier of path.node.specifiers) {
-                const local = specifier.local.name;
-
-                if (bindings.includes(local)) {
-                  let specifierName = 'default';
-
-                  if (specifier.type === 'ImportDefaultSpecifier') {
-                    specifierName = 'default';
-                  } else if (specifier.type === 'ImportSpecifier') {
-                    // For named imports, use the imported name
-                    // Handle both Identifier and StringLiteral types
-                    const imported = specifier.imported;
-                    specifierName =
-                      imported.type === 'Identifier'
-                        ? imported.name
-                        : imported.value;
-                  } else if (specifier.type === 'ImportNamespaceSpecifier') {
-                    specifierName = '*';
-                  }
-
-                  importStatements.push({
-                    local,
-                    source: importSource,
-                    specifier: specifierName,
-                  });
-                }
-              }
             },
           });
+
+          // Second pass: Find matching imports (only if we have bindings to match)
+          if (importVar && bindings.length > 0) {
+            traverse(result, {
+              ImportDeclaration(path) {
+                const importSource = path.node.source.value;
+
+                for (const specifier of path.node.specifiers) {
+                  const local = specifier.local.name;
+
+                  if (bindings.includes(local)) {
+                    let specifierName = 'default';
+
+                    if (specifier.type === 'ImportDefaultSpecifier') {
+                      specifierName = 'default';
+                    } else if (specifier.type === 'ImportSpecifier') {
+                      // For named imports, use the imported name
+                      // Handle both Identifier and StringLiteral types
+                      const imported = specifier.imported;
+                      specifierName =
+                        imported.type === 'Identifier'
+                          ? imported.name
+                          : imported.value;
+                    } else if (specifier.type === 'ImportNamespaceSpecifier') {
+                      specifierName = '*';
+                    }
+
+                    importStatements.push({
+                      local,
+                      source: importSource,
+                      specifier: specifierName,
+                    });
+                  }
+                }
+              },
+            });
+          }
         }
+      }
 
-        // Process metadata if we found importVar (even with empty bindings)
-        if (importVar) {
-          // Generate hot reload code for each import (only if we have bindings)
-          const hotReloadStatements: string[] = [];
-          for (const imp of importStatements) {
-            // Resolve the import to check if it's from node_modules
-            const resolved = await this.resolve(imp.source, resourcePath, {});
-            if (
-              resolved?.id &&
-              normalizePath(resolved.id).includes('node_modules')
-            ) {
-              // Skip node_modules imports
-              continue;
-            }
+      // Process metadata if we found importVar (even with empty bindings)
+      if (importVar) {
+        // Generate hot reload code for each import (only if we have bindings)
+        const hotReloadStatements: string[] = [];
+        for (const imp of importStatements) {
+          // Resolve the import to check if it's from node_modules
+          const resolved = await this.resolve(imp.source, resourcePath, {});
+          if (
+            resolved?.id &&
+            normalizePath(resolved.id).includes('node_modules')
+          ) {
+            // Skip node_modules imports
+            continue;
+          }
 
-            const sourceId = imp.source.replace(
-              /@embroider\/virtual/g,
-              'embroider_virtual',
-            );
-            const virtualPath = `/ember-vite-hmr/virtual/component:${sourceId}::${imp.specifier}.gjs`;
+          const sourceId = imp.source.replace(
+            /@embroider\/virtual/g,
+            'embroider_virtual',
+          );
+          const virtualPath = `/ember-vite-hmr/virtual/component:${sourceId}::${imp.specifier}.gjs`;
 
-            hotReloadStatements.push(`
+          hotReloadStatements.push(`
   (async () => {
     const GlimmerComponent = (await import('@glimmer/component')).default;
     const { hasInternalComponentManager } = await import('@glimmer/manager');
@@ -852,22 +875,21 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       import.meta.hot.accept('${imp.source}');
     }
   })();`);
-          }
+        }
 
-          // Always remove the metadata export
-          source = source.replace(
-            /export const __hmr_import_metadata__[^;]+;/,
-            '',
-          );
+        // Always remove the metadata export
+        source = source.replace(
+          /export const __hmr_import_metadata__[^;]+;/,
+          '',
+        );
 
-          // Add HMR code if we have any statements OR if we have bindings (even if all were skipped)
-          if (hotReloadStatements.length > 0 || bindings.length > 0) {
-            const hotReloadCode = `
+        // Add HMR code if we have any statements OR if we have bindings (even if all were skipped)
+        if (hotReloadStatements.length > 0 || bindings.length > 0) {
+          const hotReloadCode = `
 if (import.meta.hot) {
 ${hotReloadStatements.join('\n')}
 }`;
-            source = source + hotReloadCode;
-          }
+          source = source + hotReloadCode;
         }
       }
 

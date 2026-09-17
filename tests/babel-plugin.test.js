@@ -1,7 +1,12 @@
+import path from 'node:path';
 import babel from '@babel/core';
 import { describe, expect, it } from 'vitest';
 import { Preprocessor } from 'content-tag';
-import plugin, { hotAstProcessor } from '../lib/babel-plugin';
+import plugin, {
+  hotAstProcessor,
+  hmrImportMetadataCache,
+  normalizeHmrCacheFilename,
+} from '../lib/babel-plugin';
 import emberBabel from 'babel-plugin-ember-template-compilation';
 import TemplateCompiler from 'ember-cli-htmlbars/lib/template-compiler-plugin';
 
@@ -185,6 +190,108 @@ describe('convert template with hot reload helpers', () => {
           bindings: ["NamedComponent", "SomeComponent", "myhelper"]
         };"
       `);
+  });
+
+  it('shares the computed import metadata with lib/hmr.ts via hmrImportMetadataCache', async () => {
+    const code = `
+      {{(myhelper)}}
+      <SomeComponent />
+      <NamedComponent />
+    `;
+    const preTransformed = TemplateCompiler.prototype.processString(
+      code,
+      'cache-test.hbs',
+    );
+
+    function transform(env) {
+      return {
+        visitor: {
+          Template() {
+            env.meta.jsutils.bindImport(
+              'embroider_compat/components/named-component',
+              'default',
+              null,
+              { nameHint: 'NamedComponent' },
+            );
+            env.meta.jsutils.bindImport(
+              'embroider_compat/components/some-component',
+              'default',
+              null,
+              { nameHint: 'SomeComponent' },
+            );
+            env.meta.jsutils.bindImport(
+              'embroider_compat/helpers/my-helper',
+              'default',
+              null,
+              { nameHint: 'myhelper' },
+            );
+          },
+        },
+      };
+    }
+
+    const filename = '/rewritten-app/cache-test.hbs';
+    // @babel/core resolves `filename` against `cwd` before it becomes
+    // `state.filename` (see config/partial.js) -- on POSIX that's a no-op
+    // for an absolute path like this one, but on Windows it rewrites it to
+    // an absolute, drive-letter-prefixed, backslash path (e.g.
+    // `D:\rewritten-app\cache-test.hbs`) before lib/babel-plugin.ts's write
+    // site ever normalizes it. Mirror that resolution here so the cache key
+    // this test looks up matches what actually gets written on every OS.
+    const cacheKey = normalizeHmrCacheFilename(path.resolve(filename));
+    hmrImportMetadataCache.delete(cacheKey);
+
+    const result = await babel.transformAsync(preTransformed, {
+      filename,
+      babelrc: false,
+      configFile: false,
+      plugins: [
+        plugin,
+        ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
+        [
+          emberBabel,
+          {
+            transforms: [transform, hotAstProcessor.transform],
+            targetFormat: 'hbs',
+            enableLegacyModules: [
+              'ember-cli-htmlbars',
+              'ember-cli-htmlbars-inline-precompile',
+              'htmlbars-inline-precompile',
+            ],
+          },
+        ],
+      ],
+    });
+
+    // The __hmr_import_metadata__ export is still emitted (lib/hmr.ts falls
+    // back to parsing it back out when there's no cache entry for a file),
+    // but the same importVar/bindings -- plus the resolved import statements
+    // lib/hmr.ts would otherwise have to re-derive via its own traverse --
+    // must already be available from the cache, keyed by filename.
+    expect(result.code).toContain('export const __hmr_import_metadata__');
+
+    const cached = hmrImportMetadataCache.get(cacheKey);
+    expect(cached).toEqual({
+      importVar: 'template__imports__',
+      bindings: ['NamedComponent', 'SomeComponent', 'myhelper'],
+      importStatements: [
+        {
+          local: 'NamedComponent',
+          source: 'embroider_compat/components/named-component',
+          specifier: 'default',
+        },
+        {
+          local: 'SomeComponent',
+          source: 'embroider_compat/components/some-component',
+          specifier: 'default',
+        },
+        {
+          local: 'myhelper',
+          source: 'embroider_compat/helpers/my-helper',
+          specifier: 'default',
+        },
+      ],
+    });
   });
 
   it('should convert preprocessed gjs correctly', async () => {
