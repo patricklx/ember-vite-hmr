@@ -560,4 +560,92 @@ export default TestService;
     expect(result.code).not.toContain('Symbol("#count")');
     expect(result.code).toContain('this.#count');
   });
+
+  // Private names are lexically scoped to their *enclosing* class body, not
+  // to the file, so code can legally reference an outer class's private
+  // field from inside a nested class/closure via a captured `this` (e.g. a
+  // factory method building and returning a class). An earlier version of
+  // the rewrite blanket-skipped traversal into any nested class to avoid
+  // renaming its own (unrelated) private members, which also stopped it
+  // from rewriting a reference like this one -- renaming the declaration to
+  // a Symbol but leaving the reference as a native `#secret` PrivateName,
+  // producing invalid output ("Private field must be declared in an
+  // enclosing class"). Both sides must agree.
+  it('rewrites a private-field reference captured by a nested class the same way as its declaration', async () => {
+    const code = `
+import Service from '@ember/service';
+
+class TestService extends Service {
+  #secret = 'hidden';
+
+  makeInner() {
+    const self = this;
+    return class Inner {
+      read() {
+        return self.#secret;
+      }
+    };
+  }
+}
+
+export default TestService;
+    `;
+
+    const result = await babel.transformAsync(code, {
+      filename: '/rewritten-app/app/services/test-service.js',
+      babelrc: false,
+      configFile: false,
+      plugins: [plugin],
+    });
+
+    expect(result.code).toContain('Symbol("#secret")');
+    expect(result.code).not.toContain('self.#secret');
+    expect(result.code).toContain('self[_secret]');
+  });
+
+  // The reverse of the previous test: a nested class that declares its
+  // *own* private field under the same name as the outer class's must keep
+  // resolving `this.#secret` to its own (native) field, not the outer
+  // class's renamed Symbol -- private names resolve to the nearest
+  // enclosing class that declares them, so this is legitimate shadowing,
+  // not the same binding. Rewriting by name membership alone (ignoring
+  // which class actually declares the name closest to the reference) would
+  // silently redirect `Inner`'s own field reads to the outer class's Symbol
+  // slot -- valid JS, wrong value, since `Inner` instances never have that
+  // Symbol-keyed property set.
+  it('leaves a nested class shadowing the same private name fully native', async () => {
+    const code = `
+import Service from '@ember/service';
+
+class TestService extends Service {
+  #secret = 'outer';
+
+  makeInner() {
+    return class Inner {
+      #secret = 'inner';
+      read() {
+        return this.#secret;
+      }
+    };
+  }
+}
+
+export default TestService;
+    `;
+
+    const result = await babel.transformAsync(code, {
+      filename: '/rewritten-app/app/services/test-service.js',
+      babelrc: false,
+      configFile: false,
+      plugins: [plugin],
+    });
+
+    // Outer's own `#secret` is still rewritten.
+    expect(result.code).toContain('Symbol("#secret")');
+    expect(result.code).toContain("[_secret] = 'outer'");
+
+    // Inner's own, shadowing `#secret` stays fully native on both sides.
+    expect(result.code).toContain("#secret = 'inner'");
+    expect(result.code).toContain('this.#secret');
+  });
 });

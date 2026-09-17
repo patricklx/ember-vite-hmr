@@ -314,15 +314,23 @@ function renamePrivateMembersToSymbols(
   // computed (Symbol) key here wouldn't fix that, and risks masking it
   // differently, so these are left fully native and keep relying on
   // `.bind(delegate)` like any other undecorated ancestor-class field.
+  // `renamedNames` tracks which private member names actually get rewritten
+  // to a Symbol so the reference-rewriting traversal below only touches
+  // references to *this* class's own renamed members (see the
+  // `classPath.traverse` call further down for why it can't just key off
+  // "not decorated").
   const skipNames = new Set<string>();
+  const renamedNames = new Set<string>();
   for (const member of classPath.node.body.body) {
     if (
-      (member.type === 'ClassPrivateProperty' ||
-        member.type === 'ClassPrivateMethod') &&
-      member.decorators &&
-      member.decorators.length > 0
+      member.type === 'ClassPrivateProperty' ||
+      member.type === 'ClassPrivateMethod'
     ) {
-      skipNames.add(member.key.id.name);
+      if (member.decorators && member.decorators.length > 0) {
+        skipNames.add(member.key.id.name);
+      } else {
+        renamedNames.add(member.key.id.name);
+      }
     }
   }
 
@@ -343,21 +351,17 @@ function renamePrivateMembersToSymbols(
     return t.identifier(uid.name);
   };
 
-  classPath.traverse({
-    'ClassDeclaration|ClassExpression'(
-      path: Babel.NodePath<BabelTypesNamespace.Node>,
-    ) {
-      // Don't rename a nested class's own (unrelated) private members.
-      path.skip();
-    },
-    ClassPrivateProperty(
-      path: Babel.NodePath<BabelTypesNamespace.ClassPrivateProperty>,
-    ) {
-      const node = path.node;
+  // Rename the class's own private declarations directly off the body
+  // array -- not via `classPath.traverse` -- so a nested class's own
+  // (unrelated, possibly same-named) private declarations are never
+  // touched: they simply aren't in this array.
+  for (const memberPath of classPath.get('body').get('body')) {
+    if (memberPath.isClassPrivateProperty()) {
+      const node = memberPath.node;
       if (skipNames.has(node.key.id.name)) {
-        return;
+        continue;
       }
-      path.replaceWith(
+      memberPath.replaceWith(
         t.classProperty(
           getSymbolRef(node.key.id.name),
           node.value,
@@ -367,15 +371,12 @@ function renamePrivateMembersToSymbols(
           node.static,
         ),
       );
-    },
-    ClassPrivateMethod(
-      path: Babel.NodePath<BabelTypesNamespace.ClassPrivateMethod>,
-    ) {
-      const node = path.node;
+    } else if (memberPath.isClassPrivateMethod()) {
+      const node = memberPath.node;
       if (skipNames.has(node.key.id.name)) {
-        return;
+        continue;
       }
-      path.replaceWith(
+      memberPath.replaceWith(
         t.classMethod(
           node.kind,
           getSymbolRef(node.key.id.name),
@@ -387,7 +388,63 @@ function renamePrivateMembersToSymbols(
           node.async,
         ),
       );
-    },
+    }
+  }
+
+  // A private name reference found inside a nested class only actually
+  // belongs to `classPath`'s own renamed declaration if no closer-enclosing
+  // class *redeclares* the same name -- private names resolve to the
+  // nearest enclosing class that declares them, same as any other lexical
+  // scoping, so a nested class legitimately shadowing `#secret` with its
+  // own `#secret` must keep referencing its own (native, untouched) field.
+  const declaresOwnPrivate = (
+    cls:
+      | BabelTypesNamespace.ClassDeclaration
+      | BabelTypesNamespace.ClassExpression,
+    name: string,
+  ): boolean =>
+    cls.body.body.some(
+      (member) =>
+        (member.type === 'ClassPrivateProperty' ||
+          member.type === 'ClassPrivateMethod') &&
+        member.key.id.name === name,
+    );
+
+  const referenceBelongsToOuterClass = (
+    path: Babel.NodePath<BabelTypesNamespace.Node>,
+    name: string,
+  ): boolean => {
+    let enclosing = path.findParent((p) => p.isClass());
+    while (enclosing) {
+      if (enclosing.node === classPath.node) {
+        return true;
+      }
+      if (
+        declaresOwnPrivate(
+          enclosing.node as
+            | BabelTypesNamespace.ClassDeclaration
+            | BabelTypesNamespace.ClassExpression,
+          name,
+        )
+      ) {
+        return false;
+      }
+      enclosing = enclosing.findParent((p) => p.isClass());
+    }
+    return false;
+  };
+
+  // Rewrite *references* to the just-renamed names anywhere within the
+  // class, including inside nested classes/closures. Private names are
+  // lexically scoped to their enclosing class body, not to the file, so
+  // code legally references an outer class's private field from inside a
+  // nested class via a captured `this` (e.g. a factory method that builds
+  // and returns a class closing over `self.#secret`). Blanket-skipping
+  // traversal into nested classes -- as an earlier version of this
+  // function did -- left such references as native `#foo` PrivateNames
+  // while the outer declaration was renamed to a Symbol, producing invalid
+  // output ("Private field must be declared in an enclosing class").
+  classPath.traverse({
     'MemberExpression|OptionalMemberExpression'(
       path: Babel.NodePath<
         | BabelTypesNamespace.MemberExpression
@@ -395,7 +452,11 @@ function renamePrivateMembersToSymbols(
       >,
     ) {
       const property = path.node.property;
-      if (t.isPrivateName(property) && !skipNames.has(property.id.name)) {
+      if (
+        t.isPrivateName(property) &&
+        renamedNames.has(property.id.name) &&
+        referenceBelongsToOuterClass(path, property.id.name)
+      ) {
         path.node.property = getSymbolRef(property.id.name);
         path.node.computed = true;
       }
@@ -407,7 +468,8 @@ function renamePrivateMembersToSymbols(
       if (
         path.node.operator === 'in' &&
         t.isPrivateName(left) &&
-        !skipNames.has(left.id.name)
+        renamedNames.has(left.id.name) &&
+        referenceBelongsToOuterClass(path, left.id.name)
       ) {
         path.node.left = getSymbolRef(left.id.name);
       }
