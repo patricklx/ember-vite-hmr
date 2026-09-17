@@ -303,16 +303,17 @@ function renamePrivateMembersToSymbols(
     return;
   }
 
-  // A decorated private member (e.g. `@tracked #count = 0`) can't be
-  // renamed to a computed key: `decorator-transforms` (the babel plugin
-  // Ember apps use for `@tracked`/`@action`/etc.) installs its own native
-  // private backing field for the decorated value under a *string* name it
-  // derives from the property, independently of whatever key the field
-  // itself declares. Feeding it a computed (Symbol) key silently detaches
-  // the two -- the declared field becomes a dead, always-`undefined` slot
-  // while the real tracked storage lives elsewhere -- rather than erroring,
-  // so this has to be caught here, not left to blow up loudly downstream.
-  // These stay fully native and keep relying on `.bind(delegate)`.
+  // A decorated private member (e.g. `@tracked #count = 0`) is left alone:
+  // `decorator-transforms` (the babel plugin Ember apps use for
+  // `@tracked`/`@action`/etc., which runs *after* this plugin) only has a
+  // visitor for decorators on a plain `ClassProperty`/`ClassMethod` -- it has
+  // no `ClassPrivateProperty`/`ClassPrivateMethod` visitor at all (verified
+  // against decorator-transforms@2.4.0's own source), so it never even looks
+  // at a decorator attached directly to a `#private` member; that decorator
+  // is left in the output unprocessed either way. Rewriting the member to a
+  // computed (Symbol) key here wouldn't fix that, and risks masking it
+  // differently, so these are left fully native and keep relying on
+  // `.bind(delegate)` like any other undecorated ancestor-class field.
   const skipNames = new Set<string>();
   for (const member of classPath.node.body.body) {
     if (

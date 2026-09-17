@@ -1,4 +1,5 @@
 import Service from '@ember/service';
+import { tracked } from '@glimmer/tracking';
 
 // Regression repro for https://github.com/patricklx/ember-vite-hmr/issues/560:
 // ember-vite-hmr's service HMR proxy used to call `.bind(delegate)` on every
@@ -17,6 +18,20 @@ function associate<T extends object>(fn: T): T {
 
 export default class FnIdentityService extends Service {
   #secret = 'private-value';
+
+  // A regular (non-private) `@tracked` field, coexisting in the same class
+  // as the undecorated `#secret` private field above. `decorator-transforms`
+  // rewrites this into its own, separately-named native private backing
+  // field once it runs (after ember-vite-hmr's own babel plugin, which has
+  // already rewritten `#secret` to a Symbol-keyed property by then) --
+  // exercises that the two rewrites don't interfere with each other and that
+  // tracked reads/writes still work correctly through the HMR proxy's
+  // get/set traps.
+  @tracked count = 0;
+
+  increment() {
+    this.count++;
+  }
 
   // Own-property function field: must keep its identity through the proxy.
   taggedFn = associate(() => 'called');

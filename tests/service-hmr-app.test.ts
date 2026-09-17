@@ -202,7 +202,12 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
   // bound copy. Also covers PR #561's own documented tradeoff (a plain,
   // non-arrow own-property function reading a `#private` field, via
   // `readSecretPlain`), now closed by rewriting undecorated private class
-  // members to Symbol-keyed properties. See
+  // members to Symbol-keyed properties. `count`/`increment()` additionally
+  // covers that the Symbol rewrite of the co-declared `#secret` field
+  // doesn't perturb `decorator-transforms`' own handling of a `@tracked`
+  // public field in the same class -- both run against the real production
+  // decorator pipeline here (test-app/babel.config.mjs), not just the
+  // syntax-only unit test in tests/service-hmr.test.js. See
   // test-app/app/services/fn-identity.ts.
   test('own-property function fields keep their identity through the HMR proxy', async () => {
     const errors: string[] = [];
@@ -224,14 +229,19 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
         readSecret: () => string;
         readSecretPlain: () => string;
         lookupManager: (fn: object) => string | undefined;
+        count: number;
+        increment: () => void;
       };
       try {
+        svc.increment();
+        svc.increment();
         return {
           ok: true,
           manager: svc.lookupManager(svc.taggedFn),
           called: svc.taggedFn(),
           secret: svc.readSecret(),
           secretPlain: svc.readSecretPlain(),
+          count: svc.count,
         };
       } catch (e) {
         return { ok: false, error: String((e as Error)?.message ?? e) };
@@ -248,6 +258,7 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
       called: 'called',
       secret: 'private-value',
       secretPlain: 'private-value',
+      count: 2,
     });
   }, 30_000);
 });

@@ -497,10 +497,12 @@ export default TestService;
   // Symbol-keyed property here, which reads/writes correctly through the
   // proxy's `get`/`set` traps no matter what `this` is at the call site. A
   // *decorated* private member (`@tracked #count`) is left untouched: the
-  // decorator transform Ember apps use for `@tracked` installs its own
-  // native private backing field under a name it derives independently of
-  // the field's own key, so feeding it a computed key would silently detach
-  // the two instead of erroring.
+  // decorator transform Ember apps use for `@tracked`/etc. has no visitor at
+  // all for a decorator attached directly to a `#private` member (verified
+  // against decorator-transforms@2.4.0's own source -- it only handles
+  // decorators on a plain, non-private `ClassProperty`/`ClassMethod`), so a
+  // decorated private field's decorator is left in the output either way;
+  // rewriting the member to a computed key here wouldn't change that.
   it('rewrites undecorated private members to Symbol-keyed properties, but leaves decorated ones native', async () => {
     const code = `
 import Service from '@ember/service';
