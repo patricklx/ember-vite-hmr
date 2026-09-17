@@ -94,6 +94,7 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
         someMethod: () => string;
         baseMethod: () => string;
         baseValue: string;
+        readBasePrivatePlain: () => string;
       };
       try {
         return {
@@ -102,6 +103,10 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
           someMethod: dateCalculation.someMethod(),
           baseMethod: dateCalculation.baseMethod(),
           baseValue: dateCalculation.baseValue,
+          // Ancestor private property (declared on `base.ts`, the class
+          // this service subclasses), read via a plain own-property
+          // function with a dynamic `this` -- see base.ts's comment.
+          basePrivate: dateCalculation.readBasePrivatePlain(),
         };
       } catch (e) {
         return { ok: false, error: String((e as Error)?.message ?? e) };
@@ -117,6 +122,7 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
       today: 'calculated-today',
       someMethod: 'some-method-result',
       baseMethod: 'overridden-method-result',
+      basePrivate: 'base-private-value',
       baseValue: 'base-value',
     });
   }, 30_000);
@@ -201,17 +207,55 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
   // must keep their original identity through the HMR proxy, not a fresh
   // bound copy. Also covers PR #561's own documented tradeoff (a plain,
   // non-arrow own-property function reading a `#private` field, via
-  // `readSecretPlain`), now closed by rewriting undecorated private class
-  // members to Symbol-keyed properties. `count`/`increment()` additionally
-  // covers that the Symbol rewrite of the co-declared `#secret` field
-  // doesn't perturb `decorator-transforms`' own handling of a `@tracked`
-  // public field in the same class -- both run against the real production
-  // decorator pipeline here (test-app/babel.config.mjs), not just the
-  // syntax-only unit test in tests/service-hmr.test.js. See
+  // `readSecretPlain`), now closed by rewriting private class members to
+  // plain, uniquely-named properties. `count`/`increment()` additionally
+  // covers that the rewrite of the co-declared `#secret` field doesn't
+  // perturb `decorator-transforms`' own handling of a `@tracked` public
+  // field in the same class, and `trackedSecretPlain`/
+  // `incrementTrackedSecret()` covers a *decorated* private field
+  // (`@tracked #trackedSecret`) tracking correctly, including through a
+  // dynamic-`this` own-property function read -- both run against the real
+  // production decorator pipeline here (test-app/babel.config.mjs), not
+  // just the syntax-only unit test in tests/service-hmr.test.js. See
   // test-app/app/services/fn-identity.ts.
   test('own-property function fields keep their identity through the HMR proxy', async () => {
     const errors: string[] = [];
     ctx.page.on('pageerror', (e) => errors.push(String(e?.message ?? e)));
+
+    // Read-only: safe to call repeatedly from a poll loop without perturbing
+    // `count` (unlike the initial check below, which also calls `increment()`).
+    const readState = () =>
+      ctx.page.evaluate(() => {
+        const app = (
+          window as unknown as {
+            emberInspectorApps: {
+              app: { _applicationInstances: Set<unknown> };
+            }[];
+          }
+        ).emberInspectorApps[0].app;
+        const instance = [...app._applicationInstances.values()][0] as {
+          __container__: { lookup: (name: string) => unknown };
+        };
+        const svc = instance.__container__.lookup('service:fn-identity') as {
+          taggedFn: () => string;
+          readSecret: () => string;
+          readSecretPlain: () => string;
+          readTrackedSecretPlain: () => number;
+          lookupManager: (fn: object) => string | undefined;
+        };
+        try {
+          return {
+            ok: true,
+            manager: svc.lookupManager(svc.taggedFn),
+            called: svc.taggedFn(),
+            secret: svc.readSecret(),
+            secretPlain: svc.readSecretPlain(),
+            trackedSecretPlain: svc.readTrackedSecretPlain(),
+          };
+        } catch (e) {
+          return { ok: false, error: String((e as Error)?.message ?? e) };
+        }
+      });
 
     const result = await ctx.page.evaluate(async () => {
       const app = (
@@ -228,19 +272,44 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
         taggedFn: () => string;
         readSecret: () => string;
         readSecretPlain: () => string;
+        readTrackedSecretPlain: () => number;
         lookupManager: (fn: object) => string | undefined;
         count: number;
         increment: () => void;
+        incrementTrackedSecret: () => void;
+        _delegate: object;
       };
       try {
         svc.increment();
         svc.increment();
+        svc.incrementTrackedSecret();
+
+        // `readTrackedSecretPlain`/`incrementTrackedSecret` only prove
+        // read/write work -- a plain, non-tracked field would pass those
+        // identically. The discriminating check for "`@tracked #x` actually
+        // tracks" is that decorator-transforms installed an accessor pair
+        // (get/set) on the delegate's prototype under the renamed key,
+        // rather than leaving it a plain data property.
+        const proto = Object.getPrototypeOf(svc._delegate) as object;
+        const trackedKey = Object.getOwnPropertyNames(proto).find((n) =>
+          n.includes('hmrPrivTrackedSecret'),
+        );
+        const trackedDescriptor = trackedKey
+          ? Object.getOwnPropertyDescriptor(proto, trackedKey)
+          : undefined;
+
         return {
           ok: true,
           manager: svc.lookupManager(svc.taggedFn),
           called: svc.taggedFn(),
           secret: svc.readSecret(),
           secretPlain: svc.readSecretPlain(),
+          trackedSecretPlain: svc.readTrackedSecretPlain(),
+          trackedSecretIsAccessor: !!(
+            trackedDescriptor &&
+            trackedDescriptor.get &&
+            trackedDescriptor.set
+          ),
           count: svc.count,
         };
       } catch (e) {
@@ -258,7 +327,54 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
       called: 'called',
       secret: 'private-value',
       secretPlain: 'private-value',
+      trackedSecretPlain: 1,
+      trackedSecretIsAccessor: true,
       count: 2,
     });
-  }, 30_000);
+
+    // Edit the module on disk to force a real HMR accept/swap. This is the
+    // scenario the private-member rewrite exists for: the module
+    // re-evaluates and constructs a fresh delegate whose own
+    // `taggedFn`/`readSecretPlain` win over the accept handler's state-sync
+    // loop (see the `typeof previousValue === 'function' && hasOwnDefault`
+    // skip in lib/babel-plugin.ts's generated `hmrCode`) -- so both must
+    // keep working purely off the fresh delegate, not off anything carried
+    // over from the old one. `trackedSecretPlain` is the opposite case: a
+    // `@tracked` field (even a renamed private one) is a plain prototype
+    // accessor, not an own property, so it *does* go through the ordinary
+    // sync loop and its value survives the swap, same as any other tracked
+    // field would.
+    const fnIdentityPath = resolve('test-app/app/services/fn-identity.ts');
+    const original = readFileSync(fnIdentityPath, 'utf8');
+
+    try {
+      writeFileSync(
+        fnIdentityPath,
+        original.replace(/private-value/g, 'private-value-edited'),
+      );
+
+      const deadline = Date.now() + 10_000;
+      let postEdit: Record<string, unknown> = {};
+      while (Date.now() < deadline) {
+        postEdit = await readState();
+        if (postEdit.secretPlain === 'private-value-edited') break;
+        await new Promise((r) => globalThis.setTimeout(r, 200));
+      }
+
+      expect(
+        errors.join('\n'),
+        `unexpected page errors:\n${errors.join('\n')}`,
+      ).toBe('');
+      expect(postEdit).toEqual({
+        ok: true,
+        manager: 'manager',
+        called: 'called',
+        secret: 'private-value-edited',
+        secretPlain: 'private-value-edited',
+        trackedSecretPlain: 1,
+      });
+    } finally {
+      writeFileSync(fnIdentityPath, original);
+    }
+  }, 40_000);
 });

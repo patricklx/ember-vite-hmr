@@ -284,18 +284,47 @@ function hasPrivateMembers(classBody: BabelTypesNamespace.ClassBody): boolean {
 // such a function reads a `#private` field it breaks once called through the
 // proxy with `this` set to the proxy instead of the delegate.
 //
-// Rewriting `#foo` to a per-class Symbol-keyed property sidesteps that for
-// any private member declared directly in *this* class's own body: a Symbol
-// is just a regular (non-`for...in`-enumerable) property key, so it reads
-// and writes correctly through the proxy's existing traps with no runtime
-// changes at all. It does NOT help with `#private` fields declared on an
-// ancestor class defined outside this file -- that class is never passed
-// through this transform, so its fields stay fully native -- which is why
-// the proxy's `get` trap still has to bind every delegate-owned prototype
-// method regardless of this rewrite.
-function renamePrivateMembersToSymbols(
+// Rewriting `#foo` to a plain, uniquely-named, non-computed property
+// sidesteps that: an ordinary property reads and writes correctly through
+// the proxy's existing traps no matter what `this` is at the call site, with
+// no runtime behavior changes beyond that. This runs generically on *every*
+// class the app's own source defines (see the `Class` visitor below), not
+// just service classes, so it also covers `#private` fields on an ancestor
+// class the service extends, as long as that ancestor is part of the app's
+// own source (and therefore passes through this same babel pass). It does
+// NOT help with a `#private` field declared on an ancestor class that lives
+// in `node_modules` -- that file is never passed through this transform, so
+// its fields stay fully native -- which is why the proxy's `get` trap still
+// has to bind every delegate-owned prototype method regardless of this
+// rewrite.
+//
+// A Symbol-keyed property (an earlier version of this rewrite) would keep
+// the member non-enumerable, closer to real privacy, but Ember's `@tracked`
+// rejects it outright: `@glimmer/tracking`'s decorator entry point
+// distinguishes "I was invoked as a native decorator" from "I was invoked as
+// `tracked({...})`" by checking `typeof key === 'string'` (see
+// `isElementDescriptor` in `@ember/-internals`), so a `@tracked #count = 0`
+// field renamed to a Symbol key silently falls through to the wrong branch
+// and never tracks at all (verified empirically: reads back `undefined`,
+// writes throw "Cannot assign to read only property"). A plain string key
+// satisfies that check and lets `@tracked`/`decorator-transforms` treat the
+// member exactly like an ordinary public tracked field -- including
+// surviving the HMR accept handler's `for (const key in oldDelegate)` state
+// sync loop the same way any other tracked field does, which a Symbol key
+// (invisible to `for...in`) could never do anyway.
+//
+// The one thing a generated name can't be checked against is a private
+// member of the *same name* declared by an ancestor/subclass living in a
+// different file (each file's uid generation only sees its own bindings) --
+// deliberately not solved here, since the `hmrPriv<Name>` prefix makes a
+// same-name collision across unrelated classes exceedingly unlikely in
+// practice, and the alternative (whole-program cross-file analysis) is out
+// of proportion to that risk.
+function renamePrivateClassMembers(
   babel: typeof Babel,
-  classPath: Babel.NodePath<BabelTypesNamespace.ClassDeclaration>,
+  classPath: Babel.NodePath<
+    BabelTypesNamespace.ClassDeclaration | BabelTypesNamespace.ClassExpression
+  >,
   programPath: Babel.NodePath<BabelTypesNamespace.Program>,
 ): void {
   const t = babel.types;
@@ -303,52 +332,46 @@ function renamePrivateMembersToSymbols(
     return;
   }
 
-  // A decorated private member (e.g. `@tracked #count = 0`) is left alone:
-  // `decorator-transforms` (the babel plugin Ember apps use for
-  // `@tracked`/`@action`/etc., which runs *after* this plugin) only has a
-  // visitor for decorators on a plain `ClassProperty`/`ClassMethod` -- it has
-  // no `ClassPrivateProperty`/`ClassPrivateMethod` visitor at all (verified
-  // against decorator-transforms@2.4.0's own source), so it never even looks
-  // at a decorator attached directly to a `#private` member; that decorator
-  // is left in the output unprocessed either way. Rewriting the member to a
-  // computed (Symbol) key here wouldn't fix that, and risks masking it
-  // differently, so these are left fully native and keep relying on
-  // `.bind(delegate)` like any other undecorated ancestor-class field.
-  // `renamedNames` tracks which private member names actually get rewritten
-  // to a Symbol so the reference-rewriting traversal below only touches
-  // references to *this* class's own renamed members (see the
-  // `classPath.traverse` call further down for why it can't just key off
-  // "not decorated").
-  const skipNames = new Set<string>();
+  // `renamedNames` tracks which private member names get rewritten so the
+  // reference-rewriting traversal below only touches references to *this*
+  // class's own renamed members (see the `classPath.traverse` call further
+  // down).
   const renamedNames = new Set<string>();
   for (const member of classPath.node.body.body) {
     if (
       member.type === 'ClassPrivateProperty' ||
       member.type === 'ClassPrivateMethod'
     ) {
-      if (member.decorators && member.decorators.length > 0) {
-        skipNames.add(member.key.id.name);
-      } else {
-        renamedNames.add(member.key.id.name);
-      }
+      renamedNames.add(member.key.id.name);
     }
   }
 
-  const symbolIdentifiers = new Map<string, BabelTypesNamespace.Identifier>();
-  const getSymbolRef = (name: string): BabelTypesNamespace.Identifier => {
-    let uid = symbolIdentifiers.get(name);
-    if (!uid) {
-      uid = programPath.scope.generateUidIdentifier(name);
-      programPath.scope.push({
-        id: t.identifier(uid.name),
-        init: t.callExpression(t.identifier('Symbol'), [
-          t.stringLiteral(`#${name}`),
-        ]),
-        kind: 'const',
-      });
-      symbolIdentifiers.set(name, uid);
+  // Existing (non-computed, identifier-keyed) member names in this class's
+  // own body, so a generated replacement name can never collide with an
+  // unrelated member already declared here.
+  const usedNames = new Set<string>();
+  for (const member of classPath.node.body.body) {
+    const key = (member as { key?: BabelTypesNamespace.Node }).key;
+    const computed = (member as { computed?: boolean }).computed;
+    if (key && !computed && t.isIdentifier(key)) {
+      usedNames.add(key.name);
     }
-    return t.identifier(uid.name);
+  }
+
+  const newNames = new Map<string, string>();
+  const getNewName = (name: string): string => {
+    let known = newNames.get(name);
+    if (known) {
+      return known;
+    }
+    const base = `hmrPriv${name.charAt(0).toUpperCase()}${name.slice(1)}`;
+    let candidate: string;
+    do {
+      candidate = programPath.scope.generateUidIdentifier(base).name;
+    } while (usedNames.has(candidate));
+    usedNames.add(candidate);
+    newNames.set(name, candidate);
+    return candidate;
   };
 
   // Rename the class's own private declarations directly off the body
@@ -358,36 +381,33 @@ function renamePrivateMembersToSymbols(
   for (const memberPath of classPath.get('body').get('body')) {
     if (memberPath.isClassPrivateProperty()) {
       const node = memberPath.node;
-      if (skipNames.has(node.key.id.name)) {
-        continue;
-      }
       memberPath.replaceWith(
         t.classProperty(
-          getSymbolRef(node.key.id.name),
+          t.identifier(getNewName(node.key.id.name)),
           node.value,
           node.typeAnnotation,
           node.decorators,
-          true,
+          false,
           node.static,
         ),
       );
     } else if (memberPath.isClassPrivateMethod()) {
       const node = memberPath.node;
-      if (skipNames.has(node.key.id.name)) {
-        continue;
-      }
-      memberPath.replaceWith(
-        t.classMethod(
-          node.kind,
-          getSymbolRef(node.key.id.name),
-          node.params,
-          node.body,
-          true,
-          node.static,
-          node.generator,
-          node.async,
-        ),
+      const replacement = t.classMethod(
+        node.kind,
+        t.identifier(getNewName(node.key.id.name)),
+        node.params,
+        node.body,
+        false,
+        node.static,
+        node.generator,
+        node.async,
       );
+      // `t.classMethod`'s builder has no `decorators` parameter -- has to be
+      // assigned after the fact or a decorated private method (e.g. `@action
+      // #foo() {}`) would silently lose its decorator in the rewrite.
+      replacement.decorators = node.decorators;
+      memberPath.replaceWith(replacement);
     }
   }
 
@@ -457,8 +477,8 @@ function renamePrivateMembersToSymbols(
         renamedNames.has(property.id.name) &&
         referenceBelongsToOuterClass(path, property.id.name)
       ) {
-        path.node.property = getSymbolRef(property.id.name);
-        path.node.computed = true;
+        path.node.property = t.identifier(getNewName(property.id.name));
+        path.node.computed = false;
       }
     },
     BinaryExpression(
@@ -471,7 +491,7 @@ function renamePrivateMembersToSymbols(
         renamedNames.has(left.id.name) &&
         referenceBelongsToOuterClass(path, left.id.name)
       ) {
-        path.node.left = getSymbolRef(left.id.name);
+        path.node.left = t.stringLiteral(getNewName(left.id.name));
       }
     },
   });
@@ -486,6 +506,31 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
       hotAstProcessor.meta.babelProgram = file.ast.program;
     },
     visitor: {
+      // Runs on *every* class the app's own source defines, independent of
+      // whether it's a service, a service's ancestor, or unrelated to the
+      // HMR proxy machinery entirely -- see `renamePrivateClassMembers`'s
+      // own doc comment for why this can't be scoped any tighter than that
+      // without whole-program analysis. This also visits the `proxyClass`
+      // (and, for an inline export, the `originalClass` copy) the
+      // `ExportDefaultDeclaration` visitor below generates -- harmless today
+      // only because generated proxy classes never declare private members
+      // of their own; if that ever changes, this visitor would rename them
+      // too.
+      Class(path, state) {
+        if (process.env.EMBER_VITE_HMR_ENABLED !== 'true') {
+          return;
+        }
+        if (state.filename?.includes('node_modules')) {
+          return;
+        }
+        const programPath = path.findParent((p) =>
+          p.isProgram(),
+        ) as Babel.NodePath<BabelTypesNamespace.Program>;
+        if (!programPath) {
+          return;
+        }
+        renamePrivateClassMembers(babel, path, programPath);
+      },
       ExportDefaultDeclaration(path, state) {
         if (process.env.EMBER_VITE_HMR_ENABLED !== 'true') {
           return;
@@ -554,7 +599,9 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
           return;
         }
 
-        renamePrivateMembersToSymbols(babel, classPath, programPath);
+        // Private members are renamed generically by the `Class` visitor
+        // above, not here -- it runs on every class regardless of whether
+        // it ends up wrapped by this HMR proxy.
 
         const util = new ImportUtil(babel, programPath);
         const tracked = util.import(

@@ -493,17 +493,17 @@ export default TestService;
 
   // A native `#private` field/method declared directly on the service class
   // can only ever be accessed with `this` bound to the exact instance that
-  // declared it (see PR #561), so an undecorated one is rewritten to a
-  // Symbol-keyed property here, which reads/writes correctly through the
-  // proxy's `get`/`set` traps no matter what `this` is at the call site. A
-  // *decorated* private member (`@tracked #count`) is left untouched: the
-  // decorator transform Ember apps use for `@tracked`/etc. has no visitor at
-  // all for a decorator attached directly to a `#private` member (verified
-  // against decorator-transforms@2.4.0's own source -- it only handles
-  // decorators on a plain, non-private `ClassProperty`/`ClassMethod`), so a
-  // decorated private field's decorator is left in the output either way;
-  // rewriting the member to a computed key here wouldn't change that.
-  it('rewrites undecorated private members to Symbol-keyed properties, but leaves decorated ones native', async () => {
+  // declared it (see PR #561), so every private member -- decorated or not
+  // -- is rewritten to a plain, uniquely-named, non-computed property here,
+  // which reads/writes correctly through the proxy's `get`/`set` traps no
+  // matter what `this` is at the call site. A *decorated* private member
+  // (`@tracked #count`) can't be rewritten to a Symbol key instead: Ember's
+  // `@tracked` distinguishes a native-decorator call from a
+  // `tracked({...})` call by checking `typeof key === 'string'`, so a
+  // Symbol-keyed field silently never tracks (verified empirically). A
+  // plain string key satisfies that check, so `@tracked #count` is rewritten
+  // the same way as any other private member.
+  it('rewrites every private member (decorated or not) to a plain, uniquely-named property', async () => {
     const code = `
 import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
@@ -550,15 +550,17 @@ export default TestService;
       ],
     });
 
-    // Undecorated `#plain`/`#helper`: rewritten to a Symbol-keyed property.
-    expect(result.code).toContain('Symbol("#plain")');
-    expect(result.code).toContain('Symbol("#helper")');
+    // `#plain`/`#helper`: rewritten to a plain, uniquely-named property.
+    expect(result.code).toContain('hmrPrivPlain');
+    expect(result.code).toContain('hmrPrivHelper');
     expect(result.code).not.toContain('this.#plain');
     expect(result.code).not.toContain('#plain in o');
 
-    // Decorated `#count`: left as a real native private field.
-    expect(result.code).not.toContain('Symbol("#count")');
-    expect(result.code).toContain('this.#count');
+    // `#count`: also rewritten, decorator preserved so `@tracked` still
+    // applies to the renamed property.
+    expect(result.code).toContain('hmrPrivCount');
+    expect(result.code).not.toContain('this.#count');
+    expect(result.code).toMatch(/@tracked\s*\n\s*_hmrPrivCount/);
   });
 
   // Private names are lexically scoped to their *enclosing* class body, not
@@ -567,10 +569,11 @@ export default TestService;
   // factory method building and returning a class). An earlier version of
   // the rewrite blanket-skipped traversal into any nested class to avoid
   // renaming its own (unrelated) private members, which also stopped it
-  // from rewriting a reference like this one -- renaming the declaration to
-  // a Symbol but leaving the reference as a native `#secret` PrivateName,
-  // producing invalid output ("Private field must be declared in an
-  // enclosing class"). Both sides must agree.
+  // from rewriting a reference like this one -- renaming the declaration but
+  // leaving the reference as a native `#secret` PrivateName, producing
+  // invalid output ("Private field must be declared in an enclosing class").
+  // Both sides must agree. `Inner` itself declares no private members of its
+  // own, so it's untouched beyond that one reference.
   it('rewrites a private-field reference captured by a nested class the same way as its declaration', async () => {
     const code = `
 import Service from '@ember/service';
@@ -598,22 +601,19 @@ export default TestService;
       plugins: [plugin],
     });
 
-    expect(result.code).toContain('Symbol("#secret")');
+    expect(result.code).toContain('hmrPrivSecret');
     expect(result.code).not.toContain('self.#secret');
-    expect(result.code).toContain('self[_secret]');
+    expect(result.code).toMatch(/self\.\w*hmrPrivSecret/);
   });
 
-  // The reverse of the previous test: a nested class that declares its
-  // *own* private field under the same name as the outer class's must keep
-  // resolving `this.#secret` to its own (native) field, not the outer
-  // class's renamed Symbol -- private names resolve to the nearest
-  // enclosing class that declares them, so this is legitimate shadowing,
-  // not the same binding. Rewriting by name membership alone (ignoring
-  // which class actually declares the name closest to the reference) would
-  // silently redirect `Inner`'s own field reads to the outer class's Symbol
-  // slot -- valid JS, wrong value, since `Inner` instances never have that
-  // Symbol-keyed property set.
-  it('leaves a nested class shadowing the same private name fully native', async () => {
+  // The `Class` visitor now runs on *every* class the file defines,
+  // including one nested inside a factory method, so a nested class that
+  // declares its *own* private field under the same name as the outer
+  // class's gets its own independent rewrite -- a distinct generated name,
+  // since the two are unrelated declarations that merely share a name
+  // (private names resolve to the nearest enclosing class that declares
+  // them, so this was always legitimate shadowing, never the same binding).
+  it('renames a nested class shadowing the same private name to its own distinct property', async () => {
     const code = `
 import Service from '@ember/service';
 
@@ -640,12 +640,15 @@ export default TestService;
       plugins: [plugin],
     });
 
-    // Outer's own `#secret` is still rewritten.
-    expect(result.code).toContain('Symbol("#secret")');
-    expect(result.code).toContain("[_secret] = 'outer'");
+    expect(result.code).not.toContain('#secret');
 
-    // Inner's own, shadowing `#secret` stays fully native on both sides.
-    expect(result.code).toContain("#secret = 'inner'");
-    expect(result.code).toContain('this.#secret');
+    const outerMatch = result.code.match(/(_?\w*hmrPrivSecret\w*) = 'outer'/);
+    const innerMatch = result.code.match(/(_?\w*hmrPrivSecret\w*) = 'inner'/);
+    expect(outerMatch).toBeTruthy();
+    expect(innerMatch).toBeTruthy();
+
+    // Distinct generated names -- not the same renamed property.
+    expect(outerMatch[1]).not.toEqual(innerMatch[1]);
+    expect(result.code).toContain(`this.${innerMatch[1]}`);
   });
 });
