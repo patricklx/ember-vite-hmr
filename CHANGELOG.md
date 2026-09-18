@@ -1,5 +1,24 @@
 # ember-vite-hmr Changelog
 
+## Release (2026-09-18)
+
+* ember-vite-hmr 2.4.0 (minor)
+
+#### :rocket: Enhancement
+* `ember-vite-hmr`
+  * [#565](https://github.com/patricklx/ember-vite-hmr/pull/565) Share babel-computed HMR import metadata with hmr.ts instead of re-parsing ([@patricklx](https://github.com/patricklx))
+  * [#566](https://github.com/patricklx/ember-vite-hmr/pull/566) Walk the extends chain for named-block detection on inherited-template components ([@patricklx](https://github.com/patricklx))
+
+#### :bug: Bug Fix
+* `ember-vite-hmr`
+  * [#561](https://github.com/patricklx/ember-vite-hmr/pull/561) Fix service HMR proxy binding own-property functions ([@patricklx](https://github.com/patricklx))
+  * [#559](https://github.com/patricklx/ember-vite-hmr/pull/559) Fix "associate a destroyable child" crashes on HMR-destroyed components (#557, #563) ([@patricklx](https://github.com/patricklx))
+  * [#558](https://github.com/patricklx/ember-vite-hmr/pull/558) Curry the latest accepted class for instances created after an update ([@emattias](https://github.com/emattias))
+
+#### Committers: 2
+- Mattias Hällkvist ([@emattias](https://github.com/emattias))
+- Patrick Pircher ([@patricklx](https://github.com/patricklx))
+
 ## Release (2026-09-15)
 
 * ember-vite-hmr 2.3.0 (minor)
