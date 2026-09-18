@@ -531,6 +531,59 @@ export default TestService;
     expect(result.code).toContain('hmrPrivCount');
     expect(result.code).not.toContain('this.#count');
     expect(result.code).toMatch(/@tracked\s*\n\s*_hmrPrivCount/);
+
+    // `#plain` (undecorated): also hidden from enumeration, via a
+    // constructor-appended `Object.defineProperty(..., { enumerable: false
+    // })` -- see the "hideRenamedProperties" comment in
+    // lib/babel-plugin/private-members.ts for why a class field can't
+    // declare this directly.
+    expect(result.code).toMatch(
+      /Object\.defineProperty\(this, ["'](_?\w*hmrPrivPlain)["'], \{\s*value: this\.\1,\s*writable: true,\s*configurable: true,\s*enumerable: false\s*\}\)/,
+    );
+
+    // `#count` (decorated): `@tracked` turns it into a prototype accessor,
+    // not an instance data property, so there's nothing for
+    // `Object.defineProperty` to hide -- must NOT get the same treatment.
+    // Only one `Object.defineProperty(..., { enumerable: false })` call
+    // should exist at all (for `#plain`).
+    expect(
+      result.code.match(/Object\.defineProperty\(this, ["']\w+["']/g),
+    ).toHaveLength(1);
+    expect(result.code).not.toMatch(
+      /defineProperty\(this, ["']_?\w*hmrPrivCount["']/,
+    );
+  });
+
+  // A class with no explicit constructor needs one synthesized so the
+  // `Object.defineProperty(..., { enumerable: false })` call has somewhere
+  // to live; the synthesized constructor must forward its arguments to
+  // `super` exactly like the implicit default derived-class constructor
+  // would, so nothing else about construction changes.
+  it('synthesizes a constructor (forwarding args to super) for a class with an undecorated private field and no constructor of its own', async () => {
+    const code = `
+import Service from '@ember/service';
+
+class TestService extends Service {
+  #plain = 'hidden';
+
+  readPlain() {
+    return this.#plain;
+  }
+}
+
+export default TestService;
+    `;
+
+    const result = await babel.transformAsync(code, {
+      filename: '/rewritten-app/app/services/test-service.js',
+      babelrc: false,
+      configFile: false,
+      plugins: [plugin],
+    });
+
+    expect(result.code).toMatch(
+      /constructor\(\.\.\.args\)\s*\{\s*super\(\.\.\.args\);\s*Object\.defineProperty/,
+    );
   });
 
   // Private names are lexically scoped to their *enclosing* class body, not

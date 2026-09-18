@@ -42,12 +42,18 @@ methods only work when `this` is the exact instance that declared them, so
 this plugin rewrites every native `#private` member declared in your app's
 own source (on the service itself and any ancestor class it extends, as
 long as that ancestor is also part of your app) to a plain, uniquely-named
-property. This only emulates privacy: the field is still a regular,
-enumerable property under a generated name, so it shows up in `for...in`,
-`Object.keys`, `JSON.stringify`, spread, and devtools, and can be read or
-written from outside via that mangled name — unlike a native `#private`
-field. It's obscured, not encapsulated, so don't rely on it as a
-serialization or security boundary.
+property. An undecorated field or method is also made non-enumerable (via
+`Object.defineProperty`), so it's hidden from `for...in`, `Object.keys`,
+`JSON.stringify`, and spread — the same as a native `#private` member. A
+`@tracked #field` is the one exception: the decorator turns it into an
+accessor on the prototype rather than an instance data property, so it's
+left exactly as the plain rewrite produces it, enumerable or not according
+to whatever `@tracked` itself does with an ordinary public field. In every
+case this only emulates privacy: the member is reachable and writable from
+outside via its generated name (e.g. through `Object.getOwnPropertyNames`,
+`Reflect.ownKeys`, or devtools) — unlike a real native `#private` field. It's
+obscured, not encapsulated, so don't rely on it as a serialization or
+security boundary.
 
 The one case this can't cover: a base class living in `node_modules` (never
 processed by this plugin) that declares its own native `#private` fields.

@@ -53,10 +53,28 @@ function hasPrivateMembers(classBody: BabelTypesNamespace.ClassBody): boolean {
 // and never tracks at all (verified empirically: reads back `undefined`,
 // writes throw "Cannot assign to read only property"). A plain string key
 // satisfies that check and lets `@tracked`/`decorator-transforms` treat the
-// member exactly like an ordinary public tracked field -- including
-// surviving the HMR accept handler's `for (const key in oldDelegate)` state
-// sync loop the same way any other tracked field does, which a Symbol key
-// (invisible to `for...in`) could never do anyway.
+// member exactly like an ordinary public tracked field.
+//
+// An *undecorated* private property still gets a second pass: after the
+// class body is rewritten, `hideRenamedProperties` below appends
+// `Object.defineProperty(this, <name>, { ..., enumerable: false })` calls to
+// the constructor for every renamed instance property that has no
+// decorator, so it stays invisible to `for...in`, `Object.keys`,
+// `JSON.stringify` and spread -- closer to real privacy than the plain
+// enumerable field this rewrite produced before. It's still just a string
+// key reachable via `Object.getOwnPropertyNames`/`Reflect.ownKeys` or the
+// generated name, not real encapsulation. A *decorated* private property
+// (e.g. `@tracked #count`) is left exactly as the field-rewrite above
+// produces it -- `decorator-transforms` turns it into an accessor pair on
+// the prototype, not an instance data property, so there's no own property
+// for `Object.defineProperty` to hide in the first place, and forcing one
+// would fight the decorator's own storage instead of complementing it.
+//
+// This second pass only runs against *instance* properties: a static
+// private field lives on the class itself, never reaches the HMR proxy's
+// per-instance `for...in` sync loop, and isn't part of the proxy/delegate
+// problem this file exists to solve, so it's left as the plain enumerable
+// rewrite the first pass already produces.
 //
 // The one thing a generated name can't be checked against is a private
 // member of the *same name* declared by an ancestor/subclass living in a
@@ -119,6 +137,12 @@ export function renamePrivateClassMembers(
     return candidate;
   };
 
+  // Names of renamed instance properties that should be hidden from
+  // enumeration afterward (see `hideRenamedProperties` below) -- only
+  // undecorated, non-static private *properties* qualify; see the comment
+  // above this function for why decorated and static ones are excluded.
+  const namesToHide: string[] = [];
+
   // Rename the class's own private declarations directly off the body
   // array -- not via `classPath.traverse` -- so a nested class's own
   // (unrelated, possibly same-named) private declarations are never
@@ -126,9 +150,10 @@ export function renamePrivateClassMembers(
   for (const memberPath of classPath.get('body').get('body')) {
     if (memberPath.isClassPrivateProperty()) {
       const node = memberPath.node;
+      const newName = getNewName(node.key.id.name);
       memberPath.replaceWith(
         t.classProperty(
-          t.identifier(getNewName(node.key.id.name)),
+          t.identifier(newName),
           node.value,
           node.typeAnnotation,
           node.decorators,
@@ -136,6 +161,9 @@ export function renamePrivateClassMembers(
           node.static,
         ),
       );
+      if (!node.static && !node.decorators?.length) {
+        namesToHide.push(newName);
+      }
     } else if (memberPath.isClassPrivateMethod()) {
       const node = memberPath.node;
       const replacement = t.classMethod(
@@ -240,4 +268,109 @@ export function renamePrivateClassMembers(
       }
     },
   });
+
+  if (namesToHide.length > 0) {
+    hideRenamedProperties(babel, classPath, namesToHide);
+  }
+}
+
+// Appends `Object.defineProperty(this, <name>, { value: this.<name>,
+// writable: true, configurable: true, enumerable: false })` to the class's
+// constructor for every name in `names`, so the renamed properties in
+// `names` stop showing up in `for...in`, `Object.keys`, `JSON.stringify`,
+// and spread -- the same visibility a plain class-field rewrite (which is
+// always enumerable; field syntax has no way to declare otherwise) can't
+// provide on its own.
+//
+// This appends rather than replacing the field declaration in place so the
+// field keeps initializing at its original position in declaration order --
+// a later field's initializer that legally reads an earlier private field
+// (`#foo = 1; bar = this.#foo + 1;`) still sees the real value, since fields
+// finish initializing (in declaration order, interleaved with each other)
+// before any explicit constructor statement -- including ones this function
+// adds -- ever runs. The property is briefly still enumerable between its
+// own initialization and the end of the constructor, which is harmless:
+// enumerability only affects iteration/serialization, not direct property
+// access, and nothing runs `for...in`/`Object.keys` on a half-constructed
+// instance.
+//
+// Reads the current value back off `this` (a plain `MemberExpression`)
+// rather than a captured property descriptor: when this class is a subclass
+// of a proxied HMR service, `this` after `super()` is the Proxy from
+// `service-proxy.ts`'s generated constructor, and a plain read goes through
+// its `get` trap, which already forwards correctly to the delegate the
+// property actually lives on.
+function hideRenamedProperties(
+  babel: typeof Babel,
+  classPath: Babel.NodePath<
+    BabelTypesNamespace.ClassDeclaration | BabelTypesNamespace.ClassExpression
+  >,
+  names: string[],
+): void {
+  const t = babel.types;
+
+  const hideStatements = names.map((name) =>
+    t.expressionStatement(
+      t.callExpression(
+        t.memberExpression(
+          t.identifier('Object'),
+          t.identifier('defineProperty'),
+        ),
+        [
+          t.thisExpression(),
+          t.stringLiteral(name),
+          t.objectExpression([
+            t.objectProperty(
+              t.identifier('value'),
+              t.memberExpression(t.thisExpression(), t.identifier(name)),
+            ),
+            t.objectProperty(t.identifier('writable'), t.booleanLiteral(true)),
+            t.objectProperty(
+              t.identifier('configurable'),
+              t.booleanLiteral(true),
+            ),
+            t.objectProperty(
+              t.identifier('enumerable'),
+              t.booleanLiteral(false),
+            ),
+          ]),
+        ],
+      ),
+    ),
+  );
+
+  const bodyPath = classPath.get('body');
+  const existingCtor = bodyPath
+    .get('body')
+    .find((member) => member.isClassMethod({ kind: 'constructor' }));
+
+  if (existingCtor) {
+    for (const statement of hideStatements) {
+      existingCtor.get('body').pushContainer('body', statement);
+    }
+    return;
+  }
+
+  // No constructor declared: synthesize one. A derived class's implicit
+  // default constructor forwards every argument to `super` before running
+  // anything else, so match that exactly rather than dropping constructor
+  // arguments the real default constructor would have passed through.
+  const ctorStatements = classPath.node.superClass
+    ? [
+        t.expressionStatement(
+          t.callExpression(t.super(), [t.spreadElement(t.identifier('args'))]),
+        ),
+        ...hideStatements,
+      ]
+    : hideStatements;
+
+  bodyPath.unshiftContainer(
+    'body',
+    t.classMethod(
+      'constructor',
+      t.identifier('constructor'),
+      [t.restElement(t.identifier('args'))],
+      t.blockStatement(ctorStatements),
+    ),
+  );
 }
