@@ -22,4 +22,10 @@
 - `pnpm start`
 - Visit the test application at [http://localhost:4200](http://localhost:4200).
 
+## Running the chat AI demo
+
+- `cd demo`
+- `pnpm start`
+- Visit the demo at [http://localhost:4200](http://localhost:4200).
+
 For more information on using ember-cli, visit [https://cli.emberjs.com/release/](https://cli.emberjs.com/release/).

@@ -1,0 +1,17 @@
+{
+  "extends": "@ember/app-tsconfig",
+  "include": ["app", "types"],
+  "compilerOptions": {
+    "allowJs": true,
+    "paths": {
+      "ember-vite-hmr-chat-demo/*": ["./app/*"],
+      "*": ["./types/*"]
+    },
+    "types": [
+      "ember-source/types",
+      "@embroider/core/virtual",
+      "vite/client",
+      "@glint/ember-tsc/types"
+    ]
+  }
+}

@@ -3,6 +3,8 @@
 !tests/**/*
 !test-app
 !test-app/**/*
+!demo
+!demo/**/*
 !pnpm-workspace.yaml
 !declarations
 !declarations/**/*

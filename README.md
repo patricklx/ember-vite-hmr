@@ -93,6 +93,13 @@ and for `'babel-plugin-ember-template-compilation'`
 transforms: [...templateCompatSupport(), hotAstProcessor.transform],
 ```
 
+## Demo
+
+[`demo/`](demo) is a small, fully-mocked AI-chat app (modeled after
+[carbon-ai-chat's `demo/`](https://github.com/carbon-design-system/carbon-ai-chat/tree/main/demo))
+that shows this plugin hot-reloading a realistic, service-backed chat UI. See
+[`demo/README.md`](demo/README.md) to run it.
+
 ## Contributing
 
 See the [Contributing](CONTRIBUTING.md) guide for details.
