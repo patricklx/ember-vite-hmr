@@ -2,8 +2,8 @@
   "solution": {
     "ember-vite-hmr": {
       "impact": "minor",
-      "oldVersion": "2.2.4",
-      "newVersion": "2.3.0",
+      "oldVersion": "2.3.0",
+      "newVersion": "2.4.0",
       "tagName": "latest",
       "constraints": [
         {
@@ -13,14 +13,10 @@
         {
           "impact": "patch",
           "reason": "Appears in changelog section :bug: Bug Fix"
-        },
-        {
-          "impact": "patch",
-          "reason": "Appears in changelog section :house: Internal"
         }
       ],
       "pkgJSONPath": "./package.json"
     }
   },
-  "description": "## Release (2026-09-15)\n\n* ember-vite-hmr 2.3.0 (minor)\n\n#### :rocket: Enhancement\n* `ember-vite-hmr`\n  * [#555](https://github.com/patricklx/ember-vite-hmr/pull/555) Hide HotComponent HMR wrapper from ember-inspector's component tree ([@patricklx](https://github.com/patricklx))\n\n#### :bug: Bug Fix\n* `ember-vite-hmr`\n  * [#556](https://github.com/patricklx/ember-vite-hmr/pull/556) Fix crash with optimizeDeps.noDiscovery: true ([@patricklx](https://github.com/patricklx))\n  * [#551](https://github.com/patricklx/ember-vite-hmr/pull/551) Fix service HMR proxy crashes for private fields and subclassed services ([@patricklx](https://github.com/patricklx))\n  * [#550](https://github.com/patricklx/ember-vite-hmr/pull/550) Gate Vite-plugin main export behind \"node\" condition ([@patricklx](https://github.com/patricklx))\n\n#### :house: Internal\n* `ember-vite-hmr`\n  * [#547](https://github.com/patricklx/ember-vite-hmr/pull/547) Revert @babel/types, @babel/runtime, @babel/plugin-transform-runtime to 7.x ([@patricklx](https://github.com/patricklx))\n\n#### Committers: 1\n- Patrick Pircher ([@patricklx](https://github.com/patricklx))\n"
+  "description": "## Release (2026-09-18)\n\n* ember-vite-hmr 2.4.0 (minor)\n\n#### :rocket: Enhancement\n* `ember-vite-hmr`\n  * [#565](https://github.com/patricklx/ember-vite-hmr/pull/565) Share babel-computed HMR import metadata with hmr.ts instead of re-parsing ([@patricklx](https://github.com/patricklx))\n  * [#566](https://github.com/patricklx/ember-vite-hmr/pull/566) Walk the extends chain for named-block detection on inherited-template components ([@patricklx](https://github.com/patricklx))\n\n#### :bug: Bug Fix\n* `ember-vite-hmr`\n  * [#561](https://github.com/patricklx/ember-vite-hmr/pull/561) Fix service HMR proxy binding own-property functions ([@patricklx](https://github.com/patricklx))\n  * [#559](https://github.com/patricklx/ember-vite-hmr/pull/559) Fix \"associate a destroyable child\" crashes on HMR-destroyed components (#557, #563) ([@patricklx](https://github.com/patricklx))\n  * [#558](https://github.com/patricklx/ember-vite-hmr/pull/558) Curry the latest accepted class for instances created after an update ([@emattias](https://github.com/emattias))\n\n#### Committers: 2\n- Mattias Hällkvist ([@emattias](https://github.com/emattias))\n- Patrick Pircher ([@patricklx](https://github.com/patricklx))\n"
 }
