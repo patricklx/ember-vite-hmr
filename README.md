@@ -28,10 +28,29 @@ export default class MyComponent extends Component {
 ```
 
 This hook is called after automatic state synchronization but before the old instance is destroyed, allowing you to:
+
 - Perform custom state migrations
 - Clean up resources
 - Log HMR events
 - Handle complex state transitions
+
+### Private class fields
+
+Services are hot-reloaded through a generated proxy that forwards property
+access to the current delegate instance. Native `#private` class fields and
+methods only work when `this` is the exact instance that declared them, so
+this plugin rewrites every native `#private` member declared in your app's
+own source (on the service itself and any ancestor class it extends, as
+long as that ancestor is also part of your app) to a plain, uniquely-named
+property. This is transparent from the outside — `#foo` still behaves like
+a private field.
+
+The one case this can't cover: a base class living in `node_modules` (never
+processed by this plugin) that declares its own native `#private` fields.
+A service extending such a class would still need `this` to be the real
+instance to read those fields, so proxying that service could break. Ember's
+own `Service`/`EmberObject`/`CoreObject` chain declares no native `#private`
+fields, so ordinary Ember apps are unaffected.
 
 ## Installation
 
