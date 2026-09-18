@@ -42,9 +42,11 @@ methods only work when `this` is the exact instance that declared them, so
 this plugin rewrites every native `#private` member declared in your app's
 own source (on the service itself and any ancestor class it extends, as
 long as that ancestor is also part of your app) to a plain, uniquely-named
-property. An undecorated field or method is also made non-enumerable (via
+property. An undecorated field is also made non-enumerable (via
 `Object.defineProperty`), so it's hidden from `for...in`, `Object.keys`,
 `JSON.stringify`, and spread — the same as a native `#private` member. A
+private method already was non-enumerable, since class method syntax is
+non-enumerable by default regardless of this rewrite. A
 `@tracked #field` is the one exception: the decorator turns it into an
 accessor on the prototype rather than an instance data property, so it's
 left exactly as the plain rewrite produces it, enumerable or not according
