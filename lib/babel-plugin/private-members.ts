@@ -274,25 +274,32 @@ export function renamePrivateClassMembers(
   }
 }
 
-// Appends `Object.defineProperty(this, <name>, { value: this.<name>,
-// writable: true, configurable: true, enumerable: false })` to the class's
+// Inserts `Object.defineProperty(this, <name>, { value: this.<name>,
+// writable: true, configurable: true, enumerable: false })` into the class's
 // constructor for every name in `names`, so the renamed properties in
 // `names` stop showing up in `for...in`, `Object.keys`, `JSON.stringify`,
 // and spread -- the same visibility a plain class-field rewrite (which is
 // always enumerable; field syntax has no way to declare otherwise) can't
 // provide on its own.
 //
-// This appends rather than replacing the field declaration in place so the
+// This inserts rather than replacing the field declaration in place so the
 // field keeps initializing at its original position in declaration order --
 // a later field's initializer that legally reads an earlier private field
 // (`#foo = 1; bar = this.#foo + 1;`) still sees the real value, since fields
 // finish initializing (in declaration order, interleaved with each other)
 // before any explicit constructor statement -- including ones this function
-// adds -- ever runs. The property is briefly still enumerable between its
-// own initialization and the end of the constructor, which is harmless:
-// enumerability only affects iteration/serialization, not direct property
-// access, and nothing runs `for...in`/`Object.keys` on a half-constructed
-// instance.
+// adds -- ever runs, regardless of where in the constructor body they're
+// inserted.
+//
+// The statements go right after `super(...)` (derived class) or at the very
+// top of the constructor (base class) rather than at the end: all fields
+// are already initialized by that point, and a later `this.<name> = ...`
+// assignment in the constructor only updates the property's `value` -- a
+// plain assignment doesn't reapply `defineProperty`'s `enumerable: false`,
+// so inserting early still reflects any later mutation correctly. Inserting
+// early also means the hide calls still run even if the constructor's own
+// logic contains an early `return` (e.g. a guard clause) after this point --
+// appending at the end would make them dead code on that path.
 //
 // Reads the current value back off `this` (a plain `MemberExpression`)
 // rather than a captured property descriptor: when this class is a subclass
@@ -345,8 +352,32 @@ function hideRenamedProperties(
     .find((member) => member.isClassMethod({ kind: 'constructor' }));
 
   if (existingCtor) {
-    for (const statement of hideStatements) {
-      existingCtor.get('body').pushContainer('body', statement);
+    const ctorBody = existingCtor.get('body');
+
+    if (!classPath.node.superClass) {
+      ctorBody.unshiftContainer('body', hideStatements);
+      return;
+    }
+
+    // Only a top-level `super(...)` statement is safe to insert after --
+    // one buried inside a conditional (`if (x) { super(a); } else {
+    // super(b); }`) isn't a single point in the body to anchor on. Fall
+    // back to appending at the end in that case: still not immune to an
+    // early `return`, but at least not a `ReferenceError` from reading
+    // `this` before `super()` has (unconditionally) run.
+    const superCallStatement = ctorBody
+      .get('body')
+      .find(
+        (statement) =>
+          statement.isExpressionStatement() &&
+          statement.get('expression').isCallExpression() &&
+          statement.get('expression.callee').isSuper(),
+      );
+
+    if (superCallStatement) {
+      superCallStatement.insertAfter(hideStatements);
+    } else {
+      ctorBody.pushContainer('body', hideStatements);
     }
     return;
   }

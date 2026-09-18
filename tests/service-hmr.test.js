@@ -600,6 +600,113 @@ export default TestService;
     );
   });
 
+  // Regression test: an existing constructor with an early `return` (a
+  // common guard-clause pattern, e.g. bailing out on FastBoot) must not
+  // dead-code the `Object.defineProperty(..., { enumerable: false })` call.
+  // The hide statement must run right after `super(...)`, before the
+  // guard clause's `return`, not be appended at the end of the constructor
+  // where it would become unreachable on that path.
+  it('hides an undecorated private field even when the constructor has an early return', async () => {
+    const code = `
+import Service from '@ember/service';
+
+class TestService extends Service {
+  #plain = 'hidden';
+
+  constructor(owner) {
+    super(owner);
+    if (owner.isFastBoot) {
+      return;
+    }
+    this.setup();
+  }
+
+  setup() {}
+}
+
+export default TestService;
+    `;
+
+    const result = await babel.transformAsync(code, {
+      filename: '/rewritten-app/app/services/test-service.js',
+      babelrc: false,
+      configFile: false,
+      plugins: [plugin],
+    });
+
+    expect(result.code).toMatch(
+      /super\(owner\);\s*Object\.defineProperty\(this, ["'](_?\w*hmrPrivPlain)["'], \{\s*value: this\.\1,\s*writable: true,\s*configurable: true,\s*enumerable: false\s*\}\);\s*if \(owner\.isFastBoot\)/,
+    );
+  });
+
+  // Regression test: when `super(...)` isn't a single top-level statement
+  // of the constructor body (e.g. it's called conditionally in each branch
+  // of an `if`), there's no single safe point right after "the" super call
+  // to insert into -- inserting at the very top of the constructor in this
+  // case would read/write `this` before `super()` has unconditionally run,
+  // which throws. The hide call must fall back to appending at the end
+  // instead of crashing.
+  it('falls back to appending at the end when super() is not a top-level constructor statement', async () => {
+    const code = `
+import Service from '@ember/service';
+
+class TestService extends Service {
+  #plain = 'hidden';
+
+  constructor(owner) {
+    if (owner) {
+      super(owner);
+    } else {
+      super();
+    }
+  }
+}
+
+export default TestService;
+    `;
+
+    const result = await babel.transformAsync(code, {
+      filename: '/rewritten-app/app/services/test-service.js',
+      babelrc: false,
+      configFile: false,
+      plugins: [plugin],
+    });
+
+    expect(result.code).toMatch(
+      /constructor\(owner\)\s*\{\s*if \(owner\)\s*\{\s*super\(owner\);\s*\}\s*else\s*\{\s*super\(\);\s*\}\s*Object\.defineProperty\(this, ["'](_?\w*hmrPrivPlain)["'], \{\s*value: this\.\1,\s*writable: true,\s*configurable: true,\s*enumerable: false\s*\}\);\s*\}/,
+    );
+  });
+
+  // Regression test: a base class (no `extends`) with its own constructor
+  // has no `super()` call to anchor on, so the hide statements must go at
+  // the very top of the constructor body instead.
+  it('inserts at the top of an existing constructor for a base class with no superclass', async () => {
+    const code = `
+class TestBase {
+  #plain = 'hidden';
+
+  constructor() {
+    this.setup();
+  }
+
+  setup() {}
+}
+
+export default TestBase;
+    `;
+
+    const result = await babel.transformAsync(code, {
+      filename: '/rewritten-app/app/services/test-service.js',
+      babelrc: false,
+      configFile: false,
+      plugins: [plugin],
+    });
+
+    expect(result.code).toMatch(
+      /constructor\(\)\s*\{\s*Object\.defineProperty\(this, ["'](_?\w*hmrPrivPlain)["'], \{\s*value: this\.\1,\s*writable: true,\s*configurable: true,\s*enumerable: false\s*\}\);\s*this\.setup\(\);/,
+    );
+  });
+
   // Private names are lexically scoped to their *enclosing* class body, not
   // to the file, so code can legally reference an outer class's private
   // field from inside a nested class/closure via a captured `this` (e.g. a
