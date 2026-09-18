@@ -298,6 +298,24 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
           ? Object.getOwnPropertyDescriptor(proto, trackedKey)
           : undefined;
 
+        // The undecorated `#secret` field is rewritten to an *own*,
+        // non-enumerable property on the delegate (via
+        // `Object.defineProperty(this, ..., { enumerable: false })`) rather
+        // than a plain assignment -- unlike `#trackedSecret` above, which
+        // decorator-transforms turns into a prototype accessor. Confirm
+        // both halves of that: the renamed key is only visible through
+        // `getOwnPropertyNames`, not `Object.keys`/`for...in`.
+        const secretKey = Object.getOwnPropertyNames(svc._delegate).find((n) =>
+          n.includes('hmrPrivSecret'),
+        );
+        const secretDescriptor = secretKey
+          ? Object.getOwnPropertyDescriptor(svc._delegate, secretKey)
+          : undefined;
+        const secretKeyEnumerable = !!secretDescriptor?.enumerable;
+        const secretKeyInKeys = secretKey
+          ? Object.keys(svc._delegate).includes(secretKey)
+          : undefined;
+
         return {
           ok: true,
           manager: svc.lookupManager(svc.taggedFn),
@@ -310,6 +328,9 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
             trackedDescriptor.get &&
             trackedDescriptor.set
           ),
+          secretKeyFound: !!secretKey,
+          secretKeyEnumerable,
+          secretKeyInKeys,
           count: svc.count,
         };
       } catch (e) {
@@ -329,6 +350,9 @@ describe('test-app: service HMR proxy supports private fields and subclassing', 
       secretPlain: 'private-value',
       trackedSecretPlain: 1,
       trackedSecretIsAccessor: true,
+      secretKeyFound: true,
+      secretKeyEnumerable: false,
+      secretKeyInKeys: false,
       count: 2,
     });
 
