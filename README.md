@@ -42,8 +42,12 @@ methods only work when `this` is the exact instance that declared them, so
 this plugin rewrites every native `#private` member declared in your app's
 own source (on the service itself and any ancestor class it extends, as
 long as that ancestor is also part of your app) to a plain, uniquely-named
-property. This is transparent from the outside — `#foo` still behaves like
-a private field.
+property. This only emulates privacy: the field is still a regular,
+enumerable property under a generated name, so it shows up in `for...in`,
+`Object.keys`, `JSON.stringify`, spread, and devtools, and can be read or
+written from outside via that mangled name — unlike a native `#private`
+field. It's obscured, not encapsulated, so don't rely on it as a
+serialization or security boundary.
 
 The one case this can't cover: a base class living in `node_modules` (never
 processed by this plugin) that declares its own native `#private` fields.
