@@ -148,7 +148,14 @@ export default TestService;
           const oldDelegate = proxy._delegate;
           const newDelegate = new NewImpl(proxy._owner);
           proxy._delegate = newDelegate;
+          const keysToSync = new Set();
           for (const key in oldDelegate) {
+            keysToSync.add(key);
+          }
+          for (const key of Object.getOwnPropertyNames(oldDelegate)) {
+            keysToSync.add(key);
+          }
+          for (const key of keysToSync) {
             const descriptor = Object.getOwnPropertyDescriptor(oldDelegate, key) || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(oldDelegate), key);
             const hasOwnDefault = Object.prototype.hasOwnProperty.call(newDelegate, key);
             const currentValue = newDelegate[key];
@@ -382,7 +389,14 @@ export default class DataService extends Service {
           const oldDelegate = proxy._delegate;
           const newDelegate = new NewImpl(proxy._owner);
           proxy._delegate = newDelegate;
+          const keysToSync = new Set();
           for (const key in oldDelegate) {
+            keysToSync.add(key);
+          }
+          for (const key of Object.getOwnPropertyNames(oldDelegate)) {
+            keysToSync.add(key);
+          }
+          for (const key of keysToSync) {
             const descriptor = Object.getOwnPropertyDescriptor(oldDelegate, key) || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(oldDelegate), key);
             const hasOwnDefault = Object.prototype.hasOwnProperty.call(newDelegate, key);
             const currentValue = newDelegate[key];

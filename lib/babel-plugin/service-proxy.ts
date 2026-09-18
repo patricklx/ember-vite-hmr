@@ -289,8 +289,28 @@ export function transformServiceExport(
           const newDelegate = new NewImpl(proxy._owner);
           proxy._delegate = newDelegate;
 
-          // Sync state from old to new while keeping new implementation defaults
+          // Sync state from old to new while keeping new implementation defaults.
+          // Keys come from both 'for...in' (own AND inherited enumerable
+          // properties -- this is what picks up a '@tracked' field, which
+          // decorator-transforms implements as an *enumerable* accessor pair
+          // on the prototype, not an own instance property) and
+          // Object.getOwnPropertyNames (own properties regardless of
+          // enumerability -- this is what picks up an undecorated private
+          // field, which the private-member rewrite in
+          // ../private-members.ts's hideRenamedProperties makes a
+          // non-enumerable own property specifically so it's invisible to
+          // 'for...in', 'Object.keys', etc. everywhere *except* here). Using
+          // only 'for...in' would silently drop such a field's live,
+          // runtime-mutated value on every hot-reload, resetting it to
+          // whatever the new module's field initializer produces.
+          const keysToSync = new Set();
           for (const key in oldDelegate) {
+            keysToSync.add(key);
+          }
+          for (const key of Object.getOwnPropertyNames(oldDelegate)) {
+            keysToSync.add(key);
+          }
+          for (const key of keysToSync) {
             const descriptor =
               Object.getOwnPropertyDescriptor(oldDelegate, key) ||
               Object.getOwnPropertyDescriptor(Object.getPrototypeOf(oldDelegate), key);
