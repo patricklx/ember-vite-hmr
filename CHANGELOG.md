@@ -1,5 +1,10 @@
 # ember-vite-hmr Changelog
 
+
+
+
+
+
 ## Release (2026-09-18)
 
 * ember-vite-hmr 2.4.0 (minor)
