@@ -5,12 +5,13 @@ import { hmrImportMetadataCache } from '../lib/babel-plugin';
 process.env.EMBER_VITE_HMR_ENABLED = 'true';
 
 describe('hmr transform function', () => {
-  let plugin: ReturnType<typeof hmr>;
+  // hmr() returns [hmrRuntime(), mainPlugin]; we only test the main plugin here
+  let plugin: ReturnType<typeof hmr>[1];
   let mockContext: { resolve: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     hmrImportMetadataCache.clear();
-    plugin = hmr(['development']);
+    plugin = hmr(['development'])[1];
 
     // Mock the plugin context
     mockContext = {
@@ -133,10 +134,12 @@ export const __hmr_import_metadata__ = {
     const id = '/app/components/with-external.gjs';
     const result = await plugin.transform.call(mockContext, source, id);
 
-    // Should still generate hot reload code but skip node_modules
-    expect(result).toContain('if (import.meta.hot)');
+    // All bindings resolved to node_modules — no per-dep accepts, no self-accept.
+    // The component has importVar so its importer's accept(dep, cb) handles
+    // propagation; a self-accept here would stop that chain before it fires.
+    expect(result).not.toContain("import.meta.hot.accept(");
 
-    // Should remove metadata export
+    // Should still remove metadata export
     expect(result).not.toContain('export const __hmr_import_metadata__');
   });
 
@@ -166,7 +169,7 @@ export const __hmr_import_metadata__ = {
     expect(result).not.toContain('export const __hmr_import_metadata__');
   });
 
-  it('should not process files without __hmr_import_metadata__', async () => {
+  it('self-accepts .js/.ts component files without __hmr_import_metadata__', async () => {
     const source = `
 import Component from '@glimmer/component';
 
@@ -178,9 +181,13 @@ export default class MyComponent extends Component {
     const id = '/app/components/no-metadata.js';
     const result = await plugin.transform.call(mockContext, source, id);
 
-    // Should return source unchanged (or with minimal changes)
-    expect(result).not.toContain('if (import.meta.hot)');
-    expect(result).not.toContain('import.meta.hot.accept');
+    // Component files under /components/ get a self-accept boundary even
+    // without template imports, so edits to them don't cause a full page reload.
+    // The accept callback updates the tracked-cell registry so Glimmer re-renders
+    // with the new class when the component's own code changes.
+    expect(result).toContain('if (import.meta.hot)');
+    expect(result).toContain('__hmr_default__');
+    expect(result).toContain('import.meta.hot.accept(');
   });
 
   it('should handle empty bindings array', async () => {
@@ -196,9 +203,11 @@ export const __hmr_import_metadata__ = {
     const id = '/app/components/empty-bindings.gjs';
     const result = await plugin.transform.call(mockContext, source, id);
 
-    // Should remove metadata but not add hot reload code
+    // Should remove metadata. With importVar but no bindings, no HMR code is
+    // added — the importer's accept(dep, cb) handles propagation, and a
+    // self-accept here would stop Vite from reaching it.
     expect(result).not.toContain('export const __hmr_import_metadata__');
-    expect(result).not.toContain('if (import.meta.hot)');
+    expect(result).not.toContain('import.meta.hot.accept(');
   });
 
   it('should handle default imports', async () => {
@@ -268,33 +277,6 @@ export const __hmr_import_metadata__ = {
     );
   });
 
-  it('should handle @embroider/virtual imports', async () => {
-    const source = `
-import Component from '@embroider/virtual/components/my-component';
-
-let template__imports__ = null;
-
-class _Imports {
-  Component = Component;
-}
-
-template__imports__ = new _Imports();
-
-export const __hmr_import_metadata__ = {
-  importVar: "template__imports__",
-  bindings: ["Component"]
-};
-`;
-
-    const id = '/app/components/embroider-virtual.gjs';
-    const result = await plugin.transform.call(mockContext, source, id);
-
-    expect(result).toContain('if (import.meta.hot)');
-    // Should replace @embroider/virtual with embroider_virtual in virtual path
-    expect(result).toContain('embroider_virtual');
-    expect(result).not.toContain('export const __hmr_import_metadata__');
-  });
-
   it('uses hmrImportMetadataCache instead of re-parsing when a cache entry exists for the file', async () => {
     const id = '/app/components/cached-component.gjs';
     hmrImportMetadataCache.set(id, {
@@ -328,10 +310,15 @@ template__imports__ = new _Imports();
 
     const result = await plugin.transform.call(mockContext, source, id);
 
+    // Self-accept on the source module directly
     expect(result).toContain(
-      "import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components/named::default.gjs'",
+      'import.meta.hot.accept("my-components/named"',
     );
-    expect(result).toContain('template__imports__.NamedComponent = c.default;');
+    // No longer directly assigns template__imports__.X — the getter reads
+    // through the tracked cell via current(), so update() alone suffices.
+    expect(result).not.toContain('template__imports__.NamedComponent = newVal;');
+    // Registers with the runtime
+    expect(result).toContain('ember_vite_hmr_register(');
   });
 
   it('prefers hmrImportMetadataCache over a stale __hmr_import_metadata__ export left in source', async () => {
@@ -364,15 +351,14 @@ export const __hmr_import_metadata__ = {
 
     const result = await plugin.transform.call(mockContext, source, id);
 
-    expect(result).toContain(
-      "import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components/fresh::default.gjs'",
-    );
+    expect(result).toContain('import.meta.hot.accept("my-components/fresh"');
     expect(result).not.toContain('StaleComponent');
     expect(result).not.toContain('export const __hmr_import_metadata__');
   });
 
   it('gates HMR scaffolding on command, not just mode', () => {
-    const buildPlugin = hmr(['development']);
+    // hmr() returns [hmrRuntime(), mainPlugin]; configResolved is on mainPlugin
+    const buildPlugin = hmr(['development'])[1];
 
     buildPlugin.configResolved({ mode: 'development', command: 'build' });
     expect(process.env.EMBER_VITE_HMR_ENABLED).toBe('false');

@@ -1,488 +1,191 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Plugin, ViteDevServer } from 'vite';
-import { NodePath, parseSync } from '@babel/core';
-import traverseModule from '@babel/traverse';
-const traverse = (traverseModule as any).default || traverseModule;
 import { readFile } from 'fs/promises';
 import { hmrImportMetadataCache } from './babel-plugin.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Above this many distinct named blocks, fall back to forwarding all of them
-// unconditionally rather than generating an exponential number of branches
-// (see generateInvocations below for why branching is needed at all).
-const MAX_COMBINATORIAL_YIELDS = 8;
-
-// Safety cap on how many `extends` links resolveYieldSource will walk while
-// looking for an inherited template (see its own doc comment) - real
-// component hierarchies never get remotely this deep, this only guards
-// against a pathological/cyclic chain.
-const MAX_EXTENDS_DEPTH = 20;
-
-function blockTag(y: string) {
-  return `<:${y} as |a b c d e f g h i j k l|>{{yield a b c d e f g h i j k l to='${y}'}}</:${y}>`;
-}
-
-function invocation(selected: string[]) {
-  if (!selected.length) {
-    return `<this.curried @__hot__={{this.hot}} ...attributes />`;
-  }
-  return `<this.curried @__hot__={{this.hot}} ...attributes>${selected.map(blockTag).join('\n')}</this.curried>`;
-}
-
-// Glimmer determines a target component's `(has-block "y")` purely from
-// whether a `<:y>` named block tag is structurally present on the
-// invocation, not from whether that block's content renders anything, and
-// named block tags cannot be nested inside `{{#if}}` (a "named block nested
-// in a normal block" compile error). So a per-block `{{#if (has-block 'y')}}
-// <:y>...</:y>{{/if}}` inside a single invocation can't work — instead this
-// recursively branches on `(has-block y)` for each known named block to
-// build one fully static invocation per combination of blocks the caller
-// actually passed, so blocks not passed are truly absent rather than merely
-// empty (see #531).
-function generateInvocations(remaining: string[], selected: string[]): string {
-  if (!remaining.length) {
-    return invocation(selected);
-  }
-  const [y, ...rest] = remaining;
-  return `{{#if (has-block '${y}')}}${generateInvocations(rest, [...selected, y])}{{else}}${generateInvocations(rest, selected)}{{/if}}`;
-}
-
-function generateContent(yields: string[]) {
-  if (!yields.includes('default')) {
-    yields.push('default');
-  }
-  if (yields.length > MAX_COMBINATORIAL_YIELDS) {
-    let all = yields.map((y) => `(has-block '${y}')`).join(' ');
-    return `
-    {{#if (notAny ${all})}}
-        <this.curried @__hot__={{this.hot}} ...attributes />
-    {{else}}
-        ${invocation(yields)}
-    {{/if}}
-  `;
-  }
-  return generateInvocations(yields, []);
-}
-
-const getHotComponent = (imp: string, specifier: string, yields: string[]) => `
-import { ${specifier} as TargetComponent } from "${imp}";
-import Component from "@glimmer/component";
-import { tracked } from "@glimmer/tracking";
-import { createComputeRef } from "@glimmer/reference";
-import { curry } from '@glimmer/runtime';
-import { registerDestructor } from '@ember/destroyable';
-import { getInternalComponentManager, setInternalComponentManager } from '@glimmer/manager';
-
-function notAny(...yields) {
-  return !yields.some((y) => !!y);
-}
-
-const hotCallbacks = new Set();
-
-if (import.meta.hot) {
-  import.meta.hot.accept('${imp}', (module) => {
-    import.meta.hot.data.latestModule = module;
-    for (const callback of hotCallbacks) {
-      callback(module);
-    }
-  });
-}
-
-// Stack of CapturedArguments (see @glimmer/interfaces), pushed by the shadow
-// component manager below right before it constructs a HotComponent instance,
-// and peeked (not popped) here in the constructor. It is always non-empty at
-// this point because HotComponent is only ever created through that manager.
-const capturedArgsStack = [];
-
-export default class HotComponent extends Component {
-  @tracked curried;
-  hot = {};
-  constructor(owner, args) {
-    super(owner, args);
-    const capturedArgs = capturedArgsStack[capturedArgsStack.length - 1];
-    const named = {};
-    const positional = [];
-    for (const name of Object.keys(args)) {
-      // Forward the caller's original, updatable reference (e.g. a path like
-      // "this.value") instead of wrapping the reified value in a fresh
-      // read-only compute ref. A read-only ref fails Ember's "You can only
-      // pass a path to mut" check, breaking {{mut @arg}} in wrapped components.
-      named[name] = capturedArgs?.named[name] ?? createComputeRef(() => args[name]);
-    }
-    const CurriedComponent = 0;
-    // After an accepted update this module is not re-evaluated, so the static
-    // TargetComponent binding still points at the pre-update module. Instances
-    // created after the update must curry the latest accepted class instead.
-    const Target = import.meta.hot?.data.latestModule?.default ?? TargetComponent;
-    this.curried = curry(CurriedComponent, Target, owner, { positional, named});
-    if (import.meta.hot) {
-      const callback = (module) => {
-        this.curried = curry(CurriedComponent, module.default, owner, { positional, named});
-      };
-      hotCallbacks.add(callback);
-      registerDestructor(this, () => {
-        hotCallbacks.delete(callback);
-      });
-    }
-  }
-
-  <template>
-    ${generateContent(yields)}
-  </template>
-}
-
-// HotComponent's own args (the reified values passed to its constructor
-// above) only expose values, not the underlying VM references, so the raw
-// references have to be captured one level down, in the internal component
-// manager's create() hook, before Ember reifies them into that value-only
-// proxy. Shadowing the manager (rather than patching the shared default
-// manager's create()) scopes the capture to HotComponent only; getManager()
-// walks the prototype chain and finds this before reaching @glimmer/component's
-// default manager.
-const defaultManager = getInternalComponentManager(Component);
-const shadowManager = Object.create(defaultManager);
-shadowManager.create = function (owner, definition, vmArgs) {
-  capturedArgsStack.push(vmArgs.capture());
-  try {
-    return defaultManager.create(owner, definition, vmArgs);
-  } finally {
-    capturedArgsStack.pop();
-  }
-};
-// Glimmer's debug render tree normally adds one 'component' node per
-// invoked component instance (see VM_GET_COMPONENT_SELF_OP). Returning no
-// nodes here suppresses that node for HotComponent itself, so only the
-// real, curried target component (invoked in HotComponent's own template)
-// shows up in ember-inspector's component tree - this is the same hook
-// Ember core uses internally to keep its own {{outlet}}/{{mount}} wrapper
-// machinery out of (or relabeled in) that tree (see OutletComponentManager
-// and MountManager in ember-source).
-shadowManager.getDebugCustomRenderTree = function () {
-  return [];
-};
-setInternalComponentManager(shadowManager, HotComponent);
-`;
-
-const cachedYields: Record<
-  string,
-  {
-    yields: Set<string>;
-    modules: string[];
-  }
-> = {};
-
-function getYieldsFromFile(
-  filename: string,
-  content: string,
-  noCache?: boolean,
-) {
-  if (cachedYields[filename] && !noCache) {
-    return cachedYields[filename];
-  }
-  // very basic, todo: make this use AST
-  const matches = content.matchAll(/to=['"\\]+(\w+)['"\\]+/g);
-  const yields = new Set(
-    [...matches].map((m) => m?.[1]).filter((m) => !!m) as string[],
-  );
-  if (noCache) {
-    return {
-      yields,
-      modules: [],
-    };
-  }
-  cachedYields[filename] = {
-    yields,
-    modules: [],
-  };
-  return cachedYields[filename];
-}
-
-function difference(a: Set<string>, b: Set<string>) {
-  const diff = [];
-  for (const bElement of b) {
-    if (!a.has(bElement)) {
-      diff.push(bElement);
-    }
-  }
-  return diff;
-}
-
-// Helper function to normalize paths consistently across platforms
-function normalizePath(inputPath: string): string {
-  // Always convert backslashes to forward slashes
-  return inputPath.replace(/\\/g, '/');
-}
-
-// The compiled backing class embeds an import specifier as a browser-facing
-// URL (i.e. prefixed with the configured vite `base`), since that's what
-// gets sent to the client. But `server.transformRequest` is an internal API
-// keyed by root-relative ids, so the base has to be stripped back off before
-// reusing that specifier, or a lookup 404s under a non-root base.
-function stripBase(specifier: string, base: string): string {
-  if (base !== '/' && specifier.startsWith(base)) {
-    return `/${specifier.slice(base.length)}`;
-  }
-  return specifier;
-}
-
-// A component's compiled module only calls `setComponentTemplate` on itself
-// when it owns a template directly (an inline `<template>`); it's absent
-// both for a classic component whose template lives in a separately
-// resolved colocated `.hbs` (see the `.hbs` import check this feeds into)
-// and for a component with no template of its own at all, which inherits
-// whatever's registered on its nearest ancestor class instead (Glimmer's
-// `getComponentTemplate`/`setComponentTemplate`, vendored in ember-source's
-// `@glimmer/manager`, resolve a component's template by walking
-// `Object.getPrototypeOf` up the prototype chain - the same mechanism
-// `getInternalComponentManager` uses, see the `shadowManager` comment above).
-function findSuperclassImportSource(content: string): string | null {
-  let result;
-  try {
-    result = parseSync(content, {
-      filename: 'hmr-extends-check.js',
-      ast: true,
-      code: false,
-      configFile: false,
-      babelrc: false,
-      plugins: [
-        ['@babel/plugin-syntax-typescript', { isTSX: true }],
-        ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
-      ],
-    });
-  } catch {
-    return null;
-  }
-  if (!result) {
-    return null;
-  }
-
-  // Prefer the default-exported class specifically (that's always the
-  // component itself) over "the first class with a superclass in the file",
-  // since a file can declare other, unrelated classes above it (a local
-  // helper class, etc.) that would otherwise be matched instead.
-  let superName: string | null = null;
-  traverse(result, {
-    ExportDefaultDeclaration(
-      path: NodePath<{
-        declaration: {
-          type: string;
-          name?: string;
-          superClass?: { type?: string; name?: string };
-        };
-      }>,
-    ) {
-      const declaration = path.node.declaration;
-      let classNode = declaration;
-      if (declaration.type === 'Identifier' && declaration.name) {
-        const binding = path.scope.getBinding(declaration.name);
-        if (
-          binding?.path.isClassDeclaration() ||
-          binding?.path.isClassExpression()
-        ) {
-          classNode = binding.path.node as unknown as typeof declaration;
-        }
-      }
-      const superClass = classNode.superClass;
-      if (superClass?.type === 'Identifier' && superClass.name) {
-        superName = superClass.name;
-      }
-    },
-  });
-  if (!superName) {
-    // Fall back to the first class with a superclass anywhere in the file
-    // (e.g. a non-default-exported component, or an export form the check
-    // above doesn't specifically handle).
-    traverse(result, {
-      'ClassDeclaration|ClassExpression'(
-        path: NodePath<{ superClass?: { type?: string; name?: string } }>,
-      ) {
-        if (superName) {
-          return;
-        }
-        const superClass = path.node.superClass;
-        if (superClass?.type === 'Identifier' && superClass.name) {
-          superName = superClass.name;
-        }
-      },
-    });
-  }
-  if (!superName) {
-    return null;
-  }
-
-  let source: string | null = null;
-  traverse(result, {
-    ImportDeclaration(
-      path: NodePath<{
-        specifiers: Array<{ local: { name: string } }>;
-        source: { value: string };
-      }>,
-    ) {
-      if (source) {
-        return;
-      }
-      if (path.node.specifiers.some((s) => s.local.name === superName)) {
-        source = path.node.source.value;
-      }
-    },
-  });
-  return source;
-}
-
-// If `content` (already run through `server.transformRequest`) registers a
-// template on itself - either inline, or via a colocated `.hbs` import -
-// returns that template's own source. Returns null when this file has no
-// template of its own to scan, meaning any named blocks it uses have to be
-// found on an ancestor class instead (see resolveYieldSource).
-async function resolveOwnTemplateSource(
-  server: ViteDevServer,
-  base: string,
-  filename: string,
-  content: string,
-): Promise<{ filename: string; content: string } | null> {
-  // For a classic component with a separately resolved template (a colocated
-  // `.hbs` file next to a backing class, or a template-only component), the
-  // compiled backing module only *imports* its template (e.g. `import TEMPLATE
-  // from "./foo.hbs?import"`); it doesn't inline it. Any {{yield ... to="..."}}
-  // usage lives in that template file, so it has to be fetched and scanned
-  // separately, otherwise named blocks other than "default" are never detected
-  // and get silently dropped by the generated hot-reload wrapper.
-  const templateImportMatch = content.match(
-    /\bfrom\s*['"]([^'"]+\.hbs(?:\?[^'"]*)?)['"]/,
-  );
-  if (templateImportMatch) {
-    const templateSpecifier = stripBase(templateImportMatch[1]!, base);
-    const templateRes = await server.transformRequest(templateSpecifier);
-    return { filename: templateSpecifier, content: templateRes?.code ?? '' };
-  }
-  if (content.includes('setComponentTemplate(')) {
-    return { filename, content };
-  }
-  return null;
-}
-
-// Determines which file's source should be scanned for named-block
-// (`{{yield ... to="..."}}`) usage for the component at `filename`/`content`.
-// Usually that's the component's own file (or its colocated `.hbs`, handled
-// by resolveOwnTemplateSource). But a component with no template of its own
-// renders whatever template is registered on its nearest ancestor class (see
-// resolveOwnTemplateSource's doc comment) - previously this only ever
-// scanned the child's own (template-less) file, silently dropping every
-// named block other than "default" for any component subclassed without its
-// own template. This walks the `extends` chain, resolving each ancestor's
-// import the same way Vite already resolved it in the already-transformed
-// source, until one with its own template is found.
-async function resolveYieldSource(
-  server: ViteDevServer,
-  base: string,
-  filename: string,
-  content: string,
-): Promise<{ filename: string; content: string }> {
-  const own = await resolveOwnTemplateSource(server, base, filename, content);
-  if (own) {
-    return own;
-  }
-
-  const seen = new Set<string>([filename]);
-  let currentContent = content;
-  for (let i = 0; i < MAX_EXTENDS_DEPTH; i++) {
-    const superSource = findSuperclassImportSource(currentContent);
-    if (!superSource) {
-      break;
-    }
-    const superSpecifier = stripBase(superSource, base);
-    // Framework/addon base classes live in node_modules and are never
-    // hot-tracked by this plugin (see the node_modules skip in `transform`);
-    // stop there rather than walking into vendored internals.
-    if (seen.has(superSpecifier) || superSpecifier.includes('node_modules')) {
-      break;
-    }
-    seen.add(superSpecifier);
-    let superContent: string | undefined;
-    try {
-      // Unlike the `.hbs` specifier resolveOwnTemplateSource requests
-      // (always something Vite itself already resolved for a file we
-      // successfully transformed), this specifier can be anything a
-      // superclass import resolved to, including forms
-      // `transformRequest` can't handle. Failing to resolve an ancestor's
-      // template is the same "no named blocks found" outcome as before
-      // this fix existed - it must never fail the whole component load.
-      const superRes = await server.transformRequest(superSpecifier);
-      superContent = superRes?.code;
-    } catch {
-      break;
-    }
-    if (!superContent) {
-      break;
-    }
-    const superOwn = await resolveOwnTemplateSource(
-      server,
-      base,
-      superSpecifier,
-      superContent,
-    );
-    if (superOwn) {
-      return superOwn;
-    }
-    currentContent = superContent;
-  }
-  return { filename, content };
-}
-
-const virtualPrefix = '/ember-vite-hmr/virtual/component:';
-
 // Embroider's resolver registry. It's the binding the app entry's HMR hook
 // mutates, so we use it to locate that entry. Embroider keeps this as an
 // internal literal (not a public export), so we mirror the string here.
 const compatModulesSpecifier = '@embroider/virtual/compat-modules';
 
-export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
-  let base = '/';
-  let server: ViteDevServer;
+export const hmrRuntimeId = 'virtual:ember-vite-hmr-runtime';
+const resolvedRuntimeId = '\0' + hmrRuntimeId;
+
+// This runs in the browser.
+// It has no imports on purpose: a virtual module has no location on disk,
+// so Embroider's resolver has nothing to resolve `@glimmer/tracking` against.
+// The app modules that call `define` can import `tracked` normally and pass
+// it in.
+//
+// `byValue` lets an old reference to a component class find its current
+// registry entry, so modules holding stale bindings still serve the newest
+// version.
+//
+// `consumed` lets a self-accepting module that nobody rendered through
+// fall back to `invalidate()` rather than silently doing nothing.
+//
+// `tracked` is called as a function (not a decorator syntax), so the runtime
+// doesn't depend on the app's Babel decorator config.
+const runtimeSource = `
+const entries = new WeakMap();
+
+// Per-class FIFO queues of live component instances, used to pair old instances
+// (being destroyed by an HMR swap) with the new instances that replace them.
+// Keyed by the NEW class (the replacement). Cleared at update() time so that
+// instances created by normal user-flow navigation before the swap are never
+// in the queue — only instances created after the swap callback fires.
+const liveInstanceQueues = new WeakMap();
+
+function isRef(value) {
+  return value !== null && (typeof value === 'object' || typeof value === 'function');
+}
+
+function makeEntry(tracked, value) {
+  class Entry {}
+  const desc = tracked(Entry.prototype, 'current', { configurable: true, enumerable: true, writable: true, initializer: null });
+  Object.defineProperty(Entry.prototype, 'current', desc);
+  const entry = new Entry();
+  entry.current = value;
+  entry.consumed = false;
+  return entry;
+}
+
+// Register value for the first time. No-op if already registered.
+export function register(value, tracked) {
+  if (!isRef(value)) return;
+  if (!entries.has(value)) {
+    entries.set(value, makeEntry(tracked, value));
+  }
+}
+
+// Re-point an existing entry from oldValue to newValue.
+// Also registers newValue under the same entry so future current() calls
+// on newValue resolve to whatever is current at that point.
+//
+// Clearing liveInstanceQueues[newValue] here is the key to correctness for
+// syncState across user-flow create/destroy cycles. Any instances of newValue
+// created and destroyed by normal navigation *before* this swap happened are
+// stale. By resetting the queue at swap time, only instances created *after*
+// this update() call (the replacement instances Glimmer is about to create)
+// are eligible to receive state from the old instances being torn down.
+export function update(oldValue, newValue) {
+  if (!isRef(oldValue)) return;
+  const entry = entries.get(oldValue);
+  if (entry) {
+    entry.current = newValue;
+    if (isRef(newValue)) {
+      entries.set(newValue, entry);
+      // Clear the queue for newValue so only instances created after this
+      // swap are paired with old instances being torn down.
+      liveInstanceQueues.delete(newValue);
+    }
+    // oldValue is being retired — it will never be the target of a future
+    // dequeueInstance() call, so any queued instances for it are now stale.
+    liveInstanceQueues.delete(oldValue);
+  }
+}
+
+export function current(value) {
+  if (!isRef(value)) return value;
+  const entry = entries.get(value);
+  if (!entry) return value;
+  entry.consumed = true;
+  return entry.current;
+}
+
+export function used(value) {
+  if (!isRef(value)) return false;
+  return Boolean(entries.get(value)?.consumed);
+}
+
+// Returns true if value has been registered with the HMR runtime.
+// Used by setup-hmr-manager.ts to skip non-HMR components when building
+// the liveInstances queue so stale entries don't corrupt later HMR swaps.
+export function isHmrClass(value) {
+  return isRef(value) && entries.has(value);
+}
+
+// Called from setup-hmr-manager.ts's create() hook for each new HMR-registered
+// component instance. Appends to the per-class queue in DOM (creation) order.
+export function enqueueInstance(klass, instance) {
+  if (!isRef(klass)) return;
+  const q = liveInstanceQueues.get(klass);
+  if (q) {
+    q.push(instance);
+  } else {
+    liveInstanceQueues.set(klass, [instance]);
+  }
+}
+
+// Called from setup-hmr-manager.ts's willDestroy hook. Returns and removes the
+// oldest queued instance for klass (FIFO = DOM order), or null if none.
+export function dequeueInstance(klass) {
+  if (!isRef(klass)) return null;
+  const q = liveInstanceQueues.get(klass);
+  if (!q || q.length === 0) return null;
+  const instance = q.shift();
+  if (q.length === 0) liveInstanceQueues.delete(klass);
+  return instance ?? null;
+}
+
+// Expose helpers on the global so setup-hmr-manager.ts's synchronous
+// initialize() can call them without a dynamic import.
+globalThis.__ember_vite_hmr = { current, isHmrClass, enqueueInstance, dequeueInstance };
+`;
+
+// `enforce: 'pre'` makes this run before Embroider's resolver, which would
+// otherwise try to resolve the virtual id as a package and fail.
+// `apply: 'serve'` keeps it out of production builds entirely.
+export function hmrRuntime(): Plugin {
   return {
+    name: 'ember-vite-hmr-runtime',
+    enforce: 'pre',
+    apply: 'serve',
+    resolveId(source) {
+      if (source === hmrRuntimeId) {
+        return resolvedRuntimeId;
+      }
+    },
+    load(id) {
+      if (id === resolvedRuntimeId) {
+        return runtimeSource;
+      }
+    },
+  };
+}
+
+// Helper function to normalize paths consistently across platforms
+function normalizePath(inputPath: string): string {
+  return inputPath.replace(/\\/g, '/');
+}
+
+export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin[] {
+  let base = '/';
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let server: ViteDevServer;
+  const mainPlugin: Plugin = {
     name: 'hmr-plugin',
     enforce: 'post',
     config(config, env) {
-      // The per-component hot wrapper (see getHotComponent) imports the first
-      // four of these, but it is generated/served on demand, so it is never
-      // part of the static module graph Vite's dependency scanner crawls on
-      // the first pass. `@ember/component/template-only` has the same
-      // problem for a different reason: it's injected by the template
-      // compiler into a template-only component's compiled output, which the
-      // scanner (source-only) never sees either. Without pre-declaring them,
-      // the browser requests them on boot, Vite discovers "new" deps and
-      // triggers a re-optimize + full page reload.
-      //
-      // We must use the Embroider-rewritten `ember-source/...` subpaths: the
-      // bare `@glimmer/reference` etc. specifiers the wrapper writes cannot be
-      // resolved by optimizeDeps.include. (`@glimmer/component` and
-      // `@glimmer/tracking` are omitted on purpose — normal app code already
-      // pulls them into the scan.)
       if (!enableViteHmrForModes.includes(env.mode)) {
         return;
       }
       // With `optimizeDeps.noDiscovery: true`, Vite never scans the app's own
-      // source, so nothing else pulls these same glimmer subpaths into the
-      // optimizer. Forcing them into `include` then creates a second,
-      // separately pre-bundled copy of the glimmer VM alongside the
-      // unoptimized one the rest of the (unscanned) app actually uses,
-      // leading to "The global context for Glimmer VM was not set" (#554).
-      // There's nothing useful this hook can pre-declare in that mode, so
-      // skip it entirely rather than fight the user's own dep-optimization
-      // config.
+      // source, so nothing else pulls these glimmer subpaths into the optimizer.
+      // Forcing them into `include` then creates a second, separately pre-bundled
+      // copy of the glimmer VM alongside the unoptimized one the rest of the
+      // (unscanned) app actually uses, leading to "The global context for Glimmer
+      // VM was not set" (#554). Skip entirely in that mode.
       if (config.optimizeDeps?.noDiscovery) {
         return;
       }
       return {
         optimizeDeps: {
           include: [
-            'ember-source/@glimmer/reference/index.js',
-            'ember-source/@glimmer/runtime/index.js',
-            'ember-source/@ember/destroyable/index.js',
-            'ember-source/@glimmer/manager/index.js',
             'ember-source/@ember/component/template-only.js',
           ],
         },
@@ -505,22 +208,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       if (id.includes('@ember-vite-hmr/setup-ember-hmr.js')) {
         return id;
       }
-      if (importer?.startsWith(virtualPrefix)) {
-        const newImporter = path.join(process.cwd(), 'package.json');
-        importer = newImporter;
-        return this.resolve(id, importer, meta);
-      }
-      if (id.startsWith(virtualPrefix)) {
-        let [imp, specifier] = id
-          .split('?')[0]!
-          .slice(virtualPrefix.length)
-          .split('::');
-        if (imp?.startsWith('.')) {
-          const r = await this.resolve(imp, importer);
-          return id.replace(`${imp}::${specifier}`, `${r!.id}::${specifier}`);
-        }
-        return id;
-      }
       if (id === '/ember-vite-hmr/services/vite-hot-reload') {
         return this.resolve(
           'ember-vite-hmr/services/vite-hot-reload',
@@ -534,42 +221,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         return await readFile(
           path.resolve(__dirname, '..', 'setup-ember-hmr.js'),
           'utf8',
-        );
-      }
-      if (id.startsWith(virtualPrefix)) {
-        if (!server) {
-          // During build, server is not available
-          return null;
-        }
-        let [imp, specifier] = id
-          .split('?')[0]!
-          .slice(virtualPrefix.length, -'.gts'.length)
-          .split('::');
-        imp = imp!.replace('embroider_virtual', '@embroider/virtual');
-        let filename = imp!;
-        if (filename.includes('__vpc__')) {
-          filename = filename.split('__vpc__')[0]!;
-        }
-        const res = await server.transformRequest(filename);
-        const content = res?.code;
-
-        const { filename: yieldSourceFilename, content: yieldSourceContent } =
-          await resolveYieldSource(server, base, filename, content ?? '');
-
-        const resId = await this.resolve(
-          yieldSourceFilename,
-          path.resolve(process.cwd(), 'package.json'),
-        );
-        // Strip any query string so the cache key matches the plain file path that
-        // `hotUpdate` below receives when that template file is edited.
-        const cacheKey = resId!.id.split('?')[0]!;
-        const cached = getYieldsFromFile(cacheKey, yieldSourceContent ?? '');
-        const yields = cached.yields;
-        cached.modules.push(id);
-        return getHotComponent(
-          imp!,
-          specifier!,
-          [...yields]!.filter((y) => !!y),
         );
       }
     },
@@ -618,32 +269,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
       }
       return [...ctx.modules, ...otherModules];
     },
-    async hotUpdate(options) {
-      if (options.type === 'update' || options.type === 'create') {
-        const id = options.file;
-        const source = (await readFile(id)).toString();
-        if (
-          cachedYields[id] &&
-          difference(
-            cachedYields[id].yields,
-            getYieldsFromFile(id, source, true).yields,
-          ).length
-        ) {
-          for (const y of getYieldsFromFile(id, source).yields) {
-            cachedYields[id].yields.add(y);
-          }
-          const modules = cachedYields[id].modules;
-          delete cachedYields[id];
-          for (const module of modules) {
-            server.moduleGraph.onFileChange(module);
-            let m = server.moduleGraph.getModuleById(module);
-            if (m) {
-              await server.reloadModule(m);
-            }
-          }
-        }
-      }
-    },
     async transform(source, id) {
       if (process.env.EMBER_VITE_HMR_ENABLED !== 'true') {
         return source;
@@ -678,9 +303,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
                 });
               }`;
       }
-      if (resourcePath.includes('ember-vite-hmr/virtual/components')) {
-        return source;
-      }
 
       if (resourcePath.includes('node_modules')) {
         return source;
@@ -713,129 +335,55 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
         bindings = cached.bindings;
         importStatements = cached.importStatements;
       } else {
-        const result = parseSync(source, {
-          filename: resourcePath,
-          ast: true,
-          code: false,
-          configFile: false,
-          babelrc: false,
-          plugins: [
-            ['@babel/plugin-syntax-typescript', { isTSX: true }],
-            ['@babel/plugin-proposal-decorators', { version: '2022-03' }],
-          ],
-        });
+        // Fall back to extracting metadata from the __hmr_import_metadata__
+        // export the babel plugin emits into the source.
+        const metaMatch = source.match(
+          /export const __hmr_import_metadata__ = (\{[\s\S]*?\});/,
+        );
+        if (metaMatch) {
+          try {
+            // eslint-disable-next-line no-new-func
+            const meta = new Function(`return ${metaMatch[1]}`)() as {
+              importVar: string;
+              bindings: string[];
+            };
+            importVar = meta.importVar;
+            bindings = meta.bindings ?? [];
+          } catch {
+            // unparseable metadata — skip
+          }
+        }
 
-        if (result) {
-          // First pass: Extract metadata
-          traverse(result, {
-            ExportNamedDeclaration(path: NodePath<{ declaration?: unknown }>) {
-              const declaration = (
-                path.node as {
-                  declaration?: {
-                    type?: string;
-                    declarations?: Array<{
-                      id?: { name?: string };
-                      init?: unknown;
-                    }>;
-                  };
-                }
-              ).declaration;
-
-              // Check if this is: export const __hmr_import_metadata__ = {...}
-              if (
-                declaration?.type === 'VariableDeclaration' &&
-                declaration.declarations?.[0]?.id?.name ===
-                  '__hmr_import_metadata__'
-              ) {
-                const init = declaration.declarations[0].init as {
-                  type?: string;
-                  properties?: Array<{
-                    type?: string;
-                    key?: { type?: string; name?: string };
-                    value?: {
-                      type?: string;
-                      value?: string;
-                      elements?: Array<{ type?: string; value?: string }>;
-                    };
-                  }>;
-                };
-
-                if (init?.type === 'ObjectExpression') {
-                  // Extract importVar and bindings from the object
-                  for (const prop of init.properties) {
-                    if (
-                      prop.type === 'ObjectProperty' &&
-                      prop.key.type === 'Identifier'
-                    ) {
-                      if (
-                        prop.key.name === 'importVar' &&
-                        prop.value.type === 'StringLiteral'
-                      ) {
-                        importVar = prop.value.value;
-                      } else if (
-                        prop.key.name === 'bindings' &&
-                        prop.value.type === 'ArrayExpression'
-                      ) {
-                        bindings = prop.value.elements
-                          .filter(
-                            (el: unknown) =>
-                              (el as { type?: string })?.type ===
-                              'StringLiteral',
-                          )
-                          .map(
-                            (el: unknown) => (el as { value: string }).value,
-                          );
-                      }
-                    }
-                  }
-                }
+        // Recover importStatements by scanning the source for each binding
+        if (importVar && bindings.length > 0) {
+          for (const binding of bindings) {
+            const importMatch = source.match(
+              new RegExp(
+                `import\\s+(?:(${binding})|(\\{[^}]*\\b${binding}\\b[^}]*\\})|\\*\\s+as\\s+(${binding}))\\s+from\\s+['"]([^'"]+)['"]`,
+              ),
+            );
+            if (importMatch) {
+              const src = importMatch[4]!;
+              let specifier = 'default';
+              if (importMatch[2]) {
+                // named import — find alias or name
+                const namedMatch = importMatch[2].match(
+                  new RegExp(`(\\w+)\\s+as\\s+${binding}|${binding}`),
+                );
+                specifier = namedMatch?.[1] ?? binding;
+              } else if (importMatch[3]) {
+                specifier = '*';
               }
-            },
-          });
-
-          // Second pass: Find matching imports (only if we have bindings to match)
-          if (importVar && bindings.length > 0) {
-            traverse(result, {
-              ImportDeclaration(path) {
-                const importSource = path.node.source.value;
-
-                for (const specifier of path.node.specifiers) {
-                  const local = specifier.local.name;
-
-                  if (bindings.includes(local)) {
-                    let specifierName = 'default';
-
-                    if (specifier.type === 'ImportDefaultSpecifier') {
-                      specifierName = 'default';
-                    } else if (specifier.type === 'ImportSpecifier') {
-                      // For named imports, use the imported name
-                      // Handle both Identifier and StringLiteral types
-                      const imported = specifier.imported;
-                      specifierName =
-                        imported.type === 'Identifier'
-                          ? imported.name
-                          : imported.value;
-                    } else if (specifier.type === 'ImportNamespaceSpecifier') {
-                      specifierName = '*';
-                    }
-
-                    importStatements.push({
-                      local,
-                      source: importSource,
-                      specifier: specifierName,
-                    });
-                  }
-                }
-              },
-            });
+              importStatements.push({ local: binding, source: src, specifier });
+            }
           }
         }
       }
 
       // Process metadata if we found importVar (even with empty bindings)
       if (importVar) {
-        // Generate hot reload code for each import (only if we have bindings)
         const hotReloadStatements: string[] = [];
+
         for (const imp of importStatements) {
           // Resolve the import to check if it's from node_modules
           const resolved = await this.resolve(imp.source, resourcePath, {});
@@ -843,37 +391,29 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
             resolved?.id &&
             normalizePath(resolved.id).includes('node_modules')
           ) {
-            // Skip node_modules imports
             continue;
           }
 
-          const sourceId = imp.source.replace(
-            /@embroider\/virtual/g,
-            'embroider_virtual',
-          );
-          const virtualPath = `/ember-vite-hmr/virtual/component:${sourceId}::${imp.specifier}.gjs`;
-
+          // Each imported binding is already a local variable in scope thanks
+          // to its import statement. Register it by value on first load so
+          // `current(binding)` (called by the template__imports__ getter) has
+          // an entry to read from. When the dep module reloads, update() sets
+          // entry.current = newVal — the getter re-reads it, invalidating only
+          // the scope that contains the getter call, not the parent scope.
+          // No assignment to template__imports__.X needed: the getter handles it.
           hotReloadStatements.push(`
   (async () => {
-    const GlimmerComponent = (await import('@glimmer/component')).default;
-    const { hasInternalComponentManager } = await import('@glimmer/manager');
-    // Class-based Glimmer components are functions, detected the cheap way
-    // via prototype chain. Template-only components (no backing class, e.g.
-    // a bare \`<template>\` export) are plain objects instead, so they have to
-    // be recognized by checking for a registered component manager - that
-    // also keeps helpers/modifiers (which use separate manager registries)
-    // out of this branch.
-    const isComponent = typeof ${imp.local} === 'function'
-      ? ${imp.local}.prototype instanceof GlimmerComponent
-      : typeof ${imp.local} === 'object' && ${imp.local} !== null && hasInternalComponentManager(${imp.local});
-    if (isComponent) {
-      const c = await import('${virtualPath}');
-      ${importVar}.${imp.local} = c.default;
-      import.meta.hot.accept('${virtualPath}', (c) => {
-        ${importVar}.${imp.local} = c['${imp.specifier}'];
-      });
-      import.meta.hot.accept('${imp.source}');
-    }
+    const { register: ember_vite_hmr_register, update: ember_vite_hmr_update, used: ember_vite_hmr_used } = await import(${JSON.stringify(hmrRuntimeId)});
+    const { tracked: ember_vite_hmr_tracked } = await import('@glimmer/tracking');
+    ember_vite_hmr_register(${imp.local}, ember_vite_hmr_tracked);
+    import.meta.hot.accept(${JSON.stringify(imp.source)}, (m) => {
+      if (m) {
+        const newVal = m[${JSON.stringify(imp.specifier === 'default' ? 'default' : imp.specifier)}];
+        ember_vite_hmr_update(${imp.local}, newVal);
+      } else if (!ember_vite_hmr_used(${imp.local})) {
+        import.meta.hot.invalidate('nothing rendered ${imp.local} through the HMR runtime');
+      }
+    });
   })();`);
         }
 
@@ -883,14 +423,22 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           '',
         );
 
-        // Add HMR code if we have any statements OR if we have bindings (even if all were skipped)
-        if (hotReloadStatements.length > 0 || bindings.length > 0) {
-          const hotReloadCode = `
-if (import.meta.hot) {
-${hotReloadStatements.join('\n')}
-}`;
-          source = source + hotReloadCode;
-        }
+        // Do NOT add a self-accept in the importVar block.
+        //
+        // When module A imports module B, and B's template__imports__ class is in
+        // A's scope, A must be notified when B changes (so A's accept callback can
+        // swap in the new B class via template__imports__.B = newB). If B were to
+        // self-accept, Vite would stop propagation before A's callback fires — A's
+        // template__imports__ would never be updated, and Glimmer would never
+        // re-render. The same applies to route templates: they rely on Ember's
+        // canAcceptNew mechanism (added below), which self-accept would bypass.
+        //
+        // Components without importVar (no template imports) get a self-accept in
+        // the section below, after the supportedPaths check.
+        const hotReloadCode = hotReloadStatements.length > 0
+          ? `\nif (import.meta.hot) {\n${hotReloadStatements.join('\n')}\n}`
+          : '';
+        source = source + hotReloadCode;
       }
 
       const supportedPaths = ['routers', 'controllers', 'routes', 'templates'];
@@ -909,6 +457,57 @@ ${hotReloadStatements.join('\n')}
         !supportedPaths.some((s) => resourcePath.includes(`/${s}/`)) &&
         !supportedFileNames.some((s) => resourcePath.endsWith(s))
       ) {
+        // Component files (including template-less .ts/.js ones that just extend
+        // another component) that have no cross-component imports need a
+        // self-accept boundary so edits to them don't propagate up to a full
+        // page reload.  Restrict plain .ts/.js to paths under /components/ to
+        // avoid accidentally self-accepting services, utilities, adapters, etc.
+        const isComponentFile =
+          resourcePath.endsWith('.gjs') ||
+          resourcePath.endsWith('.gts') ||
+          ((resourcePath.endsWith('.ts') || resourcePath.endsWith('.js')) &&
+            resourcePath.includes('/components/'));
+        if (isComponentFile && !importVar) {
+          // Self-accept with a callback that updates the tracked-cell registry
+          // so Glimmer re-renders and swaps in the new class. This handles
+          // edits to the component's own class (new method, changed @tracked
+          // property, etc.) — without it, a bare accept() would silently
+          // discard the new class and leave the running instance on the old one.
+          //
+          // Only do this when there is no importVar (no template imports of
+          // other components). When importVar is present, the component's own
+          // importer already has an accept(dep, cb) that fires when this file
+          // changes — adding a self-accept here would stop Vite's propagation
+          // before that callback can fire, breaking the re-render. The same
+          // applies to re-export barrels: a self-accept on my-button.ts stops
+          // Vite walking up to index.ts's importer, silencing the accept
+          // callback that updates template__imports__.
+          //
+          // The babel plugin rewrites `export default <expr>` into
+          // `const __hmr_default__ = <expr>; export { __hmr_default__ as default }`
+          // giving us a stable local variable to register by value.
+          // hot.data.default carries the old value across self-accept
+          // re-evaluations so update() can find the existing entry.
+          return `${source}
+if (import.meta.hot) {
+  (async () => {
+    const { register: ember_vite_hmr_register, update: ember_vite_hmr_update, used: ember_vite_hmr_used } = await import(${JSON.stringify(hmrRuntimeId)});
+    const { tracked: ember_vite_hmr_tracked } = await import('@glimmer/tracking');
+    const _hmr_prev = import.meta.hot.data.default;
+    import.meta.hot.data.default = __hmr_default__;
+    if (_hmr_prev) {
+      ember_vite_hmr_update(_hmr_prev, __hmr_default__);
+    }
+    ember_vite_hmr_register(__hmr_default__, ember_vite_hmr_tracked);
+    import.meta.hot.accept((m) => {
+      if (m && !ember_vite_hmr_used(import.meta.hot.data.default)) {
+        import.meta.hot.invalidate('nothing rendered this component through the HMR runtime');
+      }
+    });
+  })();
+}
+`;
+        }
         return source;
       }
       if (
@@ -931,4 +530,5 @@ ${hotReloadStatements.join('\n')}
   `;
     },
   };
+  return [hmrRuntime(), mainPlugin];
 }

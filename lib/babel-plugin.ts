@@ -77,6 +77,63 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
           return;
         }
         transformServiceExport(babel, path, state);
+        // For every non-service default export, rewrite:
+        //   export default <expr>
+        // into:
+        //   const __hmr_default__ = <expr>;
+        //   export { __hmr_default__ as default };
+        //
+        // This gives lib/hmr.ts's appended HMR code a stable local variable
+        // name to pass to register()/update()/used() regardless of whether
+        // the export is a named class, an anonymous expression, or a compiled
+        // template. Services are excluded because they are already rewritten
+        // by transformServiceExport above with their own proxy mechanism.
+        const normalizedFilename = state.filename?.replace(/\\/g, '/');
+        if (normalizedFilename?.includes('/services/')) {
+          return;
+        }
+        const t = babel.types;
+        const declaration = path.node.declaration;
+        // If the declaration is already a named class/function, it becomes a
+        // declaration statement in its own right — just export the identifier.
+        if (
+          (declaration.type === 'ClassDeclaration' ||
+            declaration.type === 'FunctionDeclaration') &&
+          declaration.id
+        ) {
+          const id = declaration.id;
+          path.replaceWithMultiple([
+            declaration,
+            t.variableDeclaration('const', [
+              t.variableDeclarator(
+                t.identifier('__hmr_default__'),
+                t.identifier(id.name),
+              ),
+            ]),
+            t.exportNamedDeclaration(null, [
+              t.exportSpecifier(
+                t.identifier('__hmr_default__'),
+                t.identifier('default'),
+              ),
+            ]),
+          ]);
+        } else {
+          // Anonymous expression (template-only component, arrow fn, etc.)
+          path.replaceWithMultiple([
+            t.variableDeclaration('const', [
+              t.variableDeclarator(
+                t.identifier('__hmr_default__'),
+                declaration as BabelTypesNamespace.Expression,
+              ),
+            ]),
+            t.exportNamedDeclaration(null, [
+              t.exportSpecifier(
+                t.identifier('__hmr_default__'),
+                t.identifier('default'),
+              ),
+            ]),
+          ]);
+        }
       },
       Program(path, state) {
         if (process.env.EMBER_VITE_HMR_ENABLED !== 'true') {
