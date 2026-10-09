@@ -2,6 +2,7 @@ import { LinkTo } from '@ember/routing';
 import Greeting from '../components/greeting';
 import BlockChild from '../components/block-child';
 import ResourceHolder from '../components/resource-holder';
+import MultiCounter from '../components/multi-counter';
 
 <template>
   <h1 class="equipment-page">Equipment</h1>
@@ -13,6 +14,7 @@ import ResourceHolder from '../components/resource-holder';
     <:header>block header content</:header>
   </BlockChild>
   <ResourceHolder />
-  <ResourceHolder />
+  <MultiCounter />
+  <MultiCounter />
   <LinkTo @route="project">Go to project &rarr;</LinkTo>
 </template>
