@@ -390,6 +390,14 @@ ${selfAccept}
         !supportedPaths.some((s) => resourcePath.includes(`/${s}/`)) &&
         !supportedFileNames.some((s) => resourcePath.endsWith(s))
       ) {
+        // .gjs/.gts component files that have no cross-component imports
+        // (no template__imports__ class, so importVar was never set) still
+        // need a self-accept boundary so edits to them don't propagate up
+        // to a full page reload.
+        const isGjsGts = resourcePath.endsWith('.gjs') || resourcePath.endsWith('.gts');
+        if (isGjsGts && !importVar) {
+          return `${source}\nif (import.meta.hot) { import.meta.hot.accept(); }\n`;
+        }
         return source;
       }
       if (
