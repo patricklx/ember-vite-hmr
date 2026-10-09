@@ -13,5 +13,6 @@ import ResourceHolder from '../components/resource-holder';
     <:header>block header content</:header>
   </BlockChild>
   <ResourceHolder />
+  <ResourceHolder />
   <LinkTo @route="project">Go to project &rarr;</LinkTo>
 </template>

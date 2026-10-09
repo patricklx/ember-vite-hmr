@@ -13,22 +13,19 @@ type Mutable<T> = {
   -readonly [P in keyof T]: unknown;
 };
 
-// Accessor for the HMR runtime's `current()` helper exposed on the global by
+// Accessor for the HMR runtime helpers exposed on the global by
 // virtual:ember-vite-hmr-runtime. Only set in dev/serve mode (guarded by
 // `if (!import.meta.hot)` at the call site).
 interface HmrRuntime {
   current: (value: unknown) => unknown;
+  isHmrClass: (value: unknown) => boolean;
+  enqueueInstance: (klass: unknown, instance: HotComponent) => void;
+  dequeueInstance: (klass: unknown) => HotComponent | null;
 }
 
 function hmrRuntime(): HmrRuntime | undefined {
   return (globalThis as unknown as { __ember_vite_hmr?: HmrRuntime }).__ember_vite_hmr;
 }
-
-// Tracks the most-recently-created live instance per component class.
-// Used by the willDestroy hook to look up the new instance for state transfer.
-// (Glimmer creates the new instance before the old one's willDestroy fires, so
-// we need this indirection to find the new instance at willDestroy time.)
-const liveInstances = new WeakMap<object, HotComponent>();
 
 function findPropertyDescriptor(
   component: HotComponent | Record<string, unknown>,
@@ -148,10 +145,15 @@ export function initialize() {
     const bucket = create.call(this, ...args);
     const component = bucket.component as HotComponent;
 
-    // Track the live instance for this class so that the willDestroy hook
-    // on the OLD instance (which fires after create) can find it.
+    // Enqueue this instance in the runtime's per-class FIFO queue. The runtime
+    // only enqueues when isHmrClass(klass) is true (registered HMR class), and
+    // clears the queue at update() time so user-flow stale entries are never
+    // present when willDestroy fires during an HMR swap.
     const klass = component.constructor as object;
-    liveInstances.set(klass, component);
+    const rt = hmrRuntime();
+    if (rt?.isHmrClass(klass)) {
+      rt.enqueueInstance(klass, component);
+    }
 
     return bucket;
   };
@@ -171,9 +173,10 @@ export function initialize() {
       const klass = this.constructor as object;
       const newClass = rt.current(klass);
       if (newClass !== klass) {
-        // The class was swapped via HMR — find the live instance of the
-        // replacement class and schedule a state transfer onto it.
-        const newInstance = liveInstances.get(newClass as object);
+        // The class was swapped via HMR — dequeue the next new instance for
+        // the replacement class (FIFO matches DOM/creation order) and
+        // schedule a state transfer onto it.
+        const newInstance = rt.dequeueInstance(newClass);
         if (newInstance) {
           const state = getState(this, ['args']);
           const oldInstance = this;

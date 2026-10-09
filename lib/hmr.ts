@@ -33,6 +33,13 @@ const resolvedRuntimeId = '\0' + hmrRuntimeId;
 const runtimeSource = `
 const entries = new WeakMap();
 
+// Per-class FIFO queues of live component instances, used to pair old instances
+// (being destroyed by an HMR swap) with the new instances that replace them.
+// Keyed by the NEW class (the replacement). Cleared at update() time so that
+// instances created by normal user-flow navigation before the swap are never
+// in the queue — only instances created after the swap callback fires.
+const liveInstanceQueues = new WeakMap();
+
 function isRef(value) {
   return value !== null && (typeof value === 'object' || typeof value === 'function');
 }
@@ -58,12 +65,22 @@ export function register(value, tracked) {
 // Re-point an existing entry from oldValue to newValue.
 // Also registers newValue under the same entry so future current() calls
 // on newValue resolve to whatever is current at that point.
+//
+// Clearing liveInstanceQueues[newValue] here is the key to correctness for
+// syncState across user-flow create/destroy cycles. Any instances of newValue
+// created and destroyed by normal navigation *before* this swap happened are
+// stale. By resetting the queue at swap time, only instances created *after*
+// this update() call (the replacement instances Glimmer is about to create)
+// are eligible to receive state from the old instances being torn down.
 export function update(oldValue, newValue) {
   if (!isRef(oldValue)) return;
   const entry = entries.get(oldValue);
   if (entry) {
     entry.current = newValue;
-    if (isRef(newValue)) entries.set(newValue, entry);
+    if (isRef(newValue)) {
+      entries.set(newValue, entry);
+      liveInstanceQueues.delete(newValue);
+    }
   }
 }
 
@@ -80,9 +97,39 @@ export function used(value) {
   return Boolean(entries.get(value)?.consumed);
 }
 
-// Expose current() on the global so setup-hmr-manager.ts's synchronous
-// initialize() can call it without a dynamic import.
-globalThis.__ember_vite_hmr = { current };
+// Returns true if value has been registered with the HMR runtime.
+// Used by setup-hmr-manager.ts to skip non-HMR components when building
+// the liveInstances queue so stale entries don't corrupt later HMR swaps.
+export function isHmrClass(value) {
+  return isRef(value) && entries.has(value);
+}
+
+// Called from setup-hmr-manager.ts's create() hook for each new HMR-registered
+// component instance. Appends to the per-class queue in DOM (creation) order.
+export function enqueueInstance(klass, instance) {
+  if (!isRef(klass)) return;
+  const q = liveInstanceQueues.get(klass);
+  if (q) {
+    q.push(instance);
+  } else {
+    liveInstanceQueues.set(klass, [instance]);
+  }
+}
+
+// Called from setup-hmr-manager.ts's willDestroy hook. Returns and removes the
+// oldest queued instance for klass (FIFO = DOM order), or null if none.
+export function dequeueInstance(klass) {
+  if (!isRef(klass)) return null;
+  const q = liveInstanceQueues.get(klass);
+  if (!q || q.length === 0) return null;
+  const instance = q.shift();
+  if (q.length === 0) liveInstanceQueues.delete(klass);
+  return instance ?? null;
+}
+
+// Expose helpers on the global so setup-hmr-manager.ts's synchronous
+// initialize() can call them without a dynamic import.
+globalThis.__ember_vite_hmr = { current, isHmrClass, enqueueInstance, dequeueInstance };
 `;
 
 // `enforce: 'pre'` makes this run before Embroider's resolver, which would
