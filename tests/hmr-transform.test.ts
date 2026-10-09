@@ -133,8 +133,10 @@ export const __hmr_import_metadata__ = {
     const id = '/app/components/with-external.gjs';
     const result = await plugin.transform.call(mockContext, source, id);
 
-    // All bindings resolved to node_modules — no hot reload block emitted
-    expect(result).not.toContain('if (import.meta.hot)');
+    // All bindings resolved to node_modules — only self-accept emitted, no dependency accepts
+    expect(result).toContain('import.meta.hot.accept()');
+    expect(result).not.toContain("import.meta.hot.accept('");
+    expect(result).not.toContain('import.meta.hot.accept("');
 
     // Should still remove metadata export
     expect(result).not.toContain('export const __hmr_import_metadata__');
@@ -196,9 +198,9 @@ export const __hmr_import_metadata__ = {
     const id = '/app/components/empty-bindings.gjs';
     const result = await plugin.transform.call(mockContext, source, id);
 
-    // Should remove metadata but not add hot reload code
+    // Should remove metadata and add self-accept boundary (even with no bindings)
     expect(result).not.toContain('export const __hmr_import_metadata__');
-    expect(result).not.toContain('if (import.meta.hot)');
+    expect(result).toContain('import.meta.hot.accept()');
   });
 
   it('should handle default imports', async () => {

@@ -359,13 +359,19 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
           '',
         );
 
-        if (hotReloadStatements.length > 0) {
-          const hotReloadCode = `
+        // A component module that owns a template__imports__ class is always
+        // its own HMR boundary: self-accepting ensures that edits to it
+        // (adding/removing imports, changing template logic, etc.) are handled
+        // in-place without falling back to a full page reload. The accept
+        // callback is a no-op for the module itself — Glimmer re-renders
+        // automatically because template__imports__ properties are @tracked.
+        const selfAccept = `\nimport.meta.hot.accept();`;
+        const hotReloadCode = `
 if (import.meta.hot) {
 ${hotReloadStatements.join('\n')}
+${selfAccept}
 }`;
-          source = source + hotReloadCode;
-        }
+        source = source + hotReloadCode;
       }
 
       const supportedPaths = ['routers', 'controllers', 'routes', 'templates'];
