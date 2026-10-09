@@ -10,12 +10,13 @@ import { startVite } from './utils';
 //      navigation between saves (stale queue entries must not pollute the
 //      pairing for the next real HMR swap).
 //
-// Uses the two <ResourceHolder /> components on the equipment page and a
-// navigate-away/back cycle to exercise both cases.
+// Uses two <MultiCounter /> components on the equipment page and a
+// navigate-away/back cycle to exercise both cases. MultiCounter is a dedicated
+// test-only component so its HMR tests don't interfere with ResourceHolder's.
 
 describe('test-app: syncState with multiple instances and user-flow navigation', () => {
   let ctx: Awaited<ReturnType<typeof startVite>>;
-  const componentPath = resolve('test-app/app/components/resource-holder.gts');
+  const componentPath = resolve('test-app/app/components/multi-counter.gts');
   let originalContent: string;
 
   beforeAll(async () => {
@@ -31,7 +32,7 @@ describe('test-app: syncState with multiple instances and user-flow navigation',
   // Helper: click the nth increment button (0-based).
   async function increment(n: number, times = 1) {
     for (let i = 0; i < times; i++) {
-      await ctx.page.locator('.resource-holder-increment').nth(n).click();
+      await ctx.page.locator('.multi-counter-increment').nth(n).click();
     }
   }
 
@@ -39,7 +40,7 @@ describe('test-app: syncState with multiple instances and user-flow navigation',
   async function count(n: number): Promise<string> {
     return (await ctx.page.evaluate(
       (idx) =>
-        document.querySelectorAll('.resource-holder-count')[idx]?.textContent ?? '',
+        document.querySelectorAll('.multi-counter-count')[idx]?.textContent ?? '',
       n,
     )).trim();
   }
@@ -51,7 +52,7 @@ describe('test-app: syncState with multiple instances and user-flow navigation',
     await ctx.page.click('.nav-equipment');
     await ctx.page.waitForSelector('.equipment-page');
     await ctx.page.waitForFunction(
-      () => document.querySelectorAll('.resource-holder-increment').length === 2,
+      () => document.querySelectorAll('.multi-counter-increment').length === 2,
     );
 
     // Increment first to 2, second to 5.
@@ -64,12 +65,12 @@ describe('test-app: syncState with multiple instances and user-flow navigation',
     // Trigger HMR.
     await writeFile(
       componentPath,
-      originalContent.replace('resource holder', 'resource holder v2'),
+      originalContent.replace('label: counter', 'label: counter v2'),
     );
     await ctx.page.waitForFunction(
       () =>
-        Array.from(document.querySelectorAll('.resource-holder')).every(
-          (el) => el.textContent === 'resource holder v2',
+        Array.from(document.querySelectorAll('.multi-counter')).every(
+          (el) => el.textContent === 'label: counter v2',
         ),
       { timeout: 10_000 },
     );
@@ -87,8 +88,8 @@ describe('test-app: syncState with multiple instances and user-flow navigation',
     const errors: string[] = [];
     ctx.page.on('pageerror', (e) => errors.push(String(e?.message ?? e)));
 
-    // Restore original content (from previous test's HMR edit) and navigate
-    // away so the components are fully torn down with no lingering state.
+    // Restore original content and navigate away so the components are fully
+    // torn down with no lingering state.
     await writeFile(componentPath, originalContent);
     await ctx.page.click('.nav-index');
     await ctx.page.waitForSelector('.nav-equipment');
@@ -98,9 +99,9 @@ describe('test-app: syncState with multiple instances and user-flow navigation',
     await ctx.page.waitForSelector('.equipment-page');
     await ctx.page.waitForFunction(
       () =>
-        document.querySelectorAll('.resource-holder-increment').length === 2 &&
-        Array.from(document.querySelectorAll('.resource-holder')).every(
-          (el) => el.textContent === 'resource holder',
+        document.querySelectorAll('.multi-counter-increment').length === 2 &&
+        Array.from(document.querySelectorAll('.multi-counter')).every(
+          (el) => el.textContent === 'label: counter',
         ),
       { timeout: 10_000 },
     );
@@ -121,7 +122,7 @@ describe('test-app: syncState with multiple instances and user-flow navigation',
     await ctx.page.click('.nav-equipment');
     await ctx.page.waitForSelector('.equipment-page');
     await ctx.page.waitForFunction(
-      () => document.querySelectorAll('.resource-holder-increment').length === 2,
+      () => document.querySelectorAll('.multi-counter-increment').length === 2,
     );
 
     // Counts reset to 0 on navigation (new instances).
@@ -138,12 +139,12 @@ describe('test-app: syncState with multiple instances and user-flow navigation',
     // update() fires — the stale entries from before navigation are gone.
     await writeFile(
       componentPath,
-      originalContent.replace('resource holder', 'resource holder v3'),
+      originalContent.replace('label: counter', 'label: counter v3'),
     );
     await ctx.page.waitForFunction(
       () =>
-        Array.from(document.querySelectorAll('.resource-holder')).every(
-          (el) => el.textContent === 'resource holder v3',
+        Array.from(document.querySelectorAll('.multi-counter')).every(
+          (el) => el.textContent === 'label: counter v3',
         ),
       { timeout: 10_000 },
     );
