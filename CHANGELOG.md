@@ -2,6 +2,28 @@
 
 ## Release (2026-10-09)
 
+* ember-vite-hmr 2.7.0 (minor)
+
+#### :rocket: Enhancement
+* `ember-vite-hmr`
+  * [#568](https://github.com/patricklx/ember-vite-hmr/pull/568) Replace virtual proxy wrapper with self-accepting tracked-cell registry ([@patricklx](https://github.com/patricklx))
+
+#### :bug: Bug Fix
+* `ember-vite-hmr`
+  * [#571](https://github.com/patricklx/ember-vite-hmr/pull/571) syncState fixups: eager instance eviction + scope-granularity cleanup ([@patricklx](https://github.com/patricklx))
+  * [#569](https://github.com/patricklx/ember-vite-hmr/pull/569) syncState + subclass HMR propagation for self-accepting component registry ([@patricklx](https://github.com/patricklx))
+
+#### :house: Internal
+* `ember-vite-hmr`
+  * [#570](https://github.com/patricklx/ember-vite-hmr/pull/570) Prepare Release v2.6.0 ([@github-actions[bot]](https://github.com/apps/github-actions))
+  * [#567](https://github.com/patricklx/ember-vite-hmr/pull/567) Prepare Release v2.5.0 ([@github-actions[bot]](https://github.com/apps/github-actions))
+
+#### Committers: 2
+- GitHub Actions [Bot] ([@github-actions](https://github.com/apps/github-actions))
+- Patrick Pircher ([@patricklx](https://github.com/patricklx))
+
+## Release (2026-10-09)
+
 * ember-vite-hmr 2.6.0 (minor)
 
 #### :rocket: Enhancement
