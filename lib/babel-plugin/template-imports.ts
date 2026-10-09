@@ -292,7 +292,6 @@ export function finalizeTemplateImports(
   }
   const util = new ImportUtil(babel, path);
   const tracked = util.import(path, '@glimmer/tracking', 'tracked');
-  util.import(path, '@glimmer/component', 'default');
   const klass = t.classExpression(
     path.scope.generateUidIdentifier('Imports'),
     null,

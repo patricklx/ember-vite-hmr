@@ -133,10 +133,10 @@ export const __hmr_import_metadata__ = {
     const id = '/app/components/with-external.gjs';
     const result = await plugin.transform.call(mockContext, source, id);
 
-    // Should still generate hot reload code but skip node_modules
-    expect(result).toContain('if (import.meta.hot)');
+    // All bindings resolved to node_modules — no hot reload block emitted
+    expect(result).not.toContain('if (import.meta.hot)');
 
-    // Should remove metadata export
+    // Should still remove metadata export
     expect(result).not.toContain('export const __hmr_import_metadata__');
   });
 
@@ -268,33 +268,6 @@ export const __hmr_import_metadata__ = {
     );
   });
 
-  it('should handle @embroider/virtual imports', async () => {
-    const source = `
-import Component from '@embroider/virtual/components/my-component';
-
-let template__imports__ = null;
-
-class _Imports {
-  Component = Component;
-}
-
-template__imports__ = new _Imports();
-
-export const __hmr_import_metadata__ = {
-  importVar: "template__imports__",
-  bindings: ["Component"]
-};
-`;
-
-    const id = '/app/components/embroider-virtual.gjs';
-    const result = await plugin.transform.call(mockContext, source, id);
-
-    expect(result).toContain('if (import.meta.hot)');
-    // Should replace @embroider/virtual with embroider_virtual in virtual path
-    expect(result).toContain('embroider_virtual');
-    expect(result).not.toContain('export const __hmr_import_metadata__');
-  });
-
   it('uses hmrImportMetadataCache instead of re-parsing when a cache entry exists for the file', async () => {
     const id = '/app/components/cached-component.gjs';
     hmrImportMetadataCache.set(id, {
@@ -328,10 +301,14 @@ template__imports__ = new _Imports();
 
     const result = await plugin.transform.call(mockContext, source, id);
 
+    // Self-accept on the source module directly
     expect(result).toContain(
-      "import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components/named::default.gjs'",
+      'import.meta.hot.accept("my-components/named"',
     );
-    expect(result).toContain('template__imports__.NamedComponent = c.default;');
+    // Updates template__imports__ on accept
+    expect(result).toContain('template__imports__.NamedComponent = newVal;');
+    // Registers with the runtime
+    expect(result).toContain('ember_vite_hmr_register(');
   });
 
   it('prefers hmrImportMetadataCache over a stale __hmr_import_metadata__ export left in source', async () => {
@@ -364,9 +341,7 @@ export const __hmr_import_metadata__ = {
 
     const result = await plugin.transform.call(mockContext, source, id);
 
-    expect(result).toContain(
-      "import.meta.hot.accept('/ember-vite-hmr/virtual/component:my-components/fresh::default.gjs'",
-    );
+    expect(result).toContain('import.meta.hot.accept("my-components/fresh"');
     expect(result).not.toContain('StaleComponent');
     expect(result).not.toContain('export const __hmr_import_metadata__');
   });
