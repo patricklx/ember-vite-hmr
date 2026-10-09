@@ -240,33 +240,81 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin[]
       ];
     },
     handleHotUpdate(ctx) {
-      if (!ctx.file.split('?')[0]!.endsWith('.hbs')) {
-        return ctx.modules;
-      }
+      const file = ctx.file.split('?')[0]!;
       const otherModules = [];
-      const pairedModule = ctx.modules.find((m) =>
-        [...m.importers].find(
-          (i) =>
-            i.id!.startsWith('embroider_virtual') &&
-            i.id!.endsWith('-embroider-pair-component'),
-        ),
-      );
-      if (pairedModule) {
-        const pairComponent = [...pairedModule.importers].find(
-          (i) =>
-            i.id!.startsWith('embroider_virtual') &&
-            i.id!.endsWith('-embroider-pair-component'),
+
+      // ── .hbs pair-component wiring (unchanged) ───────────────────────────
+      if (file.endsWith('.hbs')) {
+        const pairedModule = ctx.modules.find((m) =>
+          [...m.importers].find(
+            (i) =>
+              i.id!.startsWith('embroider_virtual') &&
+              i.id!.endsWith('-embroider-pair-component'),
+          ),
         );
-        if (pairComponent) {
-          const componentModule = [...pairComponent.clientImportedModules].find(
-            (cim) =>
-              cim.id!.split('?')[0]!.match(/\/component\.(js|ts|gjs|gts)/),
+        if (pairedModule) {
+          const pairComponent = [...pairedModule.importers].find(
+            (i) =>
+              i.id!.startsWith('embroider_virtual') &&
+              i.id!.endsWith('-embroider-pair-component'),
           );
-          if (componentModule) {
-            otherModules.push(componentModule);
+          if (pairComponent) {
+            const componentModule = [...pairComponent.clientImportedModules].find(
+              (cim) =>
+                cim.id!.split('?')[0]!.match(/\/component\.(js|ts|gjs|gts)/),
+            );
+            if (componentModule) {
+              otherModules.push(componentModule);
+            }
+          }
+        }
+        return [...ctx.modules, ...otherModules];
+      }
+
+      // ── subclass propagation ──────────────────────────────────────────────
+      // When a component file (e.g. block-base.gts) self-accepts, Vite stops
+      // propagation before any subclass module (e.g. block-child.ts extends
+      // BlockBase) can be notified. The subclass's importer (e.g. equipment.gts)
+      // therefore never fires its accept(block-child, cb) callback, so
+      // template__imports__.BlockChild keeps pointing at the old class with
+      // the old template.
+      //
+      // Fix: for every component file that changed, walk its direct importers
+      // in Vite's module graph. Any importer that is itself a component file
+      // under /components/ is a potential subclass — add it to the update set
+      // so Vite re-evaluates it too. That re-evaluation runs its own
+      // self-accept callback (update(OldChild, NewChild)) and causes the
+      // parent template's accept(block-child, cb) to fire, swapping in the new
+      // subclass and its newly-inherited template.
+      // Subclass propagation only applies to files under /components/ — route
+      // templates (.gts under /templates/) import components but are not
+      // subclasses of them. Including templates would force Vite to re-evaluate
+      // equipment.gts when resource-holder.gts changes, breaking the existing
+      // accept(dep, cb) wiring that already handles that case correctly.
+      const isComponentFile = (p: string) =>
+        !p.includes('node_modules') &&
+        !p.includes('/-components/') &&
+        p.includes('/components/') &&
+        (p.endsWith('.gjs') ||
+          p.endsWith('.gts') ||
+          p.endsWith('.ts') ||
+          p.endsWith('.js'));
+
+      if (isComponentFile(file)) {
+        for (const mod of ctx.modules) {
+          for (const importer of mod.importers) {
+            const importerId = normalizePath(importer.id?.split('?')[0] ?? '');
+            if (
+              isComponentFile(importerId) &&
+              !ctx.modules.some((m) => m.id === importer.id) &&
+              !otherModules.includes(importer)
+            ) {
+              otherModules.push(importer);
+            }
           }
         }
       }
+
       return [...ctx.modules, ...otherModules];
     },
     async transform(source, id) {
