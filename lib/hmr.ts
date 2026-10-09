@@ -31,8 +31,7 @@ const resolvedRuntimeId = '\0' + hmrRuntimeId;
 // `tracked` is called as a function (not a decorator syntax), so the runtime
 // doesn't depend on the app's Babel decorator config.
 const runtimeSource = `
-const entries = new Map();
-const byValue = new WeakMap();
+const entries = new WeakMap();
 
 function isRef(value) {
   return value !== null && (typeof value === 'object' || typeof value === 'function');
@@ -48,30 +47,37 @@ function makeEntry(tracked, value) {
   return entry;
 }
 
-export function register(id, value, tracked) {
-  let entry = entries.get(id);
-  if (entry) {
-    entry.current = value;
-  } else {
-    entry = makeEntry(tracked, value);
-    entries.set(id, entry);
+// Register value for the first time. No-op if already registered.
+export function register(value, tracked) {
+  if (!isRef(value)) return;
+  if (!entries.has(value)) {
+    entries.set(value, makeEntry(tracked, value));
   }
-  if (isRef(value)) {
-    byValue.set(value, entry);
+}
+
+// Re-point an existing entry from oldValue to newValue.
+// Also registers newValue under the same entry so future current() calls
+// on newValue resolve to whatever is current at that point.
+export function update(oldValue, newValue) {
+  if (!isRef(oldValue)) return;
+  const entry = entries.get(oldValue);
+  if (entry) {
+    entry.current = newValue;
+    if (isRef(newValue)) entries.set(newValue, entry);
   }
 }
 
 export function current(value) {
-  const entry = isRef(value) ? byValue.get(value) : undefined;
-  if (!entry) {
-    return value;
-  }
+  if (!isRef(value)) return value;
+  const entry = entries.get(value);
+  if (!entry) return value;
   entry.consumed = true;
   return entry.current;
 }
 
-export function used(id) {
-  return Boolean(entries.get(id)?.consumed);
+export function used(value) {
+  if (!isRef(value)) return false;
+  return Boolean(entries.get(value)?.consumed);
 }
 `;
 
@@ -321,7 +327,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin[]
       // Process metadata if we found importVar (even with empty bindings)
       if (importVar) {
         const hotReloadStatements: string[] = [];
-        const fileId = JSON.stringify(resourcePath);
 
         for (const imp of importStatements) {
           // Resolve the import to check if it's from node_modules
@@ -333,20 +338,21 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin[]
             continue;
           }
 
-          // Each imported binding self-accepts: when this module reloads,
-          // update the tracked cell in the runtime registry so Glimmer
-          // re-renders any template that read through it.
+          // Each imported binding is already a local variable in scope thanks
+          // to its import statement. Register it by value on first load;
+          // when the dep module reloads, update() re-points the tracked cell
+          // old→new so any template that already read through it re-renders.
           hotReloadStatements.push(`
   (async () => {
-    const { register: ember_vite_hmr_register, used: ember_vite_hmr_used } = await import(${JSON.stringify(hmrRuntimeId)});
+    const { register: ember_vite_hmr_register, update: ember_vite_hmr_update, used: ember_vite_hmr_used } = await import(${JSON.stringify(hmrRuntimeId)});
     const { tracked: ember_vite_hmr_tracked } = await import('@glimmer/tracking');
-    ember_vite_hmr_register(${fileId} + ':' + ${JSON.stringify(imp.local)}, ${imp.local}, ember_vite_hmr_tracked);
+    ember_vite_hmr_register(${imp.local}, ember_vite_hmr_tracked);
     import.meta.hot.accept(${JSON.stringify(imp.source)}, (m) => {
       if (m) {
         const newVal = m[${JSON.stringify(imp.specifier === 'default' ? 'default' : imp.specifier)}];
+        ember_vite_hmr_update(${imp.local}, newVal);
         ${importVar}.${imp.local} = newVal;
-        ember_vite_hmr_register(${fileId} + ':' + ${JSON.stringify(imp.local)}, newVal, ember_vite_hmr_tracked);
-      } else if (!ember_vite_hmr_used(${fileId} + ':' + ${JSON.stringify(imp.local)})) {
+      } else if (!ember_vite_hmr_used(${imp.local})) {
         import.meta.hot.invalidate('nothing rendered ${imp.local} through the HMR runtime');
       }
     });
@@ -404,7 +410,45 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin[]
           ((resourcePath.endsWith('.ts') || resourcePath.endsWith('.js')) &&
             resourcePath.includes('/components/'));
         if (isComponentFile && !importVar) {
-          return `${source}\nif (import.meta.hot) { import.meta.hot.accept(); }\n`;
+          // Self-accept with a callback that updates the tracked-cell registry
+          // so Glimmer re-renders and swaps in the new class. This handles
+          // edits to the component's own class (new method, changed @tracked
+          // property, etc.) — without it, a bare accept() would silently
+          // discard the new class and leave the running instance on the old one.
+          //
+          // Only do this when there is no importVar (no template imports of
+          // other components). When importVar is present, the component's own
+          // importer already has an accept(dep, cb) that fires when this file
+          // changes — adding a self-accept here would stop Vite's propagation
+          // before that callback can fire, breaking the re-render. The same
+          // applies to re-export barrels: a self-accept on my-button.ts stops
+          // Vite walking up to index.ts's importer, silencing the accept
+          // callback that updates template__imports__.
+          //
+          // The babel plugin rewrites `export default <expr>` into
+          // `const __hmr_default__ = <expr>; export { __hmr_default__ as default }`
+          // giving us a stable local variable to register by value.
+          // hot.data.default carries the old value across self-accept
+          // re-evaluations so update() can find the existing entry.
+          return `${source}
+if (import.meta.hot) {
+  (async () => {
+    const { register: ember_vite_hmr_register, update: ember_vite_hmr_update, used: ember_vite_hmr_used } = await import(${JSON.stringify(hmrRuntimeId)});
+    const { tracked: ember_vite_hmr_tracked } = await import('@glimmer/tracking');
+    const _hmr_prev = import.meta.hot.data.default;
+    import.meta.hot.data.default = __hmr_default__;
+    if (_hmr_prev) {
+      ember_vite_hmr_update(_hmr_prev, __hmr_default__);
+    }
+    ember_vite_hmr_register(__hmr_default__, ember_vite_hmr_tracked);
+    import.meta.hot.accept((m) => {
+      if (m && !ember_vite_hmr_used(import.meta.hot.data.default)) {
+        import.meta.hot.invalidate('nothing rendered this component through the HMR runtime');
+      }
+    });
+  })();
+}
+`;
         }
         return source;
       }

@@ -111,12 +111,13 @@ describe('convert template with hot reload helpers', () => {
         SomeComponent = _init_SomeComponent(this, SomeComponent);
         myhelper = _init_myhelper(this, myhelper);
       }();
-      export default precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      <this.X />\\n      {{component this.X}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
+      const __hmr_default__ = precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      <this.X />\\n      {{component this.X}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
         moduleName: 'a.hbs',
         scope: () => ({
           template__imports__
         })
       });
+      export { __hmr_default__ as default };
       export const __hmr_import_metadata__ = {
         importVar: "template__imports__",
         bindings: ["NamedComponent", "SomeComponent", "myhelper"]

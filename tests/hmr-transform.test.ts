@@ -135,7 +135,8 @@ export const __hmr_import_metadata__ = {
     const result = await plugin.transform.call(mockContext, source, id);
 
     // All bindings resolved to node_modules — no per-dep accepts, no self-accept.
-    // The importer of this component must handle HMR propagation.
+    // The component has importVar so its importer's accept(dep, cb) handles
+    // propagation; a self-accept here would stop that chain before it fires.
     expect(result).not.toContain("import.meta.hot.accept(");
 
     // Should still remove metadata export
@@ -182,8 +183,11 @@ export default class MyComponent extends Component {
 
     // Component files under /components/ get a self-accept boundary even
     // without template imports, so edits to them don't cause a full page reload.
+    // The accept callback updates the tracked-cell registry so Glimmer re-renders
+    // with the new class when the component's own code changes.
     expect(result).toContain('if (import.meta.hot)');
-    expect(result).toContain('import.meta.hot.accept()');
+    expect(result).toContain('__hmr_default__');
+    expect(result).toContain('import.meta.hot.accept(');
   });
 
   it('should handle empty bindings array', async () => {
@@ -199,8 +203,9 @@ export const __hmr_import_metadata__ = {
     const id = '/app/components/empty-bindings.gjs';
     const result = await plugin.transform.call(mockContext, source, id);
 
-    // Should remove metadata. With no bindings, no HMR code is added at all —
-    // the importer handles this module's updates via its own accept callback.
+    // Should remove metadata. With importVar but no bindings, no HMR code is
+    // added — the importer's accept(dep, cb) handles propagation, and a
+    // self-accept here would stop Vite from reaching it.
     expect(result).not.toContain('export const __hmr_import_metadata__');
     expect(result).not.toContain('import.meta.hot.accept(');
   });
