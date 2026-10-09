@@ -314,8 +314,9 @@ template__imports__ = new _Imports();
     expect(result).toContain(
       'import.meta.hot.accept("my-components/named"',
     );
-    // Updates template__imports__ on accept
-    expect(result).toContain('template__imports__.NamedComponent = newVal;');
+    // No longer directly assigns template__imports__.X — the getter reads
+    // through the tracked cell via current(), so update() alone suffices.
+    expect(result).not.toContain('template__imports__.NamedComponent = newVal;');
     // Registers with the runtime
     expect(result).toContain('ember_vite_hmr_register(');
   });

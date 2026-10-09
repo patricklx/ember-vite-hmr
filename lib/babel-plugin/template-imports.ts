@@ -291,7 +291,14 @@ export function finalizeTemplateImports(
     return;
   }
   const util = new ImportUtil(babel, path);
-  const tracked = util.import(path, '@glimmer/tracking', 'tracked');
+  // `current` is imported from the HMR runtime virtual module. The runtime
+  // reads `entry.current` (a @tracked cell) and returns the latest class.
+  // Using a getter here (rather than a @tracked field that gets reassigned)
+  // means Glimmer only invalidates the scope that contains the `current()`
+  // read — not the parent scope that holds the `template__imports__` object.
+  // This keeps any outer {{#let}} wrappers (e.g. for stable per-invocation
+  // ids) alive across HMR swaps of the child component.
+  const currentFn = util.import(path, 'virtual:ember-vite-hmr-runtime', 'current');
   const klass = t.classExpression(
     path.scope.generateUidIdentifier('Imports'),
     null,
@@ -299,10 +306,22 @@ export function finalizeTemplateImports(
   );
   const bindings = [...hotAstProcessor.meta.importBindings].sort();
   for (const local of bindings) {
+    // Emit: get Local() { return current(LocalBinding); }
+    // The getter closes over `LocalBinding` (the initial import value).
+    // `current()` reads `entry.current` which is @tracked in the runtime,
+    // so only the template expression that calls this getter is invalidated
+    // when the binding is updated via update(old, new).
     klass.body.body.push(
-      t.classProperty(t.identifier(local), t.identifier(local), null, [
-        t.decorator(tracked),
-      ]),
+      t.classMethod(
+        'get',
+        t.identifier(local),
+        [],
+        t.blockStatement([
+          t.returnStatement(
+            t.callExpression(currentFn, [t.identifier(local)]),
+          ),
+        ]),
+      ),
     );
   }
 

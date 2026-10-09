@@ -96,20 +96,22 @@ describe('convert template with hot reload helpers', () => {
         "?timestamp=1'",
       ),
     ).toMatchInlineSnapshot(`
-      "let _init_NamedComponent, _init_SomeComponent, _init_myhelper;
-      let template__imports__ = null;
+      "let template__imports__ = null;
       import NamedComponent from "embroider_compat/components/named-component";
       import SomeComponent from "embroider_compat/components/some-component";
       import myhelper from "embroider_compat/helpers/my-helper";
       import { precompileTemplate } from "@ember/template-compilation";
-      import { tracked } from "@glimmer/tracking";
+      import { current } from "virtual:ember-vite-hmr-runtime";
       template__imports__ = new class _Imports {
-        static {
-          [_init_NamedComponent, _init_SomeComponent, _init_myhelper] = _applyDecs2203R(this, [[tracked, 0, "NamedComponent"], [tracked, 0, "SomeComponent"], [tracked, 0, "myhelper"]], []).e;
+        get NamedComponent() {
+          return current(NamedComponent);
         }
-        NamedComponent = _init_NamedComponent(this, NamedComponent);
-        SomeComponent = _init_SomeComponent(this, SomeComponent);
-        myhelper = _init_myhelper(this, myhelper);
+        get SomeComponent() {
+          return current(SomeComponent);
+        }
+        get myhelper() {
+          return current(myhelper);
+        }
       }();
       const __hmr_default__ = precompileTemplate("\\n      {{(template__imports__.myhelper)}}\\n      <this.X />\\n      {{component this.X}}\\n      <template__imports__.SomeComponent />\\n      <template__imports__.NamedComponent />\\n    ", {
         moduleName: 'a.hbs',

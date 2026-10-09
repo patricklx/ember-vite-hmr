@@ -12,6 +12,8 @@ import { LinkTo } from '@ember/routing';
     <LinkTo @route="equipment" class="nav-equipment">Equipment</LinkTo>
     |
     <LinkTo @route="project" class="nav-project">Project</LinkTo>
+    |
+    <LinkTo @route="scope-test" class="nav-scope-test">ScopeTest</LinkTo>
   </nav>
 
   <hr />

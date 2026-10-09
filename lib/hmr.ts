@@ -79,6 +79,10 @@ export function used(value) {
   if (!isRef(value)) return false;
   return Boolean(entries.get(value)?.consumed);
 }
+
+// Expose current() on the global so setup-hmr-manager.ts's synchronous
+// initialize() can call it without a dynamic import.
+globalThis.__ember_vite_hmr = { current };
 `;
 
 // `enforce: 'pre'` makes this run before Embroider's resolver, which would
@@ -339,9 +343,12 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin[]
           }
 
           // Each imported binding is already a local variable in scope thanks
-          // to its import statement. Register it by value on first load;
-          // when the dep module reloads, update() re-points the tracked cell
-          // old→new so any template that already read through it re-renders.
+          // to its import statement. Register it by value on first load so
+          // `current(binding)` (called by the template__imports__ getter) has
+          // an entry to read from. When the dep module reloads, update() sets
+          // entry.current = newVal — the getter re-reads it, invalidating only
+          // the scope that contains the getter call, not the parent scope.
+          // No assignment to template__imports__.X needed: the getter handles it.
           hotReloadStatements.push(`
   (async () => {
     const { register: ember_vite_hmr_register, update: ember_vite_hmr_update, used: ember_vite_hmr_used } = await import(${JSON.stringify(hmrRuntimeId)});
@@ -351,7 +358,6 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin[]
       if (m) {
         const newVal = m[${JSON.stringify(imp.specifier === 'default' ? 'default' : imp.specifier)}];
         ember_vite_hmr_update(${imp.local}, newVal);
-        ${importVar}.${imp.local} = newVal;
       } else if (!ember_vite_hmr_used(${imp.local})) {
         import.meta.hot.invalidate('nothing rendered ${imp.local} through the HMR runtime');
       }
