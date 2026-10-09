@@ -79,8 +79,13 @@ export function update(oldValue, newValue) {
     entry.current = newValue;
     if (isRef(newValue)) {
       entries.set(newValue, entry);
+      // Clear the queue for newValue so only instances created after this
+      // swap are paired with old instances being torn down.
       liveInstanceQueues.delete(newValue);
     }
+    // oldValue is being retired — it will never be the target of a future
+    // dequeueInstance() call, so any queued instances for it are now stale.
+    liveInstanceQueues.delete(oldValue);
   }
 }
 
