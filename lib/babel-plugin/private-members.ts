@@ -368,10 +368,13 @@ function hideRenamedProperties(
     const superCallStatement = ctorBody
       .get('body')
       .find(
-        (statement) =>
-          statement.isExpressionStatement() &&
-          statement.get('expression').isCallExpression() &&
-          statement.get('expression.callee').isSuper(),
+        (statement) => {
+          if (!statement.isExpressionStatement()) return false;
+          const expr = statement.get('expression');
+          if (Array.isArray(expr) || !expr.isCallExpression()) return false;
+          const callee = expr.get('callee');
+          return !Array.isArray(callee) && callee.isSuper();
+        },
       );
 
     if (superCallStatement) {
