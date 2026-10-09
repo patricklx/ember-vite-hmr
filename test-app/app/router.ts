@@ -9,5 +9,4 @@ export default class Router extends EmberRouter {
 Router.map(function () {
   this.route('equipment');
   this.route('project');
-  this.route('scope-test');
 });
