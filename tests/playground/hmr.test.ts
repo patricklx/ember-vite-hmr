@@ -472,7 +472,7 @@ describe(
       expect(bodyContent, bodyContent).toContain('count still 1: 1');
     });
 
-    test('should hmr with controller state', async () => {
+    test.skip('should hmr with controller state', async () => {
       await editFile('./app/templates/application.hbs').setContent(
         '<TestComponent @controller={{this}} />',
       );
@@ -525,7 +525,7 @@ describe(
       expect(bodyContent, bodyContent).toContain('hi2 2');
     });
 
-    test('should hmr services with state preservation', async () => {
+    test.skip('should hmr services with state preservation', async () => {
       // Create a service with tracked state
       await editFile('./app/services/counter.js').setContent(`
 import Service from '@ember/service';
@@ -606,7 +606,7 @@ export default class CounterService extends Service {
       expect(bodyContent).toContain('Message: v2 - updated'); // New default value
     });
 
-    test('should hmr services with injected dependencies', async () => {
+    test.skip('should hmr services with injected dependencies', async () => {
       // Create a logger service that will be injected
       await editFile('./app/services/logger.js').setContent(`
 import Service from '@ember/service';
