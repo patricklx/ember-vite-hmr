@@ -132,9 +132,22 @@ export function dequeueInstance(klass) {
   return instance ?? null;
 }
 
+// Called from setup-hmr-manager.ts's willDestroy hook when no HMR swap is in
+// progress (normal navigation destroy). Removes this specific instance from the
+// queue so destroyed instances don't accumulate indefinitely when a timer
+// mounts/unmounts the same component repeatedly between saves.
+export function removeInstance(klass, instance) {
+  if (!isRef(klass)) return;
+  const q = liveInstanceQueues.get(klass);
+  if (!q) return;
+  const idx = q.indexOf(instance);
+  if (idx !== -1) q.splice(idx, 1);
+  if (q.length === 0) liveInstanceQueues.delete(klass);
+}
+
 // Expose helpers on the global so setup-hmr-manager.ts's synchronous
 // initialize() can call them without a dynamic import.
-globalThis.__ember_vite_hmr = { current, isHmrClass, enqueueInstance, dequeueInstance };
+globalThis.__ember_vite_hmr = { current, isHmrClass, enqueueInstance, dequeueInstance, removeInstance };
 `;
 
 // `enforce: 'pre'` makes this run before Embroider's resolver, which would

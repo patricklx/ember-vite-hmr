@@ -21,6 +21,7 @@ interface HmrRuntime {
   isHmrClass: (value: unknown) => boolean;
   enqueueInstance: (klass: unknown, instance: HotComponent) => void;
   dequeueInstance: (klass: unknown) => HotComponent | null;
+  removeInstance: (klass: unknown, instance: HotComponent) => void;
 }
 
 function hmrRuntime(): HmrRuntime | undefined {
@@ -182,6 +183,11 @@ export function initialize() {
           const oldInstance = this;
           setTimeout(() => applySyncState(newInstance as Mutable<HotComponent>, state, oldInstance));
         }
+      } else if (rt.isHmrClass(klass)) {
+        // Normal destroy (navigation, timer, conditional) — remove this
+        // instance from the live queue so it doesn't accumulate as a stale
+        // entry that update() would otherwise have to clear at the next save.
+        rt.removeInstance(klass, this);
       }
     }
     return origWillDestroy?.call(this);
