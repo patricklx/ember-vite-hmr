@@ -15,7 +15,12 @@ const p = new Preprocessor();
 
 // The inlined decorator helper changes with every @babel/helpers release.
 const stripBabelHelpers = (code) =>
-  code.replace(/^function applyDecs2203RFactory\(\).*\n/m, '');
+  code
+    .replace(/^function applyDecs2203RFactory\(\).*\n/m, '')
+    .replace(/^function _toPrimitive\(.*\n/m, '')
+    .replace(/^function _toPropertyKey\(.*\n/m, '')
+    .replace(/^function _applyDecs2203R\(.*\n/m, '')
+    .replace(/^function _setFunctionName\(.*\n/m, '');
 
 describe('convert template with hot reload helpers', () => {
   it('should convert hbs correctly', async () => {
@@ -92,10 +97,6 @@ describe('convert template with hot reload helpers', () => {
       ),
     ).toMatchInlineSnapshot(`
       "let _init_NamedComponent, _init_SomeComponent, _init_myhelper;
-      function _applyDecs2203R(e, t, r) { return (_applyDecs2203R = applyDecs2203RFactory())(e, t, r); }
-      function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
-      function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-      function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
       let template__imports__ = null;
       import NamedComponent from "embroider_compat/components/named-component";
       import SomeComponent from "embroider_compat/components/some-component";
@@ -156,10 +157,6 @@ describe('convert template with hot reload helpers', () => {
       ),
     ).toMatchInlineSnapshot(`
       "let _init_NamedComponent, _init_SomeComponent, _init_myhelper;
-      function _applyDecs2203R(e, t, r) { return (_applyDecs2203R = applyDecs2203RFactory())(e, t, r); }
-      function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
-      function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-      function _setFunctionName(e, t, n) { "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : ""); try { Object.defineProperty(e, "name", { configurable: !0, value: n ? n + " " + t : t }); } catch (e) {} return e; }
       let template__imports__ = null;
       import NamedComponent from "embroider_compat/components/named-component";
       import SomeComponent from "embroider_compat/components/some-component";
