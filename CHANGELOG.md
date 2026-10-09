@@ -1,5 +1,16 @@
 # ember-vite-hmr Changelog
 
+## Release (2026-10-09)
+
+* ember-vite-hmr 2.5.0 (minor)
+
+#### :rocket: Enhancement
+* `ember-vite-hmr`
+  * [#568](https://github.com/patricklx/ember-vite-hmr/pull/568) Replace virtual proxy wrapper with self-accepting tracked-cell registry ([@patricklx](https://github.com/patricklx))
+
+#### Committers: 1
+- Patrick Pircher ([@patricklx](https://github.com/patricklx))
+
 ## Release (2026-09-18)
 
 * ember-vite-hmr 2.4.0 (minor)
