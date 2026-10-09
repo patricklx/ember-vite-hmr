@@ -5,12 +5,13 @@ import { hmrImportMetadataCache } from '../lib/babel-plugin';
 process.env.EMBER_VITE_HMR_ENABLED = 'true';
 
 describe('hmr transform function', () => {
-  let plugin: ReturnType<typeof hmr>;
+  // hmr() returns [hmrRuntime(), mainPlugin]; we only test the main plugin here
+  let plugin: ReturnType<typeof hmr>[1];
   let mockContext: { resolve: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     hmrImportMetadataCache.clear();
-    plugin = hmr(['development']);
+    plugin = hmr(['development'])[1];
 
     // Mock the plugin context
     mockContext = {
@@ -168,7 +169,7 @@ export const __hmr_import_metadata__ = {
     expect(result).not.toContain('export const __hmr_import_metadata__');
   });
 
-  it('should not process files without __hmr_import_metadata__', async () => {
+  it('self-accepts .js/.ts component files without __hmr_import_metadata__', async () => {
     const source = `
 import Component from '@glimmer/component';
 
@@ -180,9 +181,10 @@ export default class MyComponent extends Component {
     const id = '/app/components/no-metadata.js';
     const result = await plugin.transform.call(mockContext, source, id);
 
-    // Should return source unchanged (or with minimal changes)
-    expect(result).not.toContain('if (import.meta.hot)');
-    expect(result).not.toContain('import.meta.hot.accept');
+    // Component files under /components/ get a self-accept boundary even
+    // without template imports, so edits to them don't cause a full page reload.
+    expect(result).toContain('if (import.meta.hot)');
+    expect(result).toContain('import.meta.hot.accept()');
   });
 
   it('should handle empty bindings array', async () => {
@@ -349,7 +351,8 @@ export const __hmr_import_metadata__ = {
   });
 
   it('gates HMR scaffolding on command, not just mode', () => {
-    const buildPlugin = hmr(['development']);
+    // hmr() returns [hmrRuntime(), mainPlugin]; configResolved is on mainPlugin
+    const buildPlugin = hmr(['development'])[1];
 
     buildPlugin.configResolved({ mode: 'development', command: 'build' });
     expect(process.env.EMBER_VITE_HMR_ENABLED).toBe('false');

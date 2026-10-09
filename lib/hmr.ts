@@ -101,11 +101,11 @@ function normalizePath(inputPath: string): string {
   return inputPath.replace(/\\/g, '/');
 }
 
-export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin {
+export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin[] {
   let base = '/';
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let server: ViteDevServer;
-  return {
+  const mainPlugin: Plugin = {
     name: 'hmr-plugin',
     enforce: 'post',
     config(config, env) {
@@ -390,12 +390,17 @@ ${selfAccept}
         !supportedPaths.some((s) => resourcePath.includes(`/${s}/`)) &&
         !supportedFileNames.some((s) => resourcePath.endsWith(s))
       ) {
-        // .gjs/.gts component files that have no cross-component imports
-        // (no template__imports__ class, so importVar was never set) still
-        // need a self-accept boundary so edits to them don't propagate up
-        // to a full page reload.
-        const isGjsGts = resourcePath.endsWith('.gjs') || resourcePath.endsWith('.gts');
-        if (isGjsGts && !importVar) {
+        // Component files (including template-less .ts/.js ones that just extend
+        // another component) that have no cross-component imports need a
+        // self-accept boundary so edits to them don't propagate up to a full
+        // page reload.  Restrict plain .ts/.js to paths under /components/ to
+        // avoid accidentally self-accepting services, utilities, adapters, etc.
+        const isComponentFile =
+          resourcePath.endsWith('.gjs') ||
+          resourcePath.endsWith('.gts') ||
+          ((resourcePath.endsWith('.ts') || resourcePath.endsWith('.js')) &&
+            resourcePath.includes('/components/'));
+        if (isComponentFile && !importVar) {
           return `${source}\nif (import.meta.hot) { import.meta.hot.accept(); }\n`;
         }
         return source;
@@ -420,4 +425,5 @@ ${selfAccept}
   `;
     },
   };
+  return [hmrRuntime(), mainPlugin];
 }

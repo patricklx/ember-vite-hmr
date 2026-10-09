@@ -10,11 +10,13 @@ import { hmr } from '../lib/hmr';
 // The dep must be declared as the Embroider-rewritten `ember-source/...`
 // subpath — the bare specifier cannot be resolved by optimizeDeps.include.
 describe('hmr() optimizeDeps declaration', () => {
+  // hmr() returns [hmrRuntime(), mainPlugin]; config hook lives on mainPlugin
   const callConfig = (
-    plugin: ReturnType<typeof hmr>,
+    plugins: ReturnType<typeof hmr>,
     mode: string,
     config: unknown = {},
   ) => {
+    const plugin = plugins[1];
     const hook = plugin.config as (
       config: unknown,
       env: { mode: string; command: string },
