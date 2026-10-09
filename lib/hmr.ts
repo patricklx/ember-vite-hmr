@@ -359,18 +359,21 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin[]
           '',
         );
 
-        // A component module that owns a template__imports__ class is always
-        // its own HMR boundary: self-accepting ensures that edits to it
-        // (adding/removing imports, changing template logic, etc.) are handled
-        // in-place without falling back to a full page reload. The accept
-        // callback is a no-op for the module itself — Glimmer re-renders
-        // automatically because template__imports__ properties are @tracked.
-        const selfAccept = `\nimport.meta.hot.accept();`;
-        const hotReloadCode = `
-if (import.meta.hot) {
-${hotReloadStatements.join('\n')}
-${selfAccept}
-}`;
+        // Do NOT add a self-accept in the importVar block.
+        //
+        // When module A imports module B, and B's template__imports__ class is in
+        // A's scope, A must be notified when B changes (so A's accept callback can
+        // swap in the new B class via template__imports__.B = newB). If B were to
+        // self-accept, Vite would stop propagation before A's callback fires — A's
+        // template__imports__ would never be updated, and Glimmer would never
+        // re-render. The same applies to route templates: they rely on Ember's
+        // canAcceptNew mechanism (added below), which self-accept would bypass.
+        //
+        // Components without importVar (no template imports) get a self-accept in
+        // the section below, after the supportedPaths check.
+        const hotReloadCode = hotReloadStatements.length > 0
+          ? `\nif (import.meta.hot) {\n${hotReloadStatements.join('\n')}\n}`
+          : '';
         source = source + hotReloadCode;
       }
 

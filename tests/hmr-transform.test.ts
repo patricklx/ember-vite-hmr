@@ -134,10 +134,9 @@ export const __hmr_import_metadata__ = {
     const id = '/app/components/with-external.gjs';
     const result = await plugin.transform.call(mockContext, source, id);
 
-    // All bindings resolved to node_modules — only self-accept emitted, no dependency accepts
-    expect(result).toContain('import.meta.hot.accept()');
-    expect(result).not.toContain("import.meta.hot.accept('");
-    expect(result).not.toContain('import.meta.hot.accept("');
+    // All bindings resolved to node_modules — no per-dep accepts, no self-accept.
+    // The importer of this component must handle HMR propagation.
+    expect(result).not.toContain("import.meta.hot.accept(");
 
     // Should still remove metadata export
     expect(result).not.toContain('export const __hmr_import_metadata__');
@@ -200,9 +199,10 @@ export const __hmr_import_metadata__ = {
     const id = '/app/components/empty-bindings.gjs';
     const result = await plugin.transform.call(mockContext, source, id);
 
-    // Should remove metadata and add self-accept boundary (even with no bindings)
+    // Should remove metadata. With no bindings, no HMR code is added at all —
+    // the importer handles this module's updates via its own accept callback.
     expect(result).not.toContain('export const __hmr_import_metadata__');
-    expect(result).toContain('import.meta.hot.accept()');
+    expect(result).not.toContain('import.meta.hot.accept(');
   });
 
   it('should handle default imports', async () => {
