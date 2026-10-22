@@ -170,12 +170,16 @@ export const __hmr_import_metadata__ = {
   });
 
   it('self-accepts .js/.ts component files without __hmr_import_metadata__', async () => {
+    // Shape of lib/babel-plugin.ts's default-export rewrite, which runs before
+    // this `enforce: 'post'` transform.
     const source = `
 import Component from '@glimmer/component';
 
-export default class MyComponent extends Component {
+class MyComponent extends Component {
   // component code
 }
+const __hmr_default__ = MyComponent;
+export { __hmr_default__ as default };
 `;
 
     const id = '/app/components/no-metadata.js';
@@ -188,6 +192,25 @@ export default class MyComponent extends Component {
     expect(result).toContain('if (import.meta.hot)');
     expect(result).toContain('__hmr_default__');
     expect(result).toContain('import.meta.hot.accept(');
+  });
+
+  it('does not self-accept a component file babel declared no __hmr_default__ for', async () => {
+    // A component file with only named exports, or one read while it is
+    // momentarily empty mid-save, has no default export for the babel plugin
+    // to rewrite. Appending the self-accept block would reference an
+    // undeclared __hmr_default__ and throw a ReferenceError in the browser.
+    const sources = [`export const helper = () => true;\n`, ``];
+
+    for (const source of sources) {
+      const result = await plugin.transform.call(
+        mockContext,
+        source,
+        '/app/components/no-default.ts',
+      );
+
+      expect(result).not.toContain('__hmr_default__');
+      expect(result).not.toContain('import.meta.hot.accept(');
+    }
   });
 
   it('should handle empty bindings array', async () => {
