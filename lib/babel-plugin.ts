@@ -94,45 +94,50 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
         }
         const t = babel.types;
         const declaration = path.node.declaration;
-        // If the declaration is already a named class/function, it becomes a
-        // declaration statement in its own right — just export the identifier.
-        if (
-          (declaration.type === 'ClassDeclaration' ||
-            declaration.type === 'FunctionDeclaration') &&
-          declaration.id
-        ) {
-          const id = declaration.id;
-          path.replaceWithMultiple([
+        const exportDefault = t.exportNamedDeclaration(null, [
+          t.exportSpecifier(
+            t.identifier('__hmr_default__'),
+            t.identifier('default'),
+          ),
+        ]);
+        const isClassOrFunction =
+          declaration.type === 'ClassDeclaration' ||
+          declaration.type === 'FunctionDeclaration';
+        let newPaths: Babel.NodePath[];
+        if (isClassOrFunction && declaration.id) {
+          // A named class/function becomes a declaration statement in its own
+          // right — just alias the identifier.
+          newPaths = path.replaceWithMultiple([
             declaration,
             t.variableDeclaration('const', [
               t.variableDeclarator(
                 t.identifier('__hmr_default__'),
-                t.identifier(id.name),
+                t.identifier(declaration.id.name),
               ),
             ]),
-            t.exportNamedDeclaration(null, [
-              t.exportSpecifier(
-                t.identifier('__hmr_default__'),
-                t.identifier('default'),
-              ),
-            ]),
+            exportDefault,
           ]);
         } else {
-          // Anonymous expression (template-only component, arrow fn, etc.)
-          path.replaceWithMultiple([
+          // Anonymous expression (template-only component, arrow fn, etc.).
+          // An anonymous `class extends X {}` / `function () {}` is parsed as
+          // a declaration node and must be converted to an expression to be
+          // a valid initializer.
+          const init = isClassOrFunction
+            ? t.toExpression(declaration)
+            : (declaration as BabelTypesNamespace.Expression);
+          newPaths = path.replaceWithMultiple([
             t.variableDeclaration('const', [
-              t.variableDeclarator(
-                t.identifier('__hmr_default__'),
-                declaration as BabelTypesNamespace.Expression,
-              ),
+              t.variableDeclarator(t.identifier('__hmr_default__'), init),
             ]),
-            t.exportNamedDeclaration(null, [
-              t.exportSpecifier(
-                t.identifier('__hmr_default__'),
-                t.identifier('default'),
-              ),
-            ]),
+            exportDefault,
           ]);
+        }
+        // Register the new `__hmr_default__` binding so later plugins (e.g.
+        // @babel/plugin-transform-typescript) can resolve the export.
+        for (const newPath of newPaths) {
+          if (newPath.isVariableDeclaration()) {
+            newPath.scope.registerDeclaration(newPath);
+          }
         }
       },
       Program(path, state) {
