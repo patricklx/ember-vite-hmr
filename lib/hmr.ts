@@ -12,6 +12,12 @@ const __dirname = path.dirname(__filename);
 // internal literal (not a public export), so we mirror the string here.
 const compatModulesSpecifier = '@embroider/virtual/compat-modules';
 
+// Matches the `const __hmr_default__ = <expr>;` binding lib/babel-plugin.ts's
+// ExportDefaultDeclaration visitor emits. This plugin runs `enforce: 'post'`,
+// i.e. on babel's output, so its presence tells us the module really has a
+// rewritten default export for the appended self-accept code to reference.
+const hmrDefaultDeclaration = /\b(?:const|let|var)\s+__hmr_default__\b/;
+
 export const hmrRuntimeId = 'virtual:ember-vite-hmr-runtime';
 const resolvedRuntimeId = '\0' + hmrRuntimeId;
 
@@ -528,7 +534,18 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin[]
           resourcePath.endsWith('.gts') ||
           ((resourcePath.endsWith('.ts') || resourcePath.endsWith('.js')) &&
             resourcePath.includes('/components/'));
-        if (isComponentFile && !importVar) {
+        // Only when babel actually declared `__hmr_default__`: a component
+        // file with no default export (only named exports, or an empty file
+        // read mid-save while an editor/`writeFile` has truncated it but not
+        // yet written the new content) would otherwise throw
+        // "__hmr_default__ is not defined" from the async block below as an
+        // unhandled rejection. Such a module just falls back to Vite's normal
+        // propagation to its importers.
+        if (
+          isComponentFile &&
+          !importVar &&
+          hmrDefaultDeclaration.test(source)
+        ) {
           // Self-accept with a callback that updates the tracked-cell registry
           // so Glimmer re-renders and swaps in the new class. This handles
           // edits to the component's own class (new method, changed @tracked

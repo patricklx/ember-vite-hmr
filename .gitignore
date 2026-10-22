@@ -28,6 +28,7 @@
 !rollup.config.mjs
 !tsconfig.json
 !tsconfig.lib.json
+!vitest.config.ts
 !webpack.js
 !babel.config.lib.json
 !babel.config.ember.json
