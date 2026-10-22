@@ -40,7 +40,7 @@
     "ember-resources": "^7.1.0",
     "ember-source": "~7.1.0",
     "ember-vite-hmr": "workspace:*",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^8.1.6"
   },
   "engines": {
