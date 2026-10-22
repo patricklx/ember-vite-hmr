@@ -1,6 +1,6 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Plugin, ViteDevServer } from 'vite';
+import { ModuleNode, Plugin, ViteDevServer } from 'vite';
 import { readFile } from 'fs/promises';
 import { hmrImportMetadataCache } from './babel-plugin.js';
 
@@ -254,7 +254,7 @@ export function hmr(enableViteHmrForModes: string[] = ['development']): Plugin[]
     },
     handleHotUpdate(ctx) {
       const file = ctx.file.split('?')[0]!;
-      const otherModules = [];
+      const otherModules: ModuleNode[] = [];
 
       // ── .hbs pair-component wiring (unchanged) ───────────────────────────
       if (file.endsWith('.hbs')) {

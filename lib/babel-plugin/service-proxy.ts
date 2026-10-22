@@ -46,7 +46,7 @@ export function transformServiceExport(
     if (binding && binding.path.isClassDeclaration()) {
       classDeclaration = binding.path
         .node as BabelTypesNamespace.ClassDeclaration;
-      classIdentifier = classDeclaration.id;
+      classIdentifier = classDeclaration.id ?? null;
       classPath =
         binding.path as Babel.NodePath<BabelTypesNamespace.ClassDeclaration>;
     }
