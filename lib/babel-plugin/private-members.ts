@@ -237,23 +237,25 @@ export function renamePrivateClassMembers(
   // function did -- left such references as native `#foo` PrivateNames
   // while the outer declaration was renamed to a Symbol, producing invalid
   // output ("Private field must be declared in an enclosing class").
-  classPath.traverse({
-    'MemberExpression|OptionalMemberExpression'(
-      path: Babel.NodePath<
-        | BabelTypesNamespace.MemberExpression
-        | BabelTypesNamespace.OptionalMemberExpression
-      >,
+  const rewriteMemberReference = (
+    path: Babel.NodePath<
+      | BabelTypesNamespace.MemberExpression
+      | BabelTypesNamespace.OptionalMemberExpression
+    >,
+  ) => {
+    const property = path.node.property;
+    if (
+      t.isPrivateName(property) &&
+      renamedNames.has(property.id.name) &&
+      referenceBelongsToOuterClass(path, property.id.name)
     ) {
-      const property = path.node.property;
-      if (
-        t.isPrivateName(property) &&
-        renamedNames.has(property.id.name) &&
-        referenceBelongsToOuterClass(path, property.id.name)
-      ) {
-        path.node.property = t.identifier(getNewName(property.id.name));
-        path.node.computed = false;
-      }
-    },
+      path.node.property = t.identifier(getNewName(property.id.name));
+      path.node.computed = false;
+    }
+  };
+  classPath.traverse({
+    MemberExpression: rewriteMemberReference,
+    OptionalMemberExpression: rewriteMemberReference,
     BinaryExpression(
       path: Babel.NodePath<BabelTypesNamespace.BinaryExpression>,
     ) {
