@@ -32,7 +32,7 @@
     "babel-plugin-ember-template-compilation": "^4.0.0",
     "decorator-transforms": "^2.4.0",
     "ember-cli": "~7.0.0",
-    "ember-cli-babel": "^8.3.1",
+    "ember-cli-babel": "^8.3.2",
     "ember-cli-deprecation-workflow": "^4.0.1",
     "ember-load-initializers": "^3.0.1",
     "ember-page-title": "^9.0.3",
