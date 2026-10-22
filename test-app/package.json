@@ -27,7 +27,7 @@
     "@embroider/vite": "^1.7.15",
     "@glimmer/component": "^2.1.1",
     "@glint/ember-tsc": "^1.11.4",
-    "@glint/template": "^1.7.10",
+    "@glint/template": "^1.9.0",
     "@rollup/plugin-babel": "^7.0.0",
     "babel-plugin-ember-template-compilation": "^4.0.0",
     "decorator-transforms": "^2.4.0",
