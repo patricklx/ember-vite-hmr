@@ -2,8 +2,8 @@
   "solution": {
     "ember-vite-hmr": {
       "impact": "minor",
-      "oldVersion": "2.3.0",
-      "newVersion": "2.4.0",
+      "oldVersion": "2.6.0",
+      "newVersion": "2.7.0",
       "tagName": "latest",
       "constraints": [
         {
@@ -13,10 +13,14 @@
         {
           "impact": "patch",
           "reason": "Appears in changelog section :bug: Bug Fix"
+        },
+        {
+          "impact": "patch",
+          "reason": "Appears in changelog section :house: Internal"
         }
       ],
       "pkgJSONPath": "./package.json"
     }
   },
-  "description": "## Release (2026-09-18)\n\n* ember-vite-hmr 2.4.0 (minor)\n\n#### :rocket: Enhancement\n* `ember-vite-hmr`\n  * [#565](https://github.com/patricklx/ember-vite-hmr/pull/565) Share babel-computed HMR import metadata with hmr.ts instead of re-parsing ([@patricklx](https://github.com/patricklx))\n  * [#566](https://github.com/patricklx/ember-vite-hmr/pull/566) Walk the extends chain for named-block detection on inherited-template components ([@patricklx](https://github.com/patricklx))\n\n#### :bug: Bug Fix\n* `ember-vite-hmr`\n  * [#561](https://github.com/patricklx/ember-vite-hmr/pull/561) Fix service HMR proxy binding own-property functions ([@patricklx](https://github.com/patricklx))\n  * [#559](https://github.com/patricklx/ember-vite-hmr/pull/559) Fix \"associate a destroyable child\" crashes on HMR-destroyed components (#557, #563) ([@patricklx](https://github.com/patricklx))\n  * [#558](https://github.com/patricklx/ember-vite-hmr/pull/558) Curry the latest accepted class for instances created after an update ([@emattias](https://github.com/emattias))\n\n#### Committers: 2\n- Mattias Hällkvist ([@emattias](https://github.com/emattias))\n- Patrick Pircher ([@patricklx](https://github.com/patricklx))\n"
+  "description": "## Release (2026-10-09)\n\n* ember-vite-hmr 2.7.0 (minor)\n\n#### :rocket: Enhancement\n* `ember-vite-hmr`\n  * [#568](https://github.com/patricklx/ember-vite-hmr/pull/568) Replace virtual proxy wrapper with self-accepting tracked-cell registry ([@patricklx](https://github.com/patricklx))\n\n#### :bug: Bug Fix\n* `ember-vite-hmr`\n  * [#571](https://github.com/patricklx/ember-vite-hmr/pull/571) syncState fixups: eager instance eviction + scope-granularity cleanup ([@patricklx](https://github.com/patricklx))\n  * [#569](https://github.com/patricklx/ember-vite-hmr/pull/569) syncState + subclass HMR propagation for self-accepting component registry ([@patricklx](https://github.com/patricklx))\n\n#### :house: Internal\n* `ember-vite-hmr`\n  * [#570](https://github.com/patricklx/ember-vite-hmr/pull/570) Prepare Release v2.6.0 ([@github-actions[bot]](https://github.com/apps/github-actions))\n  * [#567](https://github.com/patricklx/ember-vite-hmr/pull/567) Prepare Release v2.5.0 ([@github-actions[bot]](https://github.com/apps/github-actions))\n\n#### Committers: 2\n- GitHub Actions [Bot] ([@github-actions](https://github.com/apps/github-actions))\n- Patrick Pircher ([@patricklx](https://github.com/patricklx))\n"
 }

@@ -46,12 +46,6 @@ describe('test-app: named blocks survive HMR for a component with an inherited t
   }, 30_000);
 
   test('a named block added to the ancestor after the fact propagates without a full reload', async () => {
-    // BlockChild's virtual HMR wrapper caches its detected named blocks
-    // under the ancestor's (BlockBase's) resolved file id, not its own --
-    // this is exactly the code path the fix touches (see
-    // `resolveYieldSource` in lib/hmr.ts). Editing BlockBase on disk and
-    // polling for the newly-added block to appear (rather than reloading
-    // the page) is what exercises that cache invalidation.
     const basePath = resolve('test-app/app/components/block-base.gts');
     const original = readFileSync(basePath, 'utf8');
 
