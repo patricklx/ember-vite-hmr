@@ -1,5 +1,16 @@
 # ember-vite-hmr Changelog
 
+## Release (2026-10-22)
+
+* ember-vite-hmr 2.7.1 (patch)
+
+#### :bug: Bug Fix
+* `ember-vite-hmr`
+  * [#576](https://github.com/patricklx/ember-vite-hmr/pull/576) fix(babel-plugin): support anonymous class/function default exports ([@patricklx](https://github.com/patricklx))
+
+#### Committers: 1
+- Patrick Pircher ([@patricklx](https://github.com/patricklx))
+
 ## Release (2026-10-09)
 
 * ember-vite-hmr 2.7.0 (minor)
