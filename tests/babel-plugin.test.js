@@ -154,7 +154,9 @@ describe('convert template with hot reload helpers', () => {
     expect(resultWired.code).toContain('createTemplateFactory(');
     expect(resultWired.code).toContain('export const __hmr_import_metadata__');
     expect(resultWired.code).toContain('importVar: "template__imports__"');
-    expect(resultWired.code).toContain('bindings: ["NamedComponent", "SomeComponent", "myhelper"]');
+    expect(resultWired.code).toContain(
+      'bindings: ["NamedComponent", "SomeComponent", "myhelper"]',
+    );
   });
 
   it('shares the computed import metadata with lib/hmr.ts via hmrImportMetadataCache', async () => {
@@ -411,9 +413,72 @@ export { CarbonCodeSnippet as default };
     // Some Babel versions return empty here — skip assertions in that case.
     if (resultWired?.code) {
       expect(resultWired.code).toContain('let template__imports__');
-      expect(resultWired.code).toContain('export const __hmr_import_metadata__');
+      expect(resultWired.code).toContain(
+        'export const __hmr_import_metadata__',
+      );
       expect(resultWired.code).toContain('importVar: "template__imports__"');
-      expect(resultWired.code).toContain('bindings: ["NamedComponent", "Other", "SomeComponent", "myhelper"]');
+      expect(resultWired.code).toContain(
+        'bindings: ["NamedComponent", "Other", "SomeComponent", "myhelper"]',
+      );
     }
+  });
+});
+
+describe('default export rewrite', () => {
+  const transform = (code, filename = '/rewritten-app/components/a.ts') => {
+    const warnings = [];
+    const originalWarn = console.warn;
+    console.warn = (...args) => warnings.push(args.join(' '));
+    try {
+      const result = babel.transformSync(code, {
+        filename,
+        babelrc: false,
+        configFile: false,
+        plugins: [plugin, '@babel/plugin-transform-typescript'],
+      });
+      return { code: result.code, warnings };
+    } finally {
+      console.warn = originalWarn;
+    }
+  };
+
+  it('converts an anonymous class default export to an expression', () => {
+    const { code, warnings } = transform(`
+      import Component from '@glimmer/component';
+      export default class extends Component {}
+    `);
+    expect(code).toContain(
+      'const __hmr_default__ = class extends Component {};',
+    );
+    expect(code).toContain('export { __hmr_default__ as default };');
+    expect(warnings).toEqual([]);
+  });
+
+  it('converts an anonymous function default export to an expression', () => {
+    const { code, warnings } = transform(`
+      export default function () { return 1; }
+    `);
+    expect(code).toMatch(/const __hmr_default__ = function \(\) \{/);
+    expect(code).toContain('export { __hmr_default__ as default };');
+    expect(warnings).toEqual([]);
+  });
+
+  it('aliases a named class default export', () => {
+    const { code, warnings } = transform(`
+      import Component from '@glimmer/component';
+      export default class Foo extends Component {}
+    `);
+    expect(code).toContain('class Foo extends Component {}');
+    expect(code).toContain('const __hmr_default__ = Foo;');
+    expect(code).toContain('export { __hmr_default__ as default };');
+    expect(warnings).toEqual([]);
+  });
+
+  it('does not trigger the typescript scope tracker warning', () => {
+    const { warnings } = transform(`
+      const x: number = 1;
+      export default x;
+    `);
+    expect(warnings).toEqual([]);
   });
 });
