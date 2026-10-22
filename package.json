@@ -1,6 +1,6 @@
 {
   "name": "ember-vite-hmr",
-  "version": "2.4.0",
+  "version": "2.7.0",
   "private": false,
   "description": "provides hmr support for ember apps",
   "keywords": [
@@ -75,8 +75,8 @@
     "@babel/plugin-syntax-decorators": "^7.29.7",
     "@babel/plugin-transform-class-static-block": "^7.28.6",
     "@babel/runtime": "^7.28.4",
-    "@embroider/addon-dev": "^8.3.0",
-    "@embroider/compat": "^4.1.20",
+    "@embroider/addon-dev": "^8.4.2",
+    "@embroider/compat": "^4.1.21",
     "@embroider/core": "^4.6.2",
     "@eslint/js": "^9.39.4",
     "@glimmer/component": "^2.0.0",
@@ -116,7 +116,7 @@
     "fs-extra": "^11.4.0",
     "globals": "^17.7.0",
     "playwright-chromium": "^1.59.1",
-    "prettier": "^3.8.4",
+    "prettier": "^3.9.6",
     "prettier-plugin-ember-template-tag": "^2.1.7",
     "puppeteer-chromium-resolver": "^24.0.2",
     "release-plan": "^0.20.0",
@@ -128,8 +128,8 @@
     "terser": "^5.49.0",
     "thread-loader": "^4.0.2",
     "typescript": "^5.9.3",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.10"
+    "vite": "^8.1.6",
+    "vitest": "^5.0.0"
   },
   "peerDependencies": {
     "@embroider/compat": "*",

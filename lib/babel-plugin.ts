@@ -77,6 +77,68 @@ export default function hotReplaceAst(babel: typeof Babel): PluginObj {
           return;
         }
         transformServiceExport(babel, path, state);
+        // For every non-service default export, rewrite:
+        //   export default <expr>
+        // into:
+        //   const __hmr_default__ = <expr>;
+        //   export { __hmr_default__ as default };
+        //
+        // This gives lib/hmr.ts's appended HMR code a stable local variable
+        // name to pass to register()/update()/used() regardless of whether
+        // the export is a named class, an anonymous expression, or a compiled
+        // template. Services are excluded because they are already rewritten
+        // by transformServiceExport above with their own proxy mechanism.
+        const normalizedFilename = state.filename?.replace(/\\/g, '/');
+        if (normalizedFilename?.includes('/services/')) {
+          return;
+        }
+        const t = babel.types;
+        const declaration = path.node.declaration;
+        const exportDefault = t.exportNamedDeclaration(null, [
+          t.exportSpecifier(
+            t.identifier('__hmr_default__'),
+            t.identifier('default'),
+          ),
+        ]);
+        const isClassOrFunction =
+          declaration.type === 'ClassDeclaration' ||
+          declaration.type === 'FunctionDeclaration';
+        let newPaths: Babel.NodePath[];
+        if (isClassOrFunction && declaration.id) {
+          // A named class/function becomes a declaration statement in its own
+          // right — just alias the identifier.
+          newPaths = path.replaceWithMultiple([
+            declaration,
+            t.variableDeclaration('const', [
+              t.variableDeclarator(
+                t.identifier('__hmr_default__'),
+                t.identifier(declaration.id.name),
+              ),
+            ]),
+            exportDefault,
+          ]);
+        } else {
+          // Anonymous expression (template-only component, arrow fn, etc.).
+          // An anonymous `class extends X {}` / `function () {}` is parsed as
+          // a declaration node and must be converted to an expression to be
+          // a valid initializer.
+          const init = isClassOrFunction
+            ? t.toExpression(declaration)
+            : (declaration as BabelTypesNamespace.Expression);
+          newPaths = path.replaceWithMultiple([
+            t.variableDeclaration('const', [
+              t.variableDeclarator(t.identifier('__hmr_default__'), init),
+            ]),
+            exportDefault,
+          ]);
+        }
+        // Register the new `__hmr_default__` binding so later plugins (e.g.
+        // @babel/plugin-transform-typescript) can resolve the export.
+        for (const newPath of newPaths) {
+          if (newPath.isVariableDeclaration()) {
+            newPath.scope.registerDeclaration(newPath);
+          }
+        }
       },
       Program(path, state) {
         if (process.env.EMBER_VITE_HMR_ENABLED !== 'true') {
